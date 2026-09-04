@@ -553,3 +553,70 @@ export async function logoutFirebaseUser(): Promise<void> {
   }
 }
 
+/**
+ * Save / update user profile data in Firestore and local caches
+ */
+export async function saveUserProfileToFirestore(
+  identifierOrUid: string,
+  updatedData: Partial<FirestoreUserData>
+): Promise<void> {
+  if (!identifierOrUid) return;
+
+  const updatePayload = {
+    ...updatedData,
+    updatedAt: new Date().toISOString()
+  };
+
+  // 1. If it's a direct UID or phone/email identifier
+  try {
+    // Try updating directly by doc ID
+    const userRef = doc(db, 'users', identifierOrUid);
+    await setDoc(userRef, updatePayload, { merge: true });
+  } catch (err) {
+    console.warn('Direct Firestore setDoc notice:', err);
+  }
+
+  // 2. Also search by email or phone if identifierOrUid might be an email/phone
+  if (identifierOrUid.includes('@') || /^\d+$/.test(identifierOrUid.replace(/\D/g, ''))) {
+    try {
+      const usersRef = collection(db, 'users');
+      const isEmail = identifierOrUid.includes('@');
+      const field = isEmail ? 'email' : 'phone';
+      const cleanVal = isEmail ? identifierOrUid.trim().toLowerCase() : identifierOrUid.trim();
+
+      const q = query(usersRef, where(field, '==', cleanVal));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        for (const docSnap of querySnapshot.docs) {
+          await setDoc(doc(db, 'users', docSnap.id), updatePayload, { merge: true });
+        }
+      }
+    } catch (err) {
+      console.warn('Query update in Firestore notice:', err);
+    }
+  }
+
+  // 3. Update localStorage caches
+  try {
+    const askioUserStr = localStorage.getItem('askio_user');
+    if (askioUserStr) {
+      const current = JSON.parse(askioUserStr);
+      const merged = { ...current, ...updatedData };
+      localStorage.setItem('askio_user', JSON.stringify(merged));
+      if (merged.email) {
+        localStorage.setItem(`askio_user_by_email_${merged.email.toLowerCase()}`, JSON.stringify(merged));
+      }
+      if (merged.phone) {
+        localStorage.setItem(`askio_user_by_phone_${merged.phone}`, JSON.stringify(merged));
+      }
+      if (merged.uid) {
+        localStorage.setItem(`askio_user_${merged.uid}`, JSON.stringify(merged));
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+

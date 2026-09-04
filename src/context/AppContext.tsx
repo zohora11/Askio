@@ -17,6 +17,7 @@ import {
   INITIAL_ACTIVITIES, 
   TRENDING_SEARCHES 
 } from '../data/mockData';
+import { saveUserProfileToFirestore, findUserByPhoneOrEmail } from '../services/firebase';
 
 interface UndoState {
   item: NotificationItem;
@@ -169,6 +170,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem('askio_user', JSON.stringify(user));
   }, [user]);
+
+  // Sync user profile (including avatar) from Firestore whenever user logs in or on mount
+  useEffect(() => {
+    const syncUserProfile = async () => {
+      const identifier = user.email || user.phone;
+      if (!identifier) return;
+      try {
+        const fsUser = await findUserByPhoneOrEmail(identifier);
+        if (fsUser && fsUser.avatar && fsUser.avatar !== user.avatar) {
+          setUser(prev => ({
+            ...prev,
+            avatar: fsUser.avatar || prev.avatar,
+            fullName: fsUser.fullName || prev.fullName,
+            email: fsUser.email || prev.email,
+            phone: fsUser.phone || prev.phone
+          }));
+        }
+      } catch (err) {
+        console.warn('Sync profile notice:', err);
+      }
+    };
+    if (user.isLoggedIn) {
+      syncUserProfile();
+    }
+  }, [user.isLoggedIn, user.email, user.phone]);
 
   // Auth modal state
   const [isAuthModalOpen, setAuthModalOpen] = useState<boolean>(false);
@@ -325,7 +351,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // User Profile
   const updateProfile = (updated: Partial<UserProfile>) => {
-    setUser(prev => ({ ...prev, ...updated }));
+    setUser(prev => {
+      const next = { ...prev, ...updated };
+      // Save to Firestore asynchronously
+      const identifier = next.email || next.phone;
+      if (identifier) {
+        saveUserProfileToFirestore(identifier, {
+          fullName: next.fullName,
+          email: next.email,
+          phone: next.phone,
+          avatar: next.avatar
+        }).catch(err => console.warn('Save to Firestore error:', err));
+      }
+      return next;
+    });
     addActivity('bookmark', `Updated profile information`);
   };
 
