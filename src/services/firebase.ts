@@ -23,6 +23,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
+import { saveDeviceTrustForPhone } from './deviceTrust';
 
 // Initialize Firebase App
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -125,12 +126,13 @@ export async function registerFirebaseUser(params: {
     console.warn('Firestore user profile write warning:', err);
   }
 
-  // Cache in localStorage for seamless recovery
+  // Cache in localStorage & save device trust for seamless recovery on this device
   try {
     localStorage.setItem(`askio_user_${uid}`, JSON.stringify(userData));
     localStorage.setItem(`askio_user_by_email_${cleanEmail}`, JSON.stringify(userData));
     if (cleanPhone) {
       localStorage.setItem(`askio_user_by_phone_${cleanPhone}`, JSON.stringify(userData));
+      saveDeviceTrustForPhone(cleanPhone, userData);
     }
   } catch (e) {
     // ignore local storage err

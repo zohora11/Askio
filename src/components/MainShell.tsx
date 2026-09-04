@@ -10,7 +10,6 @@ import {
   User, 
   Bell, 
   Globe, 
-  Crown, 
   Settings, 
   Bot, 
   Plus,
@@ -33,6 +32,7 @@ import { AuthModal } from './AuthModal';
 import { AppLogo } from './AppLogo';
 import { ChatbotAvatar } from './ChatbotAvatar';
 import { SubscriptionModal } from './SubscriptionModal';
+import { DailyWellnessModal } from './DailyWellnessModal';
 import { t } from '../constants/translations';
 
 interface MainShellProps {
@@ -66,7 +66,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
     { id: 'search', label: t('nav.search', language), icon: Search },
     { id: 'ai', label: t('nav.ai', language), icon: Sparkles },
     { id: 'goals', label: t('nav.goals', language), icon: Target },
-    { id: 'health', label: t('nav.health', language), icon: HeartPulse },
+    { id: 'health', label: t('nav.health', language), icon: Compass },
     { id: 'library', label: t('nav.library', language), icon: Bookmark },
     { id: 'profile', label: t('nav.profile', language), icon: User },
   ];
@@ -80,7 +80,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
           <AppLogo 
             id="brand-logo"
             onClick={() => setActiveTab('home')}
-            subtitle={language === 'bn' ? 'এআই জ্ঞান ও স্বাস্থ্য' : 'AI Knowledge'}
+            subtitle={language === 'bn' ? 'সার্চ ও এআই ইঞ্জিন' : 'AI Search Engine'}
             imgClassName="h-9 w-auto"
           />
         </div>
@@ -109,16 +109,6 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
               <span className="hidden sm:inline">{t('nav.landing', language)}</span>
             </button>
           )}
-
-          {/* Micro-subscription badge */}
-          <button
-            id="appbar-subscription-btn"
-            onClick={() => setSubscriptionModalOpen(true)}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs font-bold hover:bg-amber-100 dark:hover:bg-amber-900/60 hover:text-amber-900 dark:hover:text-amber-200 transition-colors shadow-2xs cursor-pointer"
-          >
-            <Crown className="w-3.5 h-3.5 text-amber-500" />
-            <span>{t('nav.subscribe_badge', language)}</span>
-          </button>
 
           {/* Theme Toggle (Light / Dark Mode) */}
           <button
@@ -204,42 +194,6 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
           })}
 
           <div className="pt-6 mt-6 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
-            <div className="px-3 py-1 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 font-semibold">
-              <span>{language === 'bn' ? 'থিম ও ভাষা' : 'Theme & Language'}</span>
-            </div>
-            
-            {/* Quick Theme Switcher Pill in Sidebar */}
-            <div className="flex items-center gap-1.5 p-1 bg-zinc-200/60 dark:bg-zinc-800/80 rounded-2xl border border-zinc-200 dark:border-zinc-700/60">
-              <button
-                type="button"
-                id="sidebar-theme-light-btn"
-                onClick={() => setTheme('light')}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  theme === 'light'
-                    ? 'bg-white text-amber-600 shadow-xs'
-                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-                }`}
-                title="Light Mode"
-              >
-                <Sun className="w-3.5 h-3.5" />
-                <span>{language === 'bn' ? 'লাইট' : 'Light'}</span>
-              </button>
-              <button
-                type="button"
-                id="sidebar-theme-dark-btn"
-                onClick={() => setTheme('dark')}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  theme === 'dark'
-                    ? 'bg-zinc-900 text-emerald-400 shadow-xs'
-                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-                }`}
-                title="Dark Mode"
-              >
-                <Moon className="w-3.5 h-3.5" />
-                <span>{language === 'bn' ? 'ডার্ক' : 'Dark'}</span>
-              </button>
-            </div>
-
             <button
               id="desktop-nav-settings"
               onClick={() => setActiveTab('settings')}
@@ -263,23 +217,6 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
                 <span>{t('nav.landing', language)}</span>
               </button>
             )}
-          </div>
-
-          {/* Micro-Subscription Banner in Desktop Rail */}
-          <div className="mt-6 p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-emerald-50 dark:from-zinc-900 dark:to-zinc-800 border border-amber-200 dark:border-amber-900/60 shadow-2xs">
-            <div className="flex items-center gap-2 mb-1 text-amber-700 dark:text-amber-400 font-bold text-xs">
-              <Crown className="w-3.5 h-3.5" />
-              <span>{language === 'bn' ? 'Askio মাইক্রো-প্ল্যান' : 'Askio Micro-Plan'}</span>
-            </div>
-            <p className="text-[11px] text-zinc-600 dark:text-zinc-400 mb-2.5">
-              {language === 'bn' ? 'মাত্র ৳২ / দিনে আনলিমিটেড এআই পরামর্শ ও গাইড নিন।' : 'Get unlimited AI guidance for only ৳2 / day.'}
-            </p>
-            <button
-              onClick={() => setSubscriptionModalOpen(true)}
-              className="w-full py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs transition-colors shadow-xs"
-            >
-              {language === 'bn' ? 'সাবস্ক্রাইব ৳২' : 'Subscribe ৳2'}
-            </button>
           </div>
         </aside>
 
@@ -363,6 +300,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
       <ResourceDetailModal />
       <AuthModal />
       <SubscriptionModal />
+      <DailyWellnessModal />
     </div>
   );
 };

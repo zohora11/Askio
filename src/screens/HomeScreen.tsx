@@ -4,19 +4,22 @@ import {
   Sparkles, 
   Search, 
   ArrowRight, 
-  HeartPulse, 
+  BookOpen, 
   Target, 
   Zap, 
   CheckCircle, 
-  Crown, 
   TrendingUp, 
   Clock, 
   ChevronRight,
-  Eye,
-  Flame
+  FileText,
+  Video,
+  Flame,
+  Globe,
+  Compass,
+  HeartPulse
 } from 'lucide-react';
 import { ResourceCard } from '../components/ResourceCard';
-import { MOCK_RESOURCES, WELLNESS_TIPS, CATEGORIES_DATA } from '../data/mockData';
+import { MOCK_RESOURCES, FEATURED_SPOTLIGHTS, CATEGORIES_DATA } from '../data/mockData';
 import { ChatbotAvatar } from '../components/ChatbotAvatar';
 import { t, CATEGORY_TRANSLATIONS } from '../constants/translations';
 
@@ -26,12 +29,13 @@ export const HomeScreen: React.FC = () => {
     setActiveTab, 
     setSearchQuery, 
     goals, 
-    setSubscriptionModalOpen,
     sendChatMessage,
-    language
+    language,
+    setWellnessModalOpen
   } = useApp();
 
-  const dailyTip = WELLNESS_TIPS[0]; // 20-20-20 Rule
+  const isBn = language === 'bn';
+  const spotlight = FEATURED_SPOTLIGHTS[0];
   const featuredResources = MOCK_RESOURCES.slice(0, 4);
 
   const handleQuickSearch = (query: string) => {
@@ -67,21 +71,21 @@ export const HomeScreen: React.FC = () => {
           {/* Prompt quick actions */}
           <div className="flex flex-wrap gap-2 mt-5">
             <button
-              onClick={() => handleQuickAiPrompt(language === 'bn' ? 'স্ক্রিনের চাপ কমাতে ২ মিনিটের একটি সহজ চোখের ব্যায়াম শেখাও।' : 'Can you guide me through a 2-minute eye exercise routine to relieve screen strain?')}
+              onClick={() => handleQuickSearch('PDF books')}
               className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium backdrop-blur-md transition-colors flex items-center gap-1.5"
             >
-              <Eye className="w-3.5 h-3.5 text-emerald-400" />
+              <FileText className="w-3.5 h-3.5 text-blue-400" />
               <span>{t('home.quick_eye', language)}</span>
             </button>
             <button
-              onClick={() => handleQuickAiPrompt(language === 'bn' ? 'অপটোমেট্রিস্ট নাকি অফথালমোলজিস্ট — কার কাছে কখন যাওয়া উচিত?' : 'How do I choose between an optometrist and ophthalmologist?')}
+              onClick={() => handleQuickSearch('Video Tutorials')}
               className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium backdrop-blur-md transition-colors flex items-center gap-1.5"
             >
-              <HeartPulse className="w-3.5 h-3.5 text-rose-400" />
+              <Video className="w-3.5 h-3.5 text-rose-400" />
               <span>{t('home.quick_specialist', language)}</span>
             </button>
             <button
-              onClick={() => handleQuickAiPrompt(language === 'bn' ? 'আমার জন্য ১৪ দিনের একটি ব্যক্তিগত ভিশন কেয়ার রুটিন তৈরি করে দাও।' : 'Book a personalized 14-day vision wellness guide')}
+              onClick={() => handleQuickAiPrompt(isBn ? 'যেকোনো বিষয় সম্পর্কে আমাকে সংক্ষেপে সহজ বাংলায় গাইড দাও।' : 'Summarize the most important concepts on Machine Learning and React.')}
               className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium backdrop-blur-md transition-colors flex items-center gap-1.5"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -96,7 +100,7 @@ export const HomeScreen: React.FC = () => {
           <div 
             onClick={() => setActiveTab('ai')}
             className="cursor-pointer group flex flex-col items-center justify-center relative select-none"
-            title={language === 'bn' ? 'Askio এআই সহকারীর সাথে কথা বলুন' : 'Chat with Askio AI'}
+            title={isBn ? 'Askio এআই সহকারীর সাথে কথা বলুন' : 'Chat with Askio AI'}
           >
             {/* Ambient Radial Pulsing Aura */}
             <span className="absolute -inset-2 bg-gradient-to-tr from-emerald-500/40 via-teal-400/30 to-emerald-400/50 rounded-full blur-md group-hover:blur-lg opacity-80 group-hover:opacity-100 transition-all duration-500 animate-pulse pointer-events-none" />
@@ -110,7 +114,7 @@ export const HomeScreen: React.FC = () => {
             <div className="mt-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 backdrop-blur-md flex items-center gap-1 shadow-sm group-hover:bg-emerald-500/30 transition-colors">
               <Sparkles className="w-2.5 h-2.5 text-emerald-400" />
               <span className="text-[10px] text-emerald-300 font-bold tracking-wide">
-                {language === 'bn' ? 'আস্ক এআই' : 'Askio AI'}
+                {isBn ? 'আস্ক এআই' : 'Askio AI'}
               </span>
             </div>
           </div>
@@ -136,28 +140,75 @@ export const HomeScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Interactive Daily Wellness Tip Card (Featured on Home) */}
+      {/* Daily Wellness Tips Featured Card */}
       <div 
-        id="home-daily-wellness-card"
+        id="home-daily-wellness-tips-card"
+        onClick={() => setWellnessModalOpen(true)}
+        className="group relative bg-gradient-to-r from-teal-950/90 via-emerald-950/90 to-zinc-900 border-2 border-emerald-400/60 dark:border-emerald-500/50 rounded-3xl p-6 text-white shadow-xl hover:border-emerald-300 hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden"
+      >
+        {/* Subtle Background Glow */}
+        <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-emerald-500/20 blur-3xl group-hover:bg-emerald-500/30 transition-all pointer-events-none" />
+
+        <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform shrink-0">
+              <HeartPulse className="w-7 h-7 text-emerald-100 animate-pulse" />
+            </div>
+
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-extrabold text-[11px] uppercase tracking-wider mb-2">
+                <Sparkles className="w-3 h-3 text-amber-300" />
+                <span>{isBn ? 'আজকের ডেইলি ওয়েলনেস টিপস' : "Today's Daily Wellness Tip"}</span>
+              </div>
+
+              <h3 className="text-xl sm:text-2xl font-black text-white group-hover:text-emerald-200 transition-colors leading-tight">
+                {isBn ? '২০-২০-২০ আই কেয়ার রুল ও কম্পিউটার ভিশন রিলিফ' : '20-20-20 Eye Care Rule & Screen Fatigue Relief'}
+              </h3>
+
+              <p className="text-xs sm:text-sm text-zinc-300 mt-1.5 line-clamp-2 max-w-2xl leading-relaxed">
+                {isBn 
+                  ? 'দীর্ঘক্ষণ স্ক্রিনে তাকিয়ে কাজ করলে চোখের শুষ্কতা তৈরি হয়। প্রতি ২০ মিনিট পর ২০ ফুট দূরের যেকোনো বস্তুর দিকে অন্তত ২০ সেকেন্ড তাকিয়ে থাকুন।' 
+                  : 'Continuous screen time causes digital eye strain. Look at an object 20 feet away for 20 seconds every 20 minutes to relax your eyes.'}
+              </p>
+            </div>
+          </div>
+
+          <button
+            id="open-wellness-modal-home-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setWellnessModalOpen(true);
+            }}
+            className="w-full md:w-auto px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-black font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shrink-0 group-hover:scale-105 cursor-pointer"
+          >
+            <span>{isBn ? 'সম্পূর্ণ টিপস ও গাইড দেখুন' : 'View Full Tips & Guide'}</span>
+            <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+      </div>
+
+      {/* Featured Search Spotlight Card */}
+      <div 
+        id="home-search-spotlight-card"
         className="bg-gradient-to-br from-emerald-50 to-teal-50/40 dark:from-emerald-950/40 dark:to-zinc-900 border border-emerald-200 dark:border-emerald-900/60 rounded-3xl p-6 shadow-sm transition-all"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
-              <Eye className="w-5 h-5" />
+              <FileText className="w-5 h-5" />
             </div>
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                {t('home.daily_tip', language)} • {dailyTip.tag}
+                {t('home.daily_tip', language)} • {spotlight.tag}
               </span>
               <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                {language === 'bn' ? '২০-২০-২০ নিয়ম: চোখের স্ক্রিন চাপ দূরীকরণ' : dailyTip.title}
+                {isBn ? 'ফুল-স্ট্যাক ডেভেলপার রোডম্যাপ ২০২৬ (ফ্রি পিডিএফ)' : spotlight.title}
               </h3>
             </div>
           </div>
 
           <button
-            id="view-all-wellness-btn"
+            id="view-all-spotlights-btn"
             onClick={() => setActiveTab('health')}
             className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1 self-start sm:self-auto"
           >
@@ -167,15 +218,15 @@ export const HomeScreen: React.FC = () => {
         </div>
 
         <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed mb-4">
-          {language === 'bn' 
-            ? 'প্রতি ২০ মিনিট স্ক্রিনে কাজ করার পর, ২০ ফুট দূরের কোনো বস্তুর দিকে অন্তত ২০ সেকেন্ড তাকান। এটি সিলিয়ারি পেশীর টান কমায় এবং শুষ্ক চোখের সমস্যা দূর করে।'
-            : dailyTip.description}
+          {isBn 
+            ? 'রিঅ্যাক্ট, নেক্সট.জেএস, নোড.জেএস, ডাটাবেস ও এআই এপিআই ইন্টিগ্রেশন সম্পর্কিত স্টেপ-বাই-স্টেপ পূর্ণাঙ্গ ২০২৬ গাইড পিডিএফ ডাউনলোড করুন।'
+            : spotlight.description}
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-emerald-100 dark:border-emerald-900/40">
-          {(language === 'bn' 
-            ? ['প্রতি ২০ মিনিট পর টাইমার সেট করুন', '২০ ফুট দূরের কোনো বস্তুতে ফোকাস করুন']
-            : dailyTip.actionableSteps.slice(0, 2)
+          {(isBn 
+            ? ['জাভাস্ক্রিপ্ট ও টাইপস্ক্রিপ্ট ফান্ডামেন্টালস রিভিউ', 'এআই ও ক্লাউড রান ডেপ্লয়মেন্ট প্র্যাকটিস']
+            : spotlight.actionableSteps.slice(0, 2)
           ).map((step, idx) => (
             <div key={idx} className="flex items-start gap-2 text-xs text-zinc-700 dark:text-zinc-300">
               <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
@@ -186,13 +237,13 @@ export const HomeScreen: React.FC = () => {
 
         <div className="mt-4 pt-3 flex items-center justify-between">
           <span className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" /> {language === 'bn' ? '২০ সেকেন্ড প্রয়োজন' : '20 seconds needed'}
+            <Clock className="w-3.5 h-3.5" /> {isBn ? '১৫ মিনিট পড়া' : '15 mins read'}
           </span>
           <button
-            onClick={() => handleQuickAiPrompt(language === 'bn' ? '২০-২০-২০ নিয়ম অনুযায়ী চোখের একটি সহজ কাউন্টডাউন টাইমার শুরু করো।' : 'Can you start an audio/visual 20-20-20 countdown timer with eye roll cues?')}
+            onClick={() => handleQuickSearch('Full Stack Developer Roadmap')}
             className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-all"
           >
-            {language === 'bn' ? 'এখনই ২০ সেকেন্ড শুরু করুন' : 'Start 20s Exercise Now'}
+            {isBn ? 'পিডিএফ সার্চ ও ভিউ করুন' : 'Search & View PDF'}
           </button>
         </div>
       </div>
@@ -216,11 +267,11 @@ export const HomeScreen: React.FC = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {CATEGORIES_DATA.map((cat) => (
             <div
               key={cat.domain}
-              id={`category-card-${cat.domain}`}
+              id={`category-card-${cat.domain.replace(/\s+/g, '-')}`}
               onClick={() => handleQuickSearch(cat.domain)}
               className="p-3.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl hover:border-emerald-500 dark:hover:border-emerald-500 hover:shadow-sm transition-all cursor-pointer group flex flex-col justify-between"
             >
@@ -233,7 +284,7 @@ export const HomeScreen: React.FC = () => {
                 </h4>
               </div>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2">
-                {cat.solutionsCount} {language === 'bn' ? 'টি সমাধান' : 'solutions'}
+                {cat.solutionsCount} {isBn ? 'টি আইটেম' : 'items'}
               </p>
             </div>
           ))}
@@ -275,10 +326,10 @@ export const HomeScreen: React.FC = () => {
             </div>
             <div>
               <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100">
-                {language === 'bn' ? 'সক্রিয় শিখন লক্ষ্য ও মাইলফলক' : 'Active Learning Goals & Milestones'}
+                {isBn ? 'সক্রিয় শিখন লক্ষ্য ও স্টাডি গোল' : 'Active Learning Goals & Milestones'}
               </h3>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                {language === 'bn' ? 'মডিউল সমাপ্তির অগ্রগতি নিয়মিত রাখুন' : 'Keep up your momentum with structured module tracks'}
+                {isBn ? 'বই পড়া, ভিডিও টিউটোরিয়াল দেখা ও নোট করার ট্র্যাকিং' : 'Track your daily reading, video courses, and notes'}
               </p>
             </div>
           </div>
@@ -288,7 +339,7 @@ export const HomeScreen: React.FC = () => {
             onClick={() => setActiveTab('goals')}
             className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200 transition-colors"
           >
-            {language === 'bn' ? 'লক্ষ্যসমূহ পরিচালনা' : 'Manage Goals'}
+            {isBn ? 'লক্ষ্যসমূহ পরিচালনা' : 'Manage Goals'}
           </button>
         </div>
 
@@ -301,7 +352,7 @@ export const HomeScreen: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between text-xs mb-1.5">
                   <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                    {CATEGORY_TRANSLATIONS[language]?.[goal.category] || goal.category}
+                    {goal.category}
                   </span>
                   <span className="text-zinc-500 font-medium">{goal.progress}%</span>
                 </div>
@@ -319,42 +370,14 @@ export const HomeScreen: React.FC = () => {
               </div>
 
               <div className="flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200/50 dark:border-zinc-700/50">
-                <span>{goal.totalModules - goal.completedModules} {language === 'bn' ? 'মডিউল বাকি' : 'modules left'}</span>
+                <span>{goal.totalModules - goal.completedModules} {isBn ? 'টি টাস্ক বাকি' : 'tasks left'}</span>
                 <span className="font-medium text-amber-600 dark:text-amber-400">
-                  🔥 {goal.streakDays}{language === 'bn' ? ' দিনের স্ট্রিক' : 'd streak'}
+                  🔥 {goal.streakDays}{isBn ? ' দিনের স্ট্রিক' : 'd streak'}
                 </span>
               </div>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Askio Premium Micro-subscription Banner (৳2 / day) */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-transparent border-2 border-amber-300 dark:border-amber-700/60 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500 text-black flex items-center justify-center font-bold text-xl shrink-0 shadow-md">
-            <Crown className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] font-extrabold uppercase mb-1">
-              {language === 'bn' ? 'Askio মাইক্রো-প্ল্যান' : 'Askio Micro-Plan'}
-            </div>
-            <h4 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-              {language === 'bn' ? 'মাত্র ৳২ / দিনে আনলিমিটেড এআই পরামর্শ ও বিজ্ঞাপনমুক্ত কন্টেন্ট' : 'Unlimited AI Guidance & Ad-Free Content for just ৳2 / day'}
-            </h4>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400">
-              {language === 'bn' ? 'বিকাশ বা নগদের মাধ্যমে সহজে দৈনিক পেমেন্ট। ৪,০০০+ ক্লিনিক্যাল ভিশন ও স্টাডি গাইডের অ্যাক্সেস।' : 'Pay daily via bKash/Nagad. Instant access to all 4,000+ clinical eye and study blueprints.'}
-            </p>
-          </div>
-        </div>
-
-        <button
-          id="home-upgrade-btn"
-          onClick={() => setSubscriptionModalOpen(true)}
-          className="w-full sm:w-auto px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs tracking-wide transition-all shrink-0 shadow-md"
-        >
-          {user.isPremium ? (language === 'bn' ? 'সাবস্ক্রিপশন পরিচালনা' : 'Manage Subscription') : (language === 'bn' ? '৳২ / দিনে আপগ্রেড' : 'Upgrade for ৳2 / day')}
-        </button>
       </div>
     </div>
   );

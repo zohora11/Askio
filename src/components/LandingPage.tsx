@@ -64,6 +64,7 @@ import {
   markLocalSubscriber
 } from '../services/bdapps';
 import { findUserByPhone } from '../services/firebase';
+import { getTrustedDeviceUser } from '../services/deviceTrust';
 import { AppLogo } from './AppLogo';
 import { ChatbotAvatar } from './ChatbotAvatar';
 import { AppDocumentationModal } from './AppDocumentationModal';
@@ -292,13 +293,39 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       const cleanMobile = validation.cleaned;
       setPendingPhone(cleanMobile);
 
-      // Check if user has an existing account in Firebase Firestore
+      // 1. Check if THIS device is ALREADY TRUSTED for this phone number
+      const trustedUser = getTrustedDeviceUser(cleanMobile);
+      if (trustedUser) {
+        // Same device where password was saved previously -> Direct Login! No email/password needed!
+        markLocalSubscriber(cleanMobile);
+        storeSubscriberSession(cleanMobile);
+
+        updateProfile({
+          uid: trustedUser.uid || 'user_' + cleanMobile,
+          fullName: trustedUser.fullName || 'Askio Member',
+          email: trustedUser.email || '',
+          phone: cleanMobile,
+          isLoggedIn: true,
+          isPremium: true,
+          membershipPlan: trustedUser.membershipPlan || 'Daily Micro (৳2.78/day)'
+        });
+
+        setIsSubmitting(false);
+        setStatusMessage(isBn ? 'এই ডিভাইসে আপনার পাসওয়ার্ড সেভ করা আছে! সরাসরি অ্যাপে প্রবেশ করা হচ্ছে...' : 'Device recognized! Accessing app directly without password...');
+        setTimeout(() => {
+          setStatusMessage('');
+          if (onEnterApp) onEnterApp();
+        }, 600);
+        return;
+      }
+
+      // 2. Check if user has an existing account in Firebase Firestore
       const existingFirebaseUser = await findUserByPhone(cleanMobile);
 
       if (existingFirebaseUser && existingFirebaseUser.email) {
-        // Registered subscriber with account -> Open Password Login Modal
+        // Registered subscriber with account on another device -> Require Password & Email on this new device
         setIsSubmitting(false);
-        setStatusMessage(isBn ? 'আপনার সাবস্ক্রিপশন ও অ্যাকাউন্ট পাওয়া গেছে! পাসওয়ার্ড দিয়ে লগইন করুন।' : 'Account found! Please enter your password to sign in.');
+        setStatusMessage(isBn ? 'অন্য ডিভাইস সনাক্ত হয়েছে! অনুগ্রহ করে আপনার ইমেইল ও পাসওয়ার্ড দিয়ে ঢুকুন।' : 'New device detected! Please enter your email and password to sign in.');
         setTimeout(() => {
           setAuthView('firebase_login');
           setAuthModalOpen(true);
@@ -671,21 +698,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               {/* Header Badge */}
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
-                    <Crown className="w-4 h-4" />
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                    <Sparkles className="w-4 h-4" />
                   </div>
                   <div>
                     <h3 className="font-extrabold text-sm text-zinc-900 dark:text-zinc-100">
-                      BDApps Micro-Subscription
+                      {isBn ? 'Askio সার্চ ও এআই পোর্টাল' : 'Askio AI Search Engine'}
                     </h3>
                     <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                      Robi (018) & Cirkle (016) Direct Billing
+                      {isBn ? 'মোবাইল নম্বর দিয়ে সরাসরি প্রবেশ করুন' : 'Enter mobile number to sign in'}
                     </p>
                   </div>
                 </div>
 
                 <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold text-xs">
-                  ৳2.78 / Day
+                  {isBn ? 'সক্রিয় অনলাইন' : 'Online Engine'}
                 </span>
               </div>
 
@@ -710,7 +737,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5 flex items-center justify-between">
                     <span>{isBn ? 'মোবাইল নম্বর (রবি ০১৮ / সার্কেল ০১৬)' : 'Mobile Number (Robi / Cirkle)'}</span>
                     <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
-                      BDApps ৳2.78/day
+                      {isBn ? 'নিরাপদ প্রবেশ' : 'Secure Entry'}
                     </span>
                   </label>
                   <div className="relative flex items-center">
@@ -730,8 +757,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   </div>
                   <p className="text-[10px] text-zinc-400 mt-1.5">
                     {isBn 
-                      ? 'পূর্বে সাবস্ক্রাইব করা থাকলে সরাসরি প্রবেশ করবেন। নতুন নম্বরে আলাদা স্ক্রিনে ওটিপি পাঠানো হবে।' 
-                      : 'Existing subscribers enter directly. New numbers verify via a dedicated OTP screen.'}
+                      ? 'পূর্বে ব্যবহৃত ডিভাইসে সরাসরি প্রবেশ করবেন। নতুন ডিভাইসে ইমেইল/পাসওয়ার্ড বা ওটিপি প্রয়োজন হবে।' 
+                      : 'Recognized devices enter directly. New devices verify via email/password or OTP.'}
                   </p>
                 </div>
 
@@ -744,12 +771,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>{isBn ? 'যাচাই করা হচ্ছে...' : 'Verifying with BDApps...'}</span>
+                      <span>{isBn ? 'যাচাই করা হচ্ছে...' : 'Verifying...'}</span>
                     </>
                   ) : (
                     <>
                       <Zap className="w-4 h-4" />
-                      <span>{isBn ? 'নম্বর দিয়ে প্রবেশ করুন (৳২.৭৮/দিন)' : 'Enter with Mobile (৳2.78/day)'}</span>
+                      <span>{isBn ? 'অ্যাপে প্রবেশ করুন' : 'Enter Application'}</span>
                     </>
                   )}
                 </button>

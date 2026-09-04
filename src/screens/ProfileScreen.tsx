@@ -168,19 +168,10 @@ export const ProfileScreen: React.FC = () => {
                   {isBn ? 'সদস্য হয়েছেন' : 'Member since'} {user.joinedDate}
                 </span>
 
-                {user.isPremium ? (
-                  <span className="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[11px] font-bold flex items-center gap-1">
-                    <Crown className="w-3 h-3" />
-                    <span>{user.membershipPlan || 'Daily Micro (৳2.78/day)'}</span>
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => setSubscriptionModalOpen(true)}
-                    className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold hover:underline"
-                  >
-                    {isBn ? 'আপগ্রেড (৳২.৭৮/দিন)' : 'Upgrade (৳2.78/day)'}
-                  </button>
-                )}
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>{isBn ? 'সক্রিয় ব্যবহারকারী' : 'Active Member'}</span>
+                </span>
               </div>
             </div>
           </div>
@@ -347,87 +338,6 @@ export const ProfileScreen: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Subscription & Membership Management Card */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm">
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-          <div className="flex items-center gap-2.5">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold ${
-              user.isPremium 
-                ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400' 
-                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'
-            }`}>
-              <Crown className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-base text-zinc-900 dark:text-zinc-100">
-                {isBn ? 'সাবস্ক্রিপশন ও মেম্বারশিপ' : 'Subscription & Membership'}
-              </h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                BDApps Telco Micro-Billing & Member Status
-              </p>
-            </div>
-          </div>
-
-          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-            user.isPremium
-              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
-          }`}>
-            {user.isPremium ? (isBn ? 'সক্রিয় প্রিমিয়াম' : 'Active Premium') : (isBn ? 'ফ্রি টিয়ার' : 'Free Tier')}
-          </span>
-        </div>
-
-        {user.isPremium ? (
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 space-y-2 text-xs">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-zinc-500 dark:text-zinc-400">{isBn ? 'বর্তমান প্ল্যান:' : 'Current Plan:'}</span>
-                <span className="font-bold text-zinc-800 dark:text-zinc-200">{user.membershipPlan || 'Daily Micro (৳2.78/day)'}</span>
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-zinc-500 dark:text-zinc-400">{isBn ? 'সাবস্ক্রাইব করা নম্বর:' : 'Subscribed Phone (Carrier):'}</span>
-                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{user.phone} (Robi / Cirkle)</span>
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-zinc-500 dark:text-zinc-400">{isBn ? 'বিলিং মডেল:' : 'Billing Model:'}</span>
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                  {isBn ? 'প্রতিদিন মাত্র ৳২.৭৮ মোবাইল ব্যালেন্স থেকে অটো-ডিডাক্ট' : '৳2.78 / day auto-deducted from mobile balance'}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-              <p className="text-[11px] text-zinc-400">
-                {isBn ? 'যেকোনো সময় ১-ক্লিকে সাবস্ক্রিপশন বাতিল করতে পারেন।' : 'Cancel your daily telco plan anytime with 1 click.'}
-              </p>
-
-              <button
-                id="profile-unsubscribe-btn"
-                onClick={() => setIsUnsubscribeModalOpen(true)}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0"
-              >
-                <ShieldAlert className="w-4 h-4" />
-                <span>{isBn ? 'সাবস্ক্রিপশন বাতিল করুন' : 'Unsubscribe from Askio'}</span>
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              {isBn ? 'আপনি বর্তমানে ফ্রি টিয়ারে রয়েছেন।' : 'You are currently on the Free Tier.'}
-            </p>
-            <button
-              id="profile-upgrade-btn"
-              onClick={() => setSubscriptionModalOpen(true)}
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all flex items-center gap-2 shadow-sm"
-            >
-              <Crown className="w-4 h-4" />
-              <span>{isBn ? 'Askio প্রিমিয়াম চালু করুন (৳২.৭৮/দিন)' : 'Upgrade to Askio Premium (৳2.78/day)'}</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Account & Session Management Section */}

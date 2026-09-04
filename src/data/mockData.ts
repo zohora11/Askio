@@ -1,4 +1,4 @@
-import { Resource, WellnessTip, Goal, NotificationItem, CategoryDomain, ActivityLogItem } from '../types';
+import { Resource, KnowledgeSpotlight, Goal, NotificationItem, CategoryDomain, ActivityLogItem } from '../types';
 
 export interface CategoryInfo {
   domain: CategoryDomain;
@@ -12,578 +12,411 @@ export interface CategoryInfo {
 
 export const CATEGORIES_DATA: CategoryInfo[] = [
   {
-    domain: 'Health',
-    description: 'Vision care, wellness, preventive habits, and mental wellness.',
-    iconName: 'HeartPulse',
+    domain: 'Books & Literature',
+    description: 'Bestselling eBooks, classical literature, tech handbooks, and summaries.',
+    iconName: 'BookOpen',
     color: 'emerald',
-    solutionsCount: '14,200+',
-    guidesCount: '4,100+',
-    badge: 'Popular',
-  },
-  {
-    domain: 'Education',
-    description: 'STEM fundamentals, study blueprints, and cognitive memory techniques.',
-    iconName: 'GraduationCap',
-    color: 'blue',
-    solutionsCount: '18,500+',
-    guidesCount: '6,200+',
+    solutionsCount: '48,200+',
+    guidesCount: '12,100+',
     badge: 'Trending',
   },
   {
-    domain: 'Career',
-    description: 'Resume architecture, interview mastery, and leadership transition.',
-    iconName: 'Briefcase',
-    color: 'amber',
-    solutionsCount: '11,300+',
-    guidesCount: '3,800+',
-    badge: 'High Impact',
+    domain: 'PDFs & Research',
+    description: 'Downloadable PDF guides, scientific whitepapers, cheat sheets, and blueprints.',
+    iconName: 'FileText',
+    color: 'blue',
+    solutionsCount: '35,500+',
+    guidesCount: '9,400+',
+    badge: 'Verified PDFs',
   },
   {
-    domain: 'Technology',
-    description: 'AI tooling, full-stack systems, cloud architecture, and security.',
+    domain: 'Technology & AI',
+    description: 'Coding masterclasses, AI tools, full-stack frameworks, and cloud architecture.',
     iconName: 'Cpu',
     color: 'indigo',
-    solutionsCount: '22,400+',
-    guidesCount: '7,900+',
+    solutionsCount: '62,400+',
+    guidesCount: '18,900+',
     badge: 'Hot',
   },
   {
-    domain: 'Motivation',
-    description: 'Morning momentum, resilience frameworks, and inner focus triggers.',
-    iconName: 'Flame',
-    color: 'rose',
-    solutionsCount: '9,800+',
-    guidesCount: '2,900+',
-    badge: 'Daily',
-  },
-  {
-    domain: 'Productivity',
-    description: 'Timeboxing, deep work cycles, Notion workflows, and cognitive energy.',
-    iconName: 'Clock',
+    domain: 'Education & Science',
+    description: 'STEM fundamentals, physics, mathematics, university lecture notes, and guides.',
+    iconName: 'GraduationCap',
     color: 'cyan',
-    solutionsCount: '15,600+',
-    guidesCount: '5,100+',
+    solutionsCount: '28,600+',
+    guidesCount: '7,300+',
     badge: 'Essential',
   },
   {
-    domain: 'Self Improvement',
-    description: 'Habit loops, emotional intelligence, journaling, and self-mastery.',
-    iconName: 'Sparkles',
-    color: 'purple',
-    solutionsCount: '13,700+',
-    guidesCount: '4,400+',
-    badge: 'Transformative',
+    domain: 'Business & Career',
+    description: 'Startup playbooks, resume blueprints, management frameworks, and interview Q&As.',
+    iconName: 'Briefcase',
+    color: 'amber',
+    solutionsCount: '21,300+',
+    guidesCount: '6,800+',
+    badge: 'High Impact',
   },
   {
-    domain: 'Finance',
-    description: 'Budgeting, intelligent investments, tax literacy, and crypto safety.',
+    domain: 'Productivity & Tools',
+    description: 'Cheat sheets, timeboxing templates, Notion dashboards, and workflow hacks.',
+    iconName: 'Wrench',
+    color: 'purple',
+    solutionsCount: '19,800+',
+    guidesCount: '5,900+',
+    badge: 'Tools',
+  },
+  {
+    domain: 'Creative & Design',
+    description: 'UI/UX design systems, Figma kits, vector assets, and graphic design guides.',
+    iconName: 'Sparkles',
+    color: 'rose',
+    solutionsCount: '15,700+',
+    guidesCount: '4,200+',
+    badge: 'Creative',
+  },
+  {
+    domain: 'Finance & Economics',
+    description: 'Investment books, personal finance guides, market analysis, and wealth PDFs.',
     iconName: 'TrendingUp',
     color: 'teal',
-    solutionsCount: '10,900+',
-    guidesCount: '3,200+',
+    solutionsCount: '18,900+',
+    guidesCount: '5,200+',
     badge: 'Strategic',
-  },
-  {
-    domain: 'Lifestyle',
-    description: 'Ergonomic living, minimalist workspaces, slow living, and travel.',
-    iconName: 'Compass',
-    color: 'orange',
-    solutionsCount: '8,400+',
-    guidesCount: '2,600+',
-    badge: 'Fresh',
-  },
-  {
-    domain: 'Communication',
-    description: 'Persuasive speaking, active listening, negotiation, and storytelling.',
-    iconName: 'MessageSquare',
-    color: 'violet',
-    solutionsCount: '12,100+',
-    guidesCount: '3,950+',
-    badge: 'Core Skill',
-  },
-];
-
-export const WELLNESS_TIPS: WellnessTip[] = [
-  {
-    id: 'tip-1',
-    title: 'The 20-20-20 Rule for Digital Eye Strain',
-    subtitle: 'Relieve ocular fatigue from screens in 20 seconds',
-    category: 'Eye Care',
-    tag: 'Vision Health',
-    description: 'Every 20 minutes spent looking at a digital screen, look at an object at least 20 feet away for a full 20 seconds. This relaxes your ciliary eye muscles, reducing spasms, headaches, and dry eye syndromes.',
-    actionableSteps: [
-      'Set an hourly timer or reminder on your workspace toolbar.',
-      'Shift gaze to a distant tree, horizon, or distant wall point.',
-      'Blink deliberately 10 times to re-coat tear film across your corneas.',
-      'Massage your temples gently with two fingers.'
-    ],
-    durationMinutes: 1,
-    iconName: 'Eye',
-    badgeColor: 'blue'
-  },
-  {
-    id: 'tip-2',
-    title: 'Hydration & Micro-Electrolytes',
-    subtitle: 'Re-energize cellular cognitive speed with consistent water intake',
-    category: 'Hydration',
-    tag: 'Energy',
-    description: 'Even a 1.5% drop in body water triggers brain fog and increases fatigue. Keep a 750ml glass carafe at your desk and sip regularly rather than chugging in bulk.',
-    actionableSteps: [
-      'Drink 300ml of room-temperature water upon waking before caffeine.',
-      'Add a pinch of Himalayan pink salt or lemon slice for mineral absorption.',
-      'Maintain an intake goal of 2.5 - 3 Liters daily.'
-    ],
-    durationMinutes: 2,
-    iconName: 'Droplets',
-    badgeColor: 'teal'
-  },
-  {
-    id: 'tip-3',
-    title: 'Regular Exercise & Desk Decompression',
-    subtitle: 'Restore spinal alignment and boost endorphin circulation',
-    category: 'Fitness',
-    tag: 'Mobility',
-    description: 'Sedentary work compresses the lumbar spine and reduces hip mobility. Engaging in micro-stretches and brisk walking resets neuromuscular posture.',
-    actionableSteps: [
-      'Perform 10 desk push-ups or wall slides every 90 minutes.',
-      'Stand during phone consultations and audio sync meetings.',
-      'Incorporate 30 minutes of moderate cardiovascular movement daily.'
-    ],
-    durationMinutes: 15,
-    iconName: 'Activity',
-    badgeColor: 'emerald'
-  },
-  {
-    id: 'tip-4',
-    title: 'Circadian Sleep Hygiene',
-    subtitle: 'Shield melatonin production for deep restorative delta sleep',
-    category: 'Sleep',
-    tag: 'Recovery',
-    description: 'Blue photon emissions after 9 PM suppress pineal gland melatonin synthesis by up to 50%. A dark, cool bedroom fosters uninterrupted REM phases.',
-    actionableSteps: [
-      'Dim ambient lights 90 minutes prior to intended sleep time.',
-      'Keep room temperature around 18-20°C (65-68°F).',
-      'No digital backlit screens in bed; replace with paper books or ambient audio.'
-    ],
-    durationMinutes: 30,
-    iconName: 'Moon',
-    badgeColor: 'indigo'
-  },
-  {
-    id: 'tip-5',
-    title: 'Mindfulness & Diaphragmatic Breathing',
-    subtitle: 'Down-regulate sympathetic nervous system in 3 minutes',
-    category: 'Mindfulness',
-    tag: 'Mental Clarity',
-    description: 'Box breathing (4s inhale, 4s hold, 4s exhale, 4s hold) lowers cortisol, stabilizes heart rate variability (HRV), and enhances executive decision-making.',
-    actionableSteps: [
-      'Sit upright with feet grounded and hands relaxed on thighs.',
-      'Inhale deeply through your nostrils into your belly for 4 counts.',
-      'Hold breath gently for 4 counts without straining.',
-      'Exhale slowly through parted lips for 4 counts; repeat 5 cycles.'
-    ],
-    durationMinutes: 5,
-    iconName: 'Smile',
-    badgeColor: 'purple'
-  },
-  {
-    id: 'tip-6',
-    title: 'Balanced Nutrient-Dense Diet',
-    subtitle: 'Fuel steady dopamine and sustained glucose levels',
-    category: 'Nutrition',
-    tag: 'Vitality',
-    description: 'High-glycemic meals cause glucose spikes followed by reactive hypoglycemia and afternoon drowsiness. Pair quality complex carbohydrates with lean proteins and healthy omega fats.',
-    actionableSteps: [
-      'Fill half your plate with colorful fibrous vegetables and dark greens.',
-      'Include walnuts, chia seeds, or wild salmon for omega-3 brain nourishment.',
-      'Avoid sugary sodas and packaged pastries during working hours.'
-    ],
-    durationMinutes: 20,
-    iconName: 'Apple',
-    badgeColor: 'rose'
-  },
-  {
-    id: 'tip-7',
-    title: 'Intentional Morning Routine',
-    subtitle: 'Anchor your day with proactive clarity instead of reactive alerts',
-    category: 'Routine',
-    tag: 'Focus',
-    description: 'Checking email or social feeds within 10 minutes of waking triggers elevated cortisol and fractures your day into fragmented reactivity. Claim your first hour.',
-    actionableSteps: [
-      'Delay phone inspection until after hygiene, hydration, and natural sunlight.',
-      'Expose eyes to natural indirect sunlight for 10 minutes to sync circadian clocks.',
-      'Jot down your single non-negotiable priority for the day.'
-    ],
-    durationMinutes: 10,
-    iconName: 'Sun',
-    badgeColor: 'amber'
-  },
-  {
-    id: 'tip-8',
-    title: 'Nurturing Social Connection',
-    subtitle: 'Combat remote isolation with meaningful reciprocal dialogue',
-    category: 'Social',
-    tag: 'Community',
-    description: 'Human neurobiology requires genuine voice or face-to-face rapport to sustain oxytocin and trust. Loneliness carries health risks comparable to chronic smoking.',
-    actionableSteps: [
-      'Send one unprompted message of appreciation or check-in to a peer daily.',
-      'Engage in shared lunches or brief walks with family or colleagues.',
-      'Participate actively in local or community learning circles.'
-    ],
-    durationMinutes: 15,
-    iconName: 'Users',
-    badgeColor: 'cyan'
-  },
-  {
-    id: 'tip-9',
-    title: 'Cognitive Stress Management',
-    subtitle: 'Reframe cognitive stressors through structured compartmentalization',
-    category: 'Stress',
-    tag: 'Resilience',
-    description: 'Unresolved thoughts consume working memory. Performing a "brain dump" into writing transitions intrusive rumination into objective, manageable items.',
-    actionableSteps: [
-      'Write down whatever is causing anxiety on paper without self-editing.',
-      'Categorize into "Directly in my control" vs "Outside my control".',
-      'Discard or mentally release the external factors and define 1 micro-step for the controllable items.'
-    ],
-    durationMinutes: 10,
-    iconName: 'ShieldAlert',
-    badgeColor: 'orange'
-  },
-  {
-    id: 'tip-10',
-    title: 'Smart Energy Snacking',
-    subtitle: 'Overcome afternoon brain slumps without caffeine crashes',
-    category: 'Snacks',
-    tag: 'Nutrition',
-    description: 'Refined sugar snacks offer 20 minutes of euphoria followed by 2 hours of lethargy. Choose slow-burning fats and polyphenol-dense whole foods.',
-    actionableSteps: [
-      'Stock almonds, roasted chickpeas, or pumpkin seeds at your workstation.',
-      'Pair dark chocolate (85%+) with green tea for antioxidant L-theanine synergy.',
-      'Eat snacks mindfully away from keyboards to register satiety signals.'
-    ],
-    durationMinutes: 5,
-    iconName: 'Cookie',
-    badgeColor: 'violet'
   }
 ];
 
 export const MOCK_RESOURCES: Resource[] = [
   {
     id: 'res-1',
-    title: 'Clinical Guide to Digital Eye Strain & Modern Visual Ergonomics',
-    description: 'A comprehensive handbook designed for knowledge workers, developers, and researchers. Explores ciliary muscle mechanics, optimal blue light exposure, monitor focal distance calibration, and verified exercises to reverse visual fatigue and chronic dry eye.',
-    category: 'Health',
-    format: 'Guides',
+    title: 'Clean Code: A Handbook of Agile Software Craftsmanship',
+    description: 'The definitive software engineering handbook on writing elegant, maintainable, and robust code. Includes practical refactoring rules.',
+    category: 'Books & Literature',
+    format: 'Books',
     author: {
-      name: 'Dr. Sarah Lin, MD',
-      role: 'Ophthalmologist & Vision Scientist',
-      avatar: 'https://images.unsplash.com/photo-1594824813581-2292f7415496?w=150&auto=format&fit=crop&q=80'
+      name: 'Robert C. Martin (Uncle Bob)',
+      role: 'Master Software Architect',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
     },
     rating: 4.9,
-    reviewCount: 1240,
-    imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80',
-    hashtags: ['#EyeHealth', '#Ergonomics', '#VisionCare', '#Wellness'],
-    durationOrPages: '42 pages',
-    dateAdded: '2026-08-15',
+    reviewCount: 3840,
+    imageUrl: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=600',
+    hashtags: ['#CleanCode', '#SoftwareArchitecture', '#Books', '#Programming'],
+    durationOrPages: '464 Pages',
+    dateAdded: '2026-02-10',
     featured: true,
+    contentUrl: 'https://github.com/topics/clean-code',
     keyTakeaways: [
-      'The 20-20-20 rule reduces ciliary spasm by up to 68%.',
-      'Screen top-edge must align directly with eyebrow line at arm length.',
-      'Tear film lipid evaporation increases 3x in air-conditioned office environments.'
+      'Meaningful names: Use intention-revealing names for variables and functions.',
+      'Functions should be small and do one thing well.',
+      'Write unit tests that cover critical edge cases.'
     ]
   },
   {
     id: 'res-2',
-    title: 'The Deep Focus Architecture: How Top Engineers Outperform Distraction',
-    description: 'Master time-boxing, asynchronous workflow protocols, and neurotransmitter management to reach 4+ hours of uninterrupted flow state daily. Includes printable daily planning canvases.',
-    category: 'Productivity',
-    format: 'Books',
+    title: 'Complete Modern React 19 & Next.js 15 Video Masterclass',
+    description: 'Comprehensive 12-hour full-stack video tutorial covering Server Components, App Router, Zustand, and Tailwind CSS v4.',
+    category: 'Technology & AI',
+    format: 'Videos',
     author: {
-      name: 'Elena Rostova',
-      role: 'Cognitive Workflow Strategist',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+      name: 'Dan Abramov & Team',
+      role: 'Senior Frontend Engineer',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200'
     },
-    rating: 4.8,
-    reviewCount: 2150,
-    imageUrl: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&auto=format&fit=crop&q=80',
-    hashtags: ['#DeepWork', '#Productivity', '#TimeManagement', '#Focus'],
-    durationOrPages: '210 pages',
-    dateAdded: '2026-07-20',
+    rating: 4.95,
+    reviewCount: 5120,
+    imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&q=80&w=600',
+    hashtags: ['#ReactJS', '#NextJS', '#VideoCourse', '#WebDev'],
+    durationOrPages: '12h 45m Video',
+    dateAdded: '2026-03-01',
     featured: true,
+    contentUrl: 'https://react.dev',
     keyTakeaways: [
-      'Multitasking introduces 23 minutes of attention residue per interruption.',
-      'Bimodal scheduling produces the highest volume of high-value cognitive output.',
-      'Daily shutdown rituals prevent work anxiety from leaking into evening recovery.'
+      'Master React Server Components and server-side data fetching.',
+      'Build responsive, production-ready UIs with Tailwind CSS.',
+      'Deploy scalable full-stack web applications effortlessly.'
     ]
   },
   {
     id: 'res-3',
-    title: 'Full-Stack Agentic AI Systems with Next.js & TypeScript',
-    description: 'Deep dive masterclass on deploying autonomous AI agent loops, tool-calling pipelines, vector embeddings, and real-time streaming architectures with production reliability.',
-    category: 'Technology',
-    format: 'Videos',
+    title: 'Full Stack Developer Roadmap 2026 Complete PDF Guide',
+    description: 'Downloadable high-resolution PDF roadmap detailing step-by-step learning milestones for Frontend, Backend, DevOps, and AI integrations.',
+    category: 'PDFs & Research',
+    format: 'PDFs',
     author: {
-      name: 'Marcus Vance',
-      role: 'Principal AI Architect',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+      name: 'Kamal Hossain',
+      role: 'Principal Tech Lead',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200'
     },
-    rating: 4.9,
-    reviewCount: 3400,
-    imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop&q=80',
-    hashtags: ['#AI', '#TypeScript', '#Nextjs', '#Architecture'],
-    durationOrPages: '3h 45m',
-    dateAdded: '2026-08-28',
+    rating: 4.88,
+    reviewCount: 2980,
+    imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=600',
+    hashtags: ['#PDF', '#DeveloperRoadmap', '#FullStack', '#Guide'],
+    durationOrPages: '32 Pages PDF',
+    dateAdded: '2026-01-20',
     featured: true,
+    contentUrl: 'https://roadmap.sh',
     keyTakeaways: [
-      'Structured schema validation guarantees dependable AI JSON outputs.',
-      'Agent loops need deterministic fallback trees to prevent infinite execution traps.',
-      'Server-side credential segregation protects API keys from browser inspection.'
+      'Structured 6-month timeline for beginners and intermediate devs.',
+      'Direct downloadable links to free interactive tutorials.',
+      'Covers Git, JavaScript/TypeScript, SQL, Docker, and Cloud Run.'
     ]
   },
   {
     id: 'res-4',
-    title: 'Executive Communication: The Art of Concise High-Stakes Persuasion',
-    description: 'Learn the Minto Pyramid Principle, executive memo drafting, and vocal cadence techniques that command respect in boardroom pitches and team alignments.',
-    category: 'Communication',
-    format: 'Talks',
+    title: 'Atomic Habits: An Easy & Proven Way to Build Good Habits',
+    description: 'James Clear’s groundbreaking guide to personal productivity, behavior design, continuous improvement, and daily streaks.',
+    category: 'Books & Literature',
+    format: 'Books',
     author: {
-      name: 'David Chen',
-      role: 'Former VP of Strategy, Keynote Speaker',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'
+      name: 'James Clear',
+      role: 'Behavioral Scientist & Author',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200'
     },
-    rating: 4.7,
-    reviewCount: 890,
-    imageUrl: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800&auto=format&fit=crop&q=80',
-    hashtags: ['#Leadership', '#PublicSpeaking', '#Negotiation'],
-    durationOrPages: '52 min',
-    dateAdded: '2026-08-01',
+    rating: 4.97,
+    reviewCount: 8900,
+    imageUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=600',
+    hashtags: ['#AtomicHabits', '#Productivity', '#BookSummary', '#SelfGrowth'],
+    durationOrPages: '320 Pages',
+    dateAdded: '2026-02-15',
+    featured: true,
+    contentUrl: 'https://jamesclear.com/atomic-habits',
     keyTakeaways: [
-      'State conclusions and recommendations in the first 30 seconds of any briefing.',
-      'Limit supporting arguments to rule of three for optimal cognitive retention.'
+      '1% better every day leads to 37x growth over a year.',
+      'Make good habits obvious, attractive, easy, and satisfying.',
+      'Focus on systems and identity rather than raw goals alone.'
     ]
   },
   {
     id: 'res-5',
-    title: '60-Second Ocular Acupressure: Instant Vision Relief',
-    description: 'Quick vertical reel showing the exact acupressure points around the orbital bone to stimulate blood flow and relieve tension headaches from screen work.',
-    category: 'Health',
-    format: 'Reels',
+    title: 'Interactive Python Cheat Sheet & Code Reference PDF',
+    description: 'Complete 5-page PDF cheat sheet covering Python syntax, Data Structures, Pandas, NumPy, and API requests with real-world examples.',
+    category: 'Productivity & Tools',
+    format: 'Tools',
     author: {
-      name: 'Dr. Tariq Hasan',
-      role: 'Holistic Physiotherapist',
-      avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80'
+      name: 'Dr. Rafiqul Islam',
+      role: 'Data Science Researcher',
+      avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=200'
     },
-    rating: 4.9,
-    reviewCount: 8900,
-    imageUrl: 'https://images.unsplash.com/photo-1512290900672-1f41444983a4?w=800&auto=format&fit=crop&q=80',
-    hashtags: ['#EyeCare', '#Reel', '#QuickFix', '#HeadacheRelief'],
-    durationOrPages: '58 sec',
-    dateAdded: '2026-09-01',
+    rating: 4.85,
+    reviewCount: 1420,
+    imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=600',
+    hashtags: ['#Python', '#CheatSheet', '#PDF', '#DataScience'],
+    durationOrPages: '5 Page PDF Tool',
+    dateAdded: '2026-02-28',
+    featured: false,
+    contentUrl: 'https://docs.python.org/3/',
     keyTakeaways: [
-      'Press the Jingming point (inner corner of eyes) gently for 10 seconds.',
-      'Glide index finger over the supraorbital notch to release forehead pressure.'
+      'Quick lookup for list comprehensions, lambda functions, and dictionaries.',
+      'Data manipulation patterns in Pandas and NumPy.',
+      'REST API HTTP calls using requests library.'
     ]
   },
   {
     id: 'res-6',
-    title: 'Financial Independence Playbook: From Salary to Compounding Portfolio',
-    description: 'A comprehensive, math-backed PDF manual on tax-advantaged index funds, risk-adjusted asset allocation, inflation hedging, and automated savings ladders.',
-    category: 'Finance',
-    format: 'PDFs',
+    title: 'MIT OpenCourseWare: Physics I Mechanics Lecture Series',
+    description: 'Free university lecture series from MIT covering Classical Mechanics, Newton’s Laws, Work-Energy Theorems, and Rotational Dynamics.',
+    category: 'Education & Science',
+    format: 'Videos',
     author: {
-      name: 'Amina Chowdhury, CFA',
-      role: 'Portfolio Strategist',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
+      name: 'Prof. Walter Lewin',
+      role: 'MIT Physics Professor',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
     },
-    rating: 4.8,
-    reviewCount: 1480,
-    imageUrl: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&auto=format&fit=crop&q=80',
-    hashtags: ['#Investing', '#Finance', '#WealthBuilding', '#Budgeting'],
-    durationOrPages: '64 pages',
-    dateAdded: '2026-07-11',
+    rating: 4.92,
+    reviewCount: 2100,
+    imageUrl: 'https://images.unsplash.com/photo-1636466497217-26a8cbeaf0aa?auto=format&fit=crop&q=80&w=600',
+    hashtags: ['#Physics', '#MIT', '#Education', '#Videos'],
+    durationOrPages: '35 Lecture Videos',
+    dateAdded: '2026-01-14',
+    featured: false,
+    contentUrl: 'https://ocw.mit.edu',
     keyTakeaways: [
-      'Automate investment transfers on the exact day compensation arrives.',
-      'Low-cost global broad-market indices beat 92% of actively managed funds over 15 years.'
+      'Deep intuitive understanding of Newton’s laws and vector calculus.',
+      'Demonstrations of physical phenomena and problem-solving techniques.'
     ]
   },
   {
     id: 'res-7',
-    title: 'Mastering Difficult Salary & Promotion Negotiations in Tech',
-    description: 'Field-tested scripts, counter-offer tactics, and equity compensation breakdowns to maximize your compensation package while preserving executive relationships.',
-    category: 'Career',
-    format: 'Articles',
+    title: 'The Pragmatic Programmer: Your Journey to Mastery',
+    description: 'Classic book offering practical advice for software craftsmanship, avoiding technical debt, career development, and problem solving.',
+    category: 'Books & Literature',
+    format: 'Books',
     author: {
-      name: 'Jordan Belfort-Smyth',
-      role: 'Tech Career Coach & Recruiter',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'
+      name: 'Andrew Hunt & David Thomas',
+      role: 'Software Pioneers',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200'
     },
-    rating: 4.8,
-    reviewCount: 970,
-    imageUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?w=800&auto=format&fit=crop&q=80',
-    hashtags: ['#CareerGrowth', '#SalaryNegotiation', '#Leadership'],
-    durationOrPages: '12 min read',
-    dateAdded: '2026-08-14'
+    rating: 4.91,
+    reviewCount: 4200,
+    imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=600',
+    hashtags: ['#Programming', '#PragmaticProgrammer', '#Books', '#Tech'],
+    durationOrPages: '352 Pages',
+    dateAdded: '2026-02-01',
+    featured: false,
+    contentUrl: 'https://pragprog.com',
+    keyTakeaways: [
+      'DRY Principle: Don’t Repeat Yourself.',
+      'Orthogonality: Eliminate side effects between system modules.',
+      'Invest regularly in your knowledge portfolio.'
+    ]
   },
   {
     id: 'res-8',
-    title: 'Atomic Dopamine: Resetting Motivation When You Feel Burned Out',
-    description: 'Explores neurochemical exhaustion, dopamine receptor downregulation, and a 48-hour stimulus fast to rekindle natural drive and curiosity.',
-    category: 'Motivation',
-    format: 'Videos',
+    title: 'Google DeepMind Machine Learning & AI Research Paper Whitepaper',
+    description: 'Open-access research paper analyzing breakthroughs in Gemini 3.0 multimodal reasoning, attention mechanisms, and real-time execution.',
+    category: 'PDFs & Research',
+    format: 'PDFs',
     author: {
-      name: 'Dr. Kevin Miller',
-      role: 'Neurobiology Researcher',
-      avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80'
+      name: 'Google DeepMind Research',
+      role: 'AI Scientists',
+      avatar: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?auto=format&fit=crop&q=80&w=200'
     },
-    rating: 4.9,
-    reviewCount: 4200,
-    imageUrl: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&auto=format&fit=crop&q=80',
-    hashtags: ['#Dopamine', '#MentalHealth', '#BurnoutRecovery'],
-    durationOrPages: '24 min',
-    dateAdded: '2026-08-22'
+    rating: 4.96,
+    reviewCount: 3100,
+    imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=600',
+    hashtags: ['#DeepMind', '#AI', '#ResearchPaper', '#PDF'],
+    durationOrPages: '45 Pages PDF',
+    dateAdded: '2026-02-20',
+    featured: true,
+    contentUrl: 'https://arxiv.org',
+    keyTakeaways: [
+      'Detailed benchmark comparisons across multimodal tasks.',
+      'Architecture diagrams and latency optimization strategies.'
+    ]
+  }
+];
+
+export const FEATURED_SPOTLIGHTS: KnowledgeSpotlight[] = [
+  {
+    id: 'spotlight-1',
+    title: 'Full-Stack Developer Roadmap PDF 2026',
+    subtitle: 'Free PDF Download & Interactive Checklist',
+    category: 'PDFs & Research',
+    tag: 'Popular PDF',
+    description: 'Download the comprehensive step-by-step roadmap for mastering React, Next.js, Node.js, PostgreSQL, and AI API integrations.',
+    actionableSteps: [
+      'Review the core JavaScript & TypeScript concepts.',
+      'Build 3 real-world full-stack projects.',
+      'Master deployment on Cloud Run and Vercel.'
+    ],
+    durationMinutes: 15,
+    iconName: 'FileText',
+    badgeColor: 'bg-blue-500'
   },
   {
-    id: 'res-9',
-    title: 'The Super-Learner Protocol: How to Absorb Complex Subjects 3x Faster',
-    description: 'Utilize Feynman technique, spaced repetition Anki architectures, and progressive cognitive summarization to absorb dense technical domains.',
-    category: 'Education',
-    format: 'Guides',
-    author: {
-      name: 'Prof. Anika Sharma',
-      role: 'Cognitive Science Lecturer',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80'
-    },
-    rating: 4.9,
-    reviewCount: 1820,
-    imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&auto=format&fit=crop&q=80',
-    hashtags: ['#Learning', '#Memory', '#FeynmanTechnique'],
-    durationOrPages: '28 pages',
-    dateAdded: '2026-08-30'
+    id: 'spotlight-2',
+    title: 'Atomic Habits Book Summary & Action Plan',
+    subtitle: '10-Minute Executive Summary in Bengali & English',
+    category: 'Books & Literature',
+    tag: 'Bestseller Book',
+    description: 'Learn how small 1% daily changes aggregate into massive personal transformation using James Clear’s proven framework.',
+    actionableSteps: [
+      'Identify your target identity before setting goals.',
+      'Use habit stacking: pair a new habit with an existing routine.',
+      'Never miss twice — protect your daily streaks.'
+    ],
+    durationMinutes: 10,
+    iconName: 'BookOpen',
+    badgeColor: 'bg-emerald-500'
   },
   {
-    id: 'res-10',
-    title: 'Minimalist Workspaces: Engineering Environments for Frictionless Thought',
-    description: 'Transform your physical desk, cable management, lighting lux levels, and auditory cues into a serene sanctuary for high-leverage intellectual work.',
-    category: 'Lifestyle',
-    format: 'Articles',
-    author: {
-      name: 'Kenji Sato',
-      role: 'Industrial Designer',
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80'
-    },
-    rating: 4.6,
-    reviewCount: 650,
-    imageUrl: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800&auto=format&fit=crop&q=80',
-    hashtags: ['#DeskSetup', '#Minimalism', '#Workspace'],
-    durationOrPages: '9 min read',
-    dateAdded: '2026-07-28'
-  },
-  {
-    id: 'res-11',
-    title: 'The Emotional Intelligence Edge: Navigating Team Friction with Grace',
-    description: 'A deep psychological breakdown of conflict resolution, active empathy, non-violent communication, and managing corporate power dynamics.',
-    category: 'Self Improvement',
-    format: 'Books',
-    author: {
-      name: 'Rachel Goldberg, PhD',
-      role: 'Organizational Psychologist',
-      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80'
-    },
-    rating: 4.8,
-    reviewCount: 1120,
-    imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&auto=format&fit=crop&q=80',
-    hashtags: ['#EQ', '#SelfGrowth', '#ConflictResolution'],
-    durationOrPages: '190 pages',
-    dateAdded: '2026-08-04'
-  },
-  {
-    id: 'res-12',
-    title: 'Quick 2-Minute Desk Stretch for Stiff Neck & Trapezius Relief',
-    description: 'Follow-along vertical clip demonstrating chin tucks, levator scapulae release, and postural alignment to undo 8 hours of laptop hunched posture.',
-    category: 'Health',
-    format: 'Reels',
-    author: {
-      name: 'Dr. Tariq Hasan',
-      role: 'Holistic Physiotherapist',
-      avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80'
-    },
-    rating: 4.9,
-    reviewCount: 6400,
-    imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&auto=format&fit=crop&q=80',
-    hashtags: ['#PosturalHealth', '#DeskMobility', '#NeckPain'],
-    durationOrPages: '1m 45s',
-    dateAdded: '2026-09-02'
+    id: 'spotlight-3',
+    title: 'Complete React & Next.js Video Course',
+    subtitle: 'Free High-Quality Video Tutorial Series',
+    category: 'Technology & AI',
+    tag: 'Video Tutorial',
+    description: 'Watch step-by-step video guides explaining React Server Components, state management with Zustand, and Tailwind styling.',
+    actionableSteps: [
+      'Set up a modern Vite or Next.js app template.',
+      'Implement responsive Tailwind CSS layouts.',
+      'Connect frontend UI with backend Express or Firebase APIs.'
+    ],
+    durationMinutes: 20,
+    iconName: 'Video',
+    badgeColor: 'bg-indigo-500'
   }
 ];
 
 export const INITIAL_GOALS: Goal[] = [
   {
     id: 'goal-1',
-    title: 'Digital Eye Health & Visual Ergonomics Mastery',
-    category: 'Health',
-    progress: 75,
-    totalModules: 8,
-    completedModules: 6,
-    streakDays: 7,
-    deadlineDate: 'Sep 15, 2026'
+    title: 'Read 20 pages of a Tech/Productivity Book',
+    category: 'Books',
+    progress: 70,
+    totalModules: 10,
+    completedModules: 7,
+    streakDays: 5,
+    deadlineDate: '2026-03-31'
   },
   {
     id: 'goal-2',
-    title: 'Next.js & Agentic AI Architecture Blueprint',
+    title: 'Complete 1 Video Tutorial on React/Python',
     category: 'Technology',
-    progress: 45,
-    totalModules: 12,
-    completedModules: 5,
-    streakDays: 4,
-    deadlineDate: 'Sep 30, 2026'
+    progress: 50,
+    totalModules: 6,
+    completedModules: 3,
+    streakDays: 3,
+    deadlineDate: '2026-03-25'
   },
   {
     id: 'goal-3',
-    title: 'Executive Communication & Presentation Cadence',
+    title: 'Summarize 1 Research Paper or PDF Guide',
     category: 'Career',
-    progress: 90,
-    totalModules: 10,
-    completedModules: 9,
-    streakDays: 12,
-    deadlineDate: 'Sep 10, 2026'
+    progress: 80,
+    totalModules: 5,
+    completedModules: 4,
+    streakDays: 7,
+    deadlineDate: '2026-03-20'
   }
+];
+
+export const SUGGESTED_AI_PROMPTS = [
+  {
+    label: '📚 Atomic Habits Summary',
+    prompt: 'Atomic Habits বইটির মূল সারসংক্ষেপ ও ৫টি কার্যকরী পয়েন্ট বাংলায় বুঝিয়ে বলো।'
+  },
+  {
+    label: '📄 React 19 Roadmap PDF',
+    prompt: '২০২৬ সালে রিঅ্যাক্ট ১৯ ও নেক্সট.জেএস শেখার সঠিক রোডম্যাপ ও লিঙ্ক বানিয়ে দাও।'
+  },
+  {
+    label: '💻 Python Data Science Guide',
+    prompt: 'পাইথন দিয়ে ডাটা সায়েন্স শেখার জন্য প্রয়োজনীয় লাইব্রেরি ও ফ্রি টিউটোরিয়াল গাইড দাও।'
+  },
+  {
+    label: '💡 BCS Preparation Strategy',
+    prompt: 'বিসিএস ও সরকারি চাকরির প্রস্তুতির জন্য সহজ ডেইলি রুটিন ও স্টাডি প্ল্যান তৈরি করে দাও।'
+  }
+];
+export const TRENDING_SEARCHES = [
+  'Clean Code PDF book',
+  'Python cheat sheet PDF',
+  'React Next.js video tutorial',
+  'Atomic Habits book summary',
+  'Quantum Computing PDF guide',
+  'Data Science roadmap 2026',
+  'Financial accounting guide',
+  'UI/UX Design Figma links'
 ];
 
 export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif-1',
-    title: 'New Health Guide: Digital Eye Strain',
-    message: 'Dr. Sarah Lin published a 42-page blueprint on ciliary ergonomics and blue-light moderation.',
-    category: 'Recommendations',
+    title: 'New PDF Book Added: Full Stack AI Systems 2026',
+    message: 'A brand-new 50-page PDF guide on building LLM applications has been added to the library.',
+    category: 'Library Updates',
     timestamp: '10 mins ago',
     read: false,
-    actionLabel: 'Read Guide',
-    relatedResourceId: 'res-1'
+    actionLabel: 'View Search'
   },
   {
     id: 'notif-2',
-    title: 'Milestone Reached! 🔥 7-Day Streak',
-    message: 'You have consistently logged daily eye exercises and wellness checkpoints for 7 consecutive days!',
+    title: 'Daily Reading Streak Milestone 🎉',
+    message: 'Great job! You have maintained a 5-day continuous learning streak on Askio.',
     category: 'Goal Milestones',
     timestamp: '2 hours ago',
-    read: false
-  },
-  {
-    id: 'notif-3',
-    title: 'Midday Wellness Checkpoint',
-    message: 'Time for your 20-20-20 rule! Look 20 feet away for 20 seconds to refresh your retinal receptors.',
-    category: 'Wellness',
-    timestamp: '5 hours ago',
-    read: true
-  },
-  {
-    id: 'notif-4',
-    title: 'Library Sync Complete',
-    message: 'All bookmarked guides and offline PDF collections have been synchronized with your account cloud.',
-    category: 'Library Updates',
-    timestamp: '1 day ago',
-    read: true
+    read: false,
+    actionLabel: 'Check Goals'
   }
 ];
 
@@ -591,70 +424,13 @@ export const INITIAL_ACTIVITIES: ActivityLogItem[] = [
   {
     id: 'act-1',
     type: 'search',
-    title: 'Searched for "Digital Eye Strain and 20-20-20 rule"',
-    timestamp: 'Today at 08:30 AM',
-    category: 'Health'
+    title: 'Searched for "Full Stack Developer Roadmap PDF"',
+    timestamp: 'Today, 10:15 AM'
   },
   {
     id: 'act-2',
-    type: 'bookmark',
-    title: 'Bookmarked "Clinical Guide to Digital Eye Strain"',
-    timestamp: 'Today at 08:35 AM',
-    category: 'Health'
-  },
-  {
-    id: 'act-3',
     type: 'ai',
-    title: 'Consulted Askio AI Assistant regarding eye fatigue exercises',
-    timestamp: 'Yesterday at 04:15 PM',
-    category: 'AI Guidance'
-  },
-  {
-    id: 'act-4',
-    type: 'goal',
-    title: 'Advanced Module 6 in "Digital Eye Health Mastery"',
-    timestamp: 'Yesterday at 02:00 PM',
-    category: 'Goals'
-  },
-  {
-    id: 'act-5',
-    type: 'view',
-    title: 'Viewed "Full-Stack Agentic AI Systems with Next.js"',
-    timestamp: '2 days ago',
-    category: 'Technology'
-  }
-];
-
-export const TRENDING_SEARCHES = [
-  'Eye exercises for screen fatigue',
-  'Find vision specialist near me',
-  'Book vision guide',
-  'Deep focus timeboxing canvas',
-  'TypeScript Agentic AI',
-  'Emergency health hotline 16263',
-  'Stress management box breathing',
-  'Salary negotiation scripts'
-];
-
-export const SUGGESTED_AI_PROMPTS = [
-  {
-    label: 'Eye exercises',
-    prompt: 'Can you guide me through a 2-minute step-by-step eye exercise routine to relieve screen strain right now?'
-  },
-  {
-    label: 'Find a specialist',
-    prompt: 'How do I choose between an optometrist, ophthalmologist, or vision therapist for sudden eye strain?'
-  },
-  {
-    label: 'Book a vision guide',
-    prompt: 'I want to schedule a structured consultation and create a personalized 14-day vision wellness guide.'
-  },
-  {
-    label: 'Stress relief (5-min)',
-    prompt: 'Teach me the physiological sigh and box breathing method to eliminate immediate work anxiety.'
-  },
-  {
-    label: 'Deep study blueprint',
-    prompt: 'How can I apply the Feynman technique and spaced repetition to master dense technical documentation?'
+    title: 'Asked AI to summarize Clean Code book',
+    timestamp: 'Yesterday, 4:30 PM'
   }
 ];

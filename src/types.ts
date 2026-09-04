@@ -1,16 +1,16 @@
-export type FormatType = 'All' | 'Books' | 'Videos' | 'Reels' | 'PDFs' | 'Articles' | 'Guides' | 'Talks';
+export type FormatType = 'All' | 'Books' | 'PDFs' | 'Videos' | 'Links' | 'Articles' | 'Tools' | 'Talks';
 
 export type CategoryDomain = 
-  | 'Health'
-  | 'Education'
-  | 'Career'
-  | 'Technology'
-  | 'Motivation'
-  | 'Productivity'
-  | 'Self Improvement'
-  | 'Finance'
-  | 'Lifestyle'
-  | 'Communication';
+  | 'Books & Literature'
+  | 'PDFs & Research'
+  | 'Technology & AI'
+  | 'Education & Science'
+  | 'Business & Career'
+  | 'Productivity & Tools'
+  | 'Creative & Design'
+  | 'Finance & Economics'
+  | 'General Knowledge'
+  | 'Self Growth';
 
 export interface Resource {
   id: string;
@@ -34,11 +34,11 @@ export interface Resource {
   keyTakeaways?: string[];
 }
 
-export interface WellnessTip {
+export interface KnowledgeSpotlight {
   id: string;
   title: string;
   subtitle: string;
-  category: 'Eye Care' | 'Hydration' | 'Fitness' | 'Sleep' | 'Mindfulness' | 'Nutrition' | 'Routine' | 'Social' | 'Stress' | 'Snacks';
+  category: string;
   tag: string;
   description: string;
   actionableSteps: string[];
@@ -50,7 +50,7 @@ export interface WellnessTip {
 export interface Goal {
   id: string;
   title: string;
-  category: 'Technology' | 'Health' | 'Career' | 'Productivity';
+  category: 'Technology' | 'Books' | 'Career' | 'Productivity';
   progress: number; // 0 - 100
   totalModules: number;
   completedModules: number;

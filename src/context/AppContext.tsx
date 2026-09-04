@@ -108,6 +108,10 @@ interface AppContextType {
   setSubscriptionModalOpen: (open: boolean) => void;
   upgradeToPremium: () => void;
   cancelPremium: () => void;
+
+  // Wellness Modal
+  isWellnessModalOpen: boolean;
+  setWellnessModalOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -237,6 +241,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Subscription Modal
   const [isSubscriptionModalOpen, setSubscriptionModalOpen] = useState<boolean>(false);
+
+  // Wellness Modal
+  const [isWellnessModalOpen, setWellnessModalOpen] = useState<boolean>(false);
 
   // Sync state to local storage
   useEffect(() => {
@@ -726,7 +733,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isSubscriptionModalOpen,
         setSubscriptionModalOpen,
         upgradeToPremium,
-        cancelPremium
+        cancelPremium,
+        isWellnessModalOpen,
+        setWellnessModalOpen
       }}
     >
       {children}

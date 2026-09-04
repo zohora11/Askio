@@ -203,15 +203,15 @@ export const AiAssistantScreen: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="font-bold text-base text-zinc-900 dark:text-zinc-100">
-                Askio AI Guidance Engine
+                Askio Universal AI Assistant
               </h2>
               <span className="hidden sm:inline px-2 py-0.5 text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 rounded-full">
-                Context-Aware v2.0
+                Gemini 3.1 Live
               </span>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>Online • Live Vision & Knowledge Guide</span>
+              <span>Online • Ask Anything in English or বাংলা</span>
             </div>
           </div>
         </div>
@@ -332,7 +332,7 @@ export const AiAssistantScreen: React.FC = () => {
             id="ai-chat-input"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Ask about eye exercises, specialists, or study techniques..."
+            placeholder="Ask AI anything: book summaries, PDF guides, coding, research..."
             className="flex-1 bg-transparent text-sm sm:text-base text-zinc-900 dark:text-zinc-100 outline-none placeholder:text-zinc-400 py-1"
           />
           <button
@@ -346,7 +346,7 @@ export const AiAssistantScreen: React.FC = () => {
           </button>
         </div>
         <div className="flex items-center justify-between text-[11px] text-zinc-400 px-2 mt-2">
-          <span>AI outputs are for educational & health reference.</span>
+          <span>Askio AI search & assistance engine in English and বাংলা.</span>
           <span className="hidden sm:inline">Press Enter to send</span>
         </div>
       </form>

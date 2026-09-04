@@ -20,11 +20,11 @@ import { t, CATEGORY_TRANSLATIONS, FORMAT_TRANSLATIONS } from '../constants/tran
 const FORMAT_OPTIONS: FormatType[] = [
   'All',
   'Books',
-  'Videos',
-  'Reels',
   'PDFs',
+  'Videos',
+  'Links',
   'Articles',
-  'Guides',
+  'Tools',
   'Talks'
 ];
 

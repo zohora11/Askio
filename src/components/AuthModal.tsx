@@ -36,6 +36,10 @@ import {
   verifyPasswordResetOtp,
   resetUserPassword
 } from '../services/firebase';
+import { 
+  getTrustedDeviceUser, 
+  saveDeviceTrustForPhone 
+} from '../services/deviceTrust';
 
 interface AuthModalProps {
   onLoginSuccess?: () => void;
@@ -119,14 +123,40 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       const cleanMobile = validation.cleaned;
       setPendingPhone(cleanMobile);
 
-      // Check if user already exists in Firestore by this phone
+      // 1. Check if THIS device is ALREADY TRUSTED for this phone number
+      const trustedUser = getTrustedDeviceUser(cleanMobile);
+      if (trustedUser) {
+        // Same device where password was saved previously -> Direct Login!
+        markLocalSubscriber(cleanMobile);
+        storeSubscriberSession(cleanMobile);
+
+        updateProfile({
+          uid: trustedUser.uid || 'user_' + cleanMobile,
+          fullName: trustedUser.fullName || 'Askio Member',
+          email: trustedUser.email || '',
+          phone: cleanMobile,
+          isLoggedIn: true,
+          isPremium: true,
+          membershipPlan: trustedUser.membershipPlan || 'Daily Micro (৳2.78/day)'
+        });
+
+        setSuccessMsg(isBn ? 'এই ডিভাইসে আপনার পাসওয়ার্ড সেভ করা আছে! সরাসরি অ্যাপে প্রবেশ করা হচ্ছে...' : 'Device recognized! Logging in directly without password...');
+        setTimeout(() => {
+          setLoading(false);
+          setAuthModalOpen(false);
+          if (onLoginSuccess) onLoginSuccess();
+        }, 600);
+        return;
+      }
+
+      // 2. Check if user already exists in Firestore by this phone (on another device)
       const existingUser = await findUserByPhone(cleanMobile);
 
       if (existingUser && existingUser.email) {
-        // User already has an account -> Take to Firebase Password Login
+        // User already has an account on another device -> Take to Firebase Password Login
         setEmail(existingUser.email);
         setAuthView('firebase_login');
-        setSuccessMsg(isBn ? 'আপনার অ্যাকাউন্ট পাওয়া গেছে! পাসওয়ার্ড দিয়ে লগইন করুন।' : 'Account found! Please enter your password to sign in.');
+        setSuccessMsg(isBn ? 'অন্য ডিভাইস সনাক্ত হয়েছে! পাসওয়ার্ড দিয়ে লগইন করুন।' : 'New device detected! Please enter your password to sign in.');
       } else {
         // Check if subscriber exists in local cache or BDApps
         const isSub = isLocalSubscriber(cleanMobile);
@@ -180,9 +210,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         phone: activePhone
       });
 
-      // 2. Mark subscriber active locally for carrier billing session
+      // 2. Mark subscriber active locally & save device trust
       markLocalSubscriber(activePhone);
       storeSubscriberSession(activePhone);
+      saveDeviceTrustForPhone(activePhone, createdUser);
 
       // 3. Update global App Context
       updateProfile({
@@ -240,9 +271,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
 
       const userPhone = loggedInUser.phone || phoneInput.trim() || pendingPhone.trim() || '018XXXXXXXX';
 
-      // 2. Mark subscriber active locally for carrier billing session
+      // 2. Mark subscriber active locally & save device trust
       markLocalSubscriber(userPhone);
       storeSubscriberSession(userPhone);
+      saveDeviceTrustForPhone(userPhone, loggedInUser);
 
       // 3. Update global App Context
       updateProfile({

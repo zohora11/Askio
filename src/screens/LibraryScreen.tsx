@@ -9,11 +9,11 @@ import { t } from '../constants/translations';
 const FORMAT_OPTIONS: FormatType[] = [
   'All',
   'Books',
-  'Videos',
-  'Reels',
   'PDFs',
+  'Videos',
+  'Links',
   'Articles',
-  'Guides',
+  'Tools',
   'Talks'
 ];
 

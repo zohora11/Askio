@@ -20,7 +20,7 @@ export const GoalsScreen: React.FC = () => {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<Goal['category']>('Health');
+  const [category, setCategory] = useState<Goal['category']>('Books');
   const [totalModules, setTotalModules] = useState(8);
   const [deadlineDate, setDeadlineDate] = useState('Oct 15, 2026');
 
