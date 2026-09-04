@@ -1,0 +1,633 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { 
+  Resource, 
+  Goal, 
+  NotificationItem, 
+  UserProfile, 
+  ChatMessage, 
+  ActivityLogItem, 
+  ThemeMode, 
+  AppLanguage,
+  FormatType 
+} from '../types';
+import { 
+  MOCK_RESOURCES, 
+  INITIAL_GOALS, 
+  INITIAL_NOTIFICATIONS, 
+  INITIAL_ACTIVITIES, 
+  TRENDING_SEARCHES 
+} from '../data/mockData';
+
+interface UndoState {
+  item: NotificationItem;
+  index: number;
+}
+
+interface AppContextType {
+  // Navigation
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  
+  // User & Auth
+  user: UserProfile;
+  updateProfile: (updated: Partial<UserProfile>) => void;
+  loginWithPhone: (phone: string) => void;
+  verifyOtp: (otp: string) => boolean;
+  loginWithEmail: (email: string, pass: string) => boolean;
+  registerUser: (name: string, email: string, phone: string, pass: string) => boolean;
+  logout: () => void;
+  isAuthModalOpen: boolean;
+  setAuthModalOpen: (open: boolean) => void;
+  authView: 'login' | 'phone' | 'otp' | 'register';
+  setAuthView: (view: 'login' | 'phone' | 'otp' | 'register') => void;
+  pendingPhone: string;
+  
+  // Library & Bookmarks
+  bookmarkedIds: string[];
+  toggleBookmark: (resourceId: string) => void;
+  isBookmarked: (resourceId: string) => boolean;
+  recentlyViewedIds: string[];
+  addToRecentlyViewed: (resourceId: string) => void;
+  clearRecentlyViewed: () => void;
+  
+  // Search
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  selectedFormat: FormatType;
+  setSelectedFormat: (format: FormatType) => void;
+  recentSearches: string[];
+  addRecentSearch: (query: string) => void;
+  removeRecentSearch: (query: string) => void;
+  clearRecentSearches: () => void;
+  
+  // Detail Modal
+  selectedResource: Resource | null;
+  setSelectedResource: (resource: Resource | null) => void;
+  openResourceDetail: (resource: Resource) => void;
+  
+  // AI Guidance Engine
+  chatMessages: ChatMessage[];
+  sendChatMessage: (text: string, contextResource?: Resource) => void;
+  clearChatHistory: () => void;
+  isAiGenerating: boolean;
+  askAiAboutResource: (resource: Resource) => void;
+  
+  // Goals
+  goals: Goal[];
+  addGoal: (goal: Omit<Goal, 'id'>) => void;
+  incrementGoalProgress: (goalId: string) => void;
+  deleteGoal: (goalId: string) => void;
+  
+  // Notifications
+  notifications: NotificationItem[];
+  unreadNotificationsCount: number;
+  markNotificationAsRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
+  markAllNotificationsUnread: () => void;
+  deleteNotification: (id: string) => void;
+  undoNotificationDelete: () => void;
+  canUndoNotification: boolean;
+  
+  // Activity Stats
+  activities: ActivityLogItem[];
+  addActivity: (type: ActivityLogItem['type'], title: string, category?: string) => void;
+  
+  // Settings & Preferences
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
+  language: AppLanguage;
+  setLanguage: (lang: AppLanguage) => void;
+  activityTrackingEnabled: boolean;
+  setActivityTrackingEnabled: (enabled: boolean) => void;
+  analyticsConsent: boolean;
+  setAnalyticsConsent: (enabled: boolean) => void;
+  
+  // Subscription
+  isSubscriptionModalOpen: boolean;
+  setSubscriptionModalOpen: (open: boolean) => void;
+  upgradeToPremium: () => void;
+  cancelPremium: () => void;
+}
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Navigation
+  const [activeTab, setActiveTab] = useState<string>('home');
+  
+  // User Profile
+  const [user, setUser] = useState<UserProfile>(() => {
+    const saved = localStorage.getItem('askio_user');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { /* ignore */ }
+    }
+    return {
+      fullName: 'Fatema Tuz Zohora',
+      email: 'fatematuzzohora004@gmail.com',
+      phone: '+880 1712 345678',
+      password: 'password123',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+      isLoggedIn: true,
+      isPremium: true,
+      membershipPlan: 'Daily Micro (৳2/day)',
+      joinedDate: 'August 2026'
+    };
+  });
+
+  useEffect(() => {
+    localStorage.setItem('askio_user', JSON.stringify(user));
+  }, [user]);
+
+  // Auth modal state
+  const [isAuthModalOpen, setAuthModalOpen] = useState<boolean>(false);
+  const [authView, setAuthView] = useState<'login' | 'phone' | 'otp' | 'register'>('login');
+  const [pendingPhone, setPendingPhone] = useState<string>('+880 ');
+
+  // Bookmarks & History
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('askio_bookmarks');
+    return saved ? JSON.parse(saved) : ['res-1', 'res-3'];
+  });
+
+  const [recentlyViewedIds, setRecentlyViewedIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('askio_history');
+    return saved ? JSON.parse(saved) : ['res-1', 'res-2', 'res-5'];
+  });
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedFormat, setSelectedFormat] = useState<FormatType>('All');
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    const saved = localStorage.getItem('askio_recent_searches');
+    return saved ? JSON.parse(saved) : ['Eye exercises for screen fatigue', '20-20-20 rule', 'TypeScript Agentic AI'];
+  });
+
+  // Detail Modal
+  const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
+
+  // AI Guidance Chat
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: 'msg-init',
+      sender: 'ai',
+      text: 'Hello Fatema! 👋 I am Askio AI, your personal guidance engine. How can I support your eye care, learning, or career growth today?',
+      timestamp: 'Just now'
+    }
+  ]);
+  const [isAiGenerating, setIsAiGenerating] = useState<boolean>(false);
+
+  // Goals
+  const [goals, setGoals] = useState<Goal[]>(() => {
+    const saved = localStorage.getItem('askio_goals');
+    return saved ? JSON.parse(saved) : INITIAL_GOALS;
+  });
+
+  // Notifications
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
+    const saved = localStorage.getItem('askio_notifications');
+    return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
+  });
+  const [undoDelete, setUndoDelete] = useState<UndoState | null>(null);
+
+  // Activities
+  const [activities, setActivities] = useState<ActivityLogItem[]>(() => {
+    const saved = localStorage.getItem('askio_activities');
+    return saved ? JSON.parse(saved) : INITIAL_ACTIVITIES;
+  });
+
+  // Preferences
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem('askio_theme') as ThemeMode;
+    return saved || 'light';
+  });
+  const [language, setLanguageState] = useState<AppLanguage>(() => {
+    const saved = localStorage.getItem('askio_language') as AppLanguage;
+    return saved || 'en';
+  });
+  const [activityTrackingEnabled, setActivityTrackingEnabled] = useState<boolean>(true);
+  const [analyticsConsent, setAnalyticsConsent] = useState<boolean>(true);
+
+  // Subscription Modal
+  const [isSubscriptionModalOpen, setSubscriptionModalOpen] = useState<boolean>(false);
+
+  // Sync state to local storage
+  useEffect(() => {
+    localStorage.setItem('askio_bookmarks', JSON.stringify(bookmarkedIds));
+  }, [bookmarkedIds]);
+
+  useEffect(() => {
+    localStorage.setItem('askio_history', JSON.stringify(recentlyViewedIds));
+  }, [recentlyViewedIds]);
+
+  useEffect(() => {
+    localStorage.setItem('askio_recent_searches', JSON.stringify(recentSearches));
+  }, [recentSearches]);
+
+  useEffect(() => {
+    localStorage.setItem('askio_goals', JSON.stringify(goals));
+  }, [goals]);
+
+  useEffect(() => {
+    localStorage.setItem('askio_notifications', JSON.stringify(notifications));
+  }, [notifications]);
+
+  useEffect(() => {
+    localStorage.setItem('askio_activities', JSON.stringify(activities));
+  }, [activities]);
+
+  // Apply Theme
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else if (theme === 'light') {
+      root.classList.remove('dark');
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) root.classList.add('dark');
+      else root.classList.remove('dark');
+    }
+    localStorage.setItem('askio_theme', theme);
+  }, [theme]);
+
+  const setTheme = (t: ThemeMode) => setThemeState(t);
+
+  const setLanguage = (lang: AppLanguage) => {
+    setLanguageState(lang);
+    localStorage.setItem('askio_language', lang);
+  };
+
+  const addActivity = (type: ActivityLogItem['type'], title: string, category?: string) => {
+    if (!activityTrackingEnabled) return;
+    const newItem: ActivityLogItem = {
+      id: 'act-' + Date.now(),
+      type,
+      title,
+      timestamp: 'Just now',
+      category
+    };
+    setActivities(prev => [newItem, ...prev.slice(0, 49)]);
+  };
+
+  // User Profile
+  const updateProfile = (updated: Partial<UserProfile>) => {
+    setUser(prev => ({ ...prev, ...updated }));
+    addActivity('bookmark', `Updated profile information`);
+  };
+
+  const loginWithPhone = (phone: string) => {
+    setPendingPhone(phone);
+    setAuthView('otp');
+  };
+
+  const verifyOtp = (otp: string): boolean => {
+    if (otp.length >= 4) {
+      setUser(prev => ({
+        ...prev,
+        isLoggedIn: true,
+        phone: pendingPhone
+      }));
+      setAuthModalOpen(false);
+      addActivity('search', `Signed in via Phone verification (${pendingPhone})`);
+      return true;
+    }
+    return false;
+  };
+
+  const loginWithEmail = (email: string, _pass: string): boolean => {
+    setUser(prev => ({
+      ...prev,
+      email,
+      isLoggedIn: true
+    }));
+    setAuthModalOpen(false);
+    addActivity('search', `Signed in with Email: ${email}`);
+    return true;
+  };
+
+  const registerUser = (name: string, email: string, phone: string, pass: string): boolean => {
+    setUser({
+      fullName: name,
+      email,
+      phone,
+      password: pass,
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+      isLoggedIn: true,
+      isPremium: false,
+      membershipPlan: 'Free Tier',
+      joinedDate: 'September 2026'
+    });
+    setAuthModalOpen(false);
+    addActivity('search', `Registered new account: ${name}`);
+    return true;
+  };
+
+  const logout = () => {
+    setUser(prev => ({ ...prev, isLoggedIn: false }));
+  };
+
+  // Bookmarks
+  const toggleBookmark = (resourceId: string) => {
+    const res = MOCK_RESOURCES.find(r => r.id === resourceId);
+    setBookmarkedIds(prev => {
+      const exists = prev.includes(resourceId);
+      if (exists) {
+        addActivity('bookmark', `Removed bookmark: "${res?.title || 'Resource'}"`);
+        return prev.filter(id => id !== resourceId);
+      } else {
+        addActivity('bookmark', `Bookmarked: "${res?.title || 'Resource'}"`, res?.category);
+        return [...prev, resourceId];
+      }
+    });
+  };
+
+  const isBookmarked = (resourceId: string) => bookmarkedIds.includes(resourceId);
+
+  // History
+  const addToRecentlyViewed = (resourceId: string) => {
+    const res = MOCK_RESOURCES.find(r => r.id === resourceId);
+    setRecentlyViewedIds(prev => {
+      const filtered = prev.filter(id => id !== resourceId);
+      return [resourceId, ...filtered.slice(0, 30)];
+    });
+    if (res) {
+      addActivity('view', `Viewed "${res.title}"`, res.category);
+    }
+  };
+
+  const clearRecentlyViewed = () => {
+    setRecentlyViewedIds([]);
+  };
+
+  const openResourceDetail = (resource: Resource) => {
+    setSelectedResource(resource);
+    addToRecentlyViewed(resource.id);
+  };
+
+  // Search History
+  const addRecentSearch = (query: string) => {
+    if (!query.trim()) return;
+    const clean = query.trim();
+    setRecentSearches(prev => {
+      const filtered = prev.filter(q => q.toLowerCase() !== clean.toLowerCase());
+      return [clean, ...filtered.slice(0, 9)];
+    });
+    addActivity('search', `Searched for "${clean}"`);
+  };
+
+  const removeRecentSearch = (query: string) => {
+    setRecentSearches(prev => prev.filter(q => q !== query));
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+  };
+
+  // AI Chat Guidance
+  const sendChatMessage = (text: string, contextResource?: Resource) => {
+    if (!text.trim()) return;
+    const userMsg: ChatMessage = {
+      id: 'usr-' + Date.now(),
+      sender: 'user',
+      text: text.trim(),
+      timestamp: 'Just now',
+      contextResource: contextResource ? {
+        id: contextResource.id,
+        title: contextResource.title,
+        category: contextResource.category
+      } : undefined
+    };
+
+    setChatMessages(prev => [...prev, userMsg]);
+    setIsAiGenerating(true);
+    addActivity('ai', `Asked Askio AI: "${text.substring(0, 35)}..."`);
+
+    setTimeout(() => {
+      let reply = '';
+      const lower = text.toLowerCase();
+
+      if (contextResource) {
+        reply = `Analyzing **"${contextResource.title}"**:\n\n` +
+          `• **Target Domain**: ${contextResource.category} (${contextResource.format})\n` +
+          `• **Author Insight**: Prepared by ${contextResource.author.name} (${contextResource.author.role}).\n\n` +
+          `**Core Actionable Advice**: ${contextResource.description}\n\n` +
+          `Would you like me to extract key takeaways, generate practice quizzes, or set up a milestone reminder in your learning goals?`;
+      } else if (lower.includes('eye') || lower.includes('vision') || lower.includes('strain') || lower.includes('exercise')) {
+        reply = `Here is your instant **2-Minute Screen Fatigue Relief Guide**:\n\n` +
+          `1. **The 20-20-20 Anchor**: Every 20 minutes, focus on an object 20 feet away for 20 seconds.\n` +
+          `2. **Conscious Palming**: Rub palms together until warm. Cup gently over closed eyes without pressing for 30 seconds.\n` +
+          `3. **Orbital Muscle Rolls**: Slowly roll your gaze in wide clockwise circles (3x), then counter-clockwise (3x).\n` +
+          `4. **Blink Recharge**: Fast blink 10 times to re-establish the ocular lipid tear barrier.\n\n` +
+          `*Note: If pain or blurred vision persists, please consult a licensed optometrist or ophthalmologist.*`;
+      } else if (lower.includes('specialist') || lower.includes('doctor') || lower.includes('clinic')) {
+        reply = `**Choosing the Right Vision Specialist**:\n\n` +
+          `• **Optometrist (OD)**: Primary eye care, vision checks, corrective lens prescriptions, and digital strain management.\n` +
+          `• **Ophthalmologist (MD/DO)**: Medical doctor specializing in surgery, retinal pathologies, glaucoma, and ocular diseases.\n` +
+          `• **Vision Therapist**: Specializes in binocular convergence deficits and visual rehabilitation.\n\n` +
+          `Would you like to search verified clinics or schedule a consultation guide?`;
+      } else if (lower.includes('book') && lower.includes('guide')) {
+        reply = `**Personalized Vision & Learning Guide**: I have drafted a custom 14-day protocol based on your screen-time habits. You can add this directly to your **Learning Goals** tab with one tap!`;
+      } else if (lower.includes('stress') || lower.includes('breathe') || lower.includes('relax')) {
+        reply = `Let's do the **Physiological Sigh** (fastest neurobiological reset):\n\n` +
+          `1. Take a deep, full breath through your nose.\n` +
+          `2. At the very top, take a second quick sharp nasal sip of air.\n` +
+          `3. Exhale long and gently through open lips for 6-8 seconds.\n` +
+          `4. Repeat 3 times. Your heart rate and neural arousal will drop immediately.`;
+      } else {
+        reply = `**Askio AI Insight**:\n\nThank you for asking! Based on our verified knowledge repository:\n\n` +
+          `• **Key Concept**: Structured consistency and habit-stacking yield the highest long-term cognitive and physical retention.\n` +
+          `• **Recommended Action**: Break this objective into 15-minute micro-sessions and log it into your Askio Learning Goals tracker.\n\n` +
+          `Feel free to ask for a deeper step-by-step breakdown or related literature!`;
+      }
+
+      const aiMsg: ChatMessage = {
+        id: 'ai-' + Date.now(),
+        sender: 'ai',
+        text: reply,
+        timestamp: 'Just now'
+      };
+      setChatMessages(prev => [...prev, aiMsg]);
+      setIsAiGenerating(false);
+    }, 850);
+  };
+
+  const askAiAboutResource = (resource: Resource) => {
+    setSelectedResource(null);
+    setActiveTab('ai');
+    sendChatMessage(`Could you analyze this resource and summarize key takeaways for me?`, resource);
+  };
+
+  const clearChatHistory = () => {
+    setChatMessages([
+      {
+        id: 'msg-init-reset',
+        sender: 'ai',
+        text: 'Chat history cleared. How can I assist your learning today?',
+        timestamp: 'Just now'
+      }
+    ]);
+  };
+
+  // Goals
+  const addGoal = (newGoalData: Omit<Goal, 'id'>) => {
+    const created: Goal = {
+      ...newGoalData,
+      id: 'goal-' + Date.now()
+    };
+    setGoals(prev => [created, ...prev]);
+    addActivity('goal', `Created goal: "${created.title}"`, created.category);
+  };
+
+  const incrementGoalProgress = (goalId: string) => {
+    setGoals(prev => prev.map(g => {
+      if (g.id === goalId) {
+        const nextCompleted = Math.min(g.totalModules, g.completedModules + 1);
+        const nextProgress = Math.round((nextCompleted / g.totalModules) * 100);
+        addActivity('goal', `Completed module in "${g.title}" (${nextProgress}%)`);
+        return {
+          ...g,
+          completedModules: nextCompleted,
+          progress: nextProgress,
+          streakDays: g.streakDays + 1
+        };
+      }
+      return g;
+    }));
+  };
+
+  const deleteGoal = (goalId: string) => {
+    setGoals(prev => prev.filter(g => g.id !== goalId));
+  };
+
+  // Notifications
+  const unreadNotificationsCount = notifications.filter(n => !n.read).length;
+
+  const markNotificationAsRead = (id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+  const markAllNotificationsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const markAllNotificationsUnread = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: false })));
+  };
+
+  const deleteNotification = (id: string) => {
+    const idx = notifications.findIndex(n => n.id === id);
+    if (idx !== -1) {
+      setUndoDelete({ item: notifications[idx], index: idx });
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }
+  };
+
+  const undoNotificationDelete = () => {
+    if (undoDelete) {
+      setNotifications(prev => {
+        const copy = [...prev];
+        copy.splice(undoDelete.index, 0, undoDelete.item);
+        return copy;
+      });
+      setUndoDelete(null);
+    }
+  };
+
+  // Subscription
+  const upgradeToPremium = () => {
+    setUser(prev => ({
+      ...prev,
+      isPremium: true,
+      membershipPlan: 'Daily Micro (৳2/day)'
+    }));
+    setSubscriptionModalOpen(false);
+    addActivity('bookmark', `Subscribed to Askio Premium Daily Micro plan (৳2/day)`);
+  };
+
+  const cancelPremium = () => {
+    setUser(prev => ({
+      ...prev,
+      isPremium: false,
+      membershipPlan: 'Free Tier'
+    }));
+  };
+
+  return (
+    <AppContext.Provider
+      value={{
+        activeTab,
+        setActiveTab,
+        user,
+        updateProfile,
+        loginWithPhone,
+        verifyOtp,
+        loginWithEmail,
+        registerUser,
+        logout,
+        isAuthModalOpen,
+        setAuthModalOpen,
+        authView,
+        setAuthView,
+        pendingPhone,
+        bookmarkedIds,
+        toggleBookmark,
+        isBookmarked,
+        recentlyViewedIds,
+        addToRecentlyViewed,
+        clearRecentlyViewed,
+        searchQuery,
+        setSearchQuery,
+        selectedFormat,
+        setSelectedFormat,
+        recentSearches,
+        addRecentSearch,
+        removeRecentSearch,
+        clearRecentSearches,
+        selectedResource,
+        setSelectedResource,
+        openResourceDetail,
+        chatMessages,
+        sendChatMessage,
+        clearChatHistory,
+        isAiGenerating,
+        askAiAboutResource,
+        goals,
+        addGoal,
+        incrementGoalProgress,
+        deleteGoal,
+        notifications,
+        unreadNotificationsCount,
+        markNotificationAsRead,
+        markAllNotificationsRead,
+        markAllNotificationsUnread,
+        deleteNotification,
+        undoNotificationDelete,
+        canUndoNotification: undoDelete !== null,
+        activities,
+        addActivity,
+        theme,
+        setTheme,
+        language,
+        setLanguage,
+        activityTrackingEnabled,
+        setActivityTrackingEnabled,
+        analyticsConsent,
+        setAnalyticsConsent,
+        isSubscriptionModalOpen,
+        setSubscriptionModalOpen,
+        upgradeToPremium,
+        cancelPremium
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
+};
+
+export const useApp = () => {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useApp must be used within an AppProvider');
+  }
+  return context;
+};

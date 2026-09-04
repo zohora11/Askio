@@ -1,6 +1,6 @@
 {
   "name": "Askio",
-  "description": "A modern question-and-answer platform.",
+  "description": "Askio AI Guidance, Search, Knowledge Catalog, Learning Goals, and Health Portal.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
