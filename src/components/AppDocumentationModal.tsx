@@ -17,7 +17,8 @@ import {
   Bookmark,
   Activity,
   Sliders,
-  BellRing
+  BellRing,
+  Bot
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ChatbotAvatar } from './ChatbotAvatar';
@@ -46,44 +47,44 @@ export const AppDocumentationModal: React.FC<AppDocumentationModalProps> = ({
       id: 'ai',
       icon: Sparkles,
       color: 'emerald',
-      title: isBn ? '১. Askio AI পার্সোনাল অ্যাসিস্ট্যান্ট' : '1. Askio AI Personal Assistant',
+      title: isBn ? '১. Askio AI স্মার্ট সার্চ ও পার্সোনাল অ্যাসিস্ট্যান্ট' : '1. Askio AI Smart Search & Assistant',
       category: isBn ? 'কৃত্রিম বুদ্ধিমত্তা' : 'AI Intelligence',
       summary: isBn 
-        ? 'আপনার সার্বক্ষণিক স্মার্ট এআই পরামর্শক, যা সুনির্দিষ্ট ও কার্যকর সমাধান প্রদান করে।' 
-        : 'Your 24/7 smart conversational AI for rapid, contextual recommendations.',
+        ? 'যেকোনো বিষয় বা প্রবলেম সার্চ করলেই তাৎক্ষণিক সমাধান, বই, ভিডিও ও পিডিএফের রেফারেন্স প্রদান।' 
+        : 'Search any problem for instant solutions, book recommendations, videos, and PDF summaries.',
       capabilities: isBn ? [
-        'বাংলা ও ইংরেজিতে যেকোনো প্রশ্ন জিজ্ঞেস করা এবং সাবলীল, পরিমিত উত্তর পাওয়া',
-        'চোখের ক্লান্তি ও মাথা ব্যথার তাৎক্ষণিক করণীয় জানা',
+        'যেকোনো বিষয়ে প্রশ্ন বা সার্চ করে মুহূর্তেই বিস্তারিত গাইড, বই ও ভিডিও খুঁজে পাওয়া',
+        'বাংলা ও ইংরেজিতে যেকোনো জটিল বিষয়ের সহজ ও নির্ভুল এআই ব্যাখ্যা',
         'পড়াশোনা, বিসিএস বা পরীক্ষার রুটিন ও স্টাডি স্ট্র্যাটেজি তৈরি',
         'ক্যারিয়ার কাউন্সেলিং, স্কিল ডেভেলপমেন্ট ও কোডিং সমস্যার দিকনির্দেশনা',
         'পূর্ববর্তী প্রশ্ন ও কথোপকথনের হিস্ট্রি সংরক্ষণ ও সহজে পুনরায় দেখা'
       ] : [
+        'Search any topic to instantly discover relevant books, guides, and video summaries',
         'Ask any question in Bengali or English for crisp, accurate answers',
-        'Instant triage & relief steps for digital eye strain & headaches',
         'Personalized study schedules, exam prep & retention tactics',
         'Career development, skill progression & coding advice',
         'Full chat history archive with 1-click continuation'
       ]
     },
     {
-      id: 'vision',
-      icon: Eye,
-      color: 'teal',
-      title: isBn ? '২. ২০-২০-২০ আই কেয়ার ও ভিশন ট্র্যাকার' : '2. 20-20-20 Vision Care & Timer',
-      category: isBn ? 'চোখের সুরক্ষা' : 'Eye Ergonomics',
+      id: 'search',
+      icon: Search,
+      color: 'amber',
+      title: isBn ? '২. গ্লোবাল সার্চ ইঞ্জিন ও ইনস্ট্যান্ট ফিল্টারিং' : '2. Global Search Engine & Instant Filter',
+      category: isBn ? 'সার্চ ইঞ্জিন' : 'Search Engine',
       summary: isBn 
-        ? 'স্ক্রিনে কাজ করার সময় চোখের সুরক্ষার জন্য বিজ্ঞানসম্মত ২০-২০-২০ ব্রেক টাইমার ও নির্দেশিকা।' 
-        : 'Scientifically approved break timers and ocular relaxation routines.',
+        ? 'হাজার হাজার বই, পিডিএফ ও ভিডিও রিসোর্স নিমেষেই কিওয়ার্ড দিয়ে খুঁজে বের করার সুবিধা।' 
+        : 'Fast keyword search and format filtering across books, PDFs, and videos.',
       capabilities: isBn ? [
-        'প্রতি ২০ মিনিট স্ক্রিন ব্যবহারের পর ২০ সেকেন্ডের ব্রেক টাইমার কাউন্টডাউন',
-        'চোখের পেশি (Ciliary Muscles) শিথিল করার স্টেপ-বাই-স্টেপ চোখের ব্যায়াম',
-        'ড্রাই-আই, চোখের জ্বালাপোড়া ও ব্লার ভিশন প্রতিরোধের সঠিক নিয়মাবলী',
-        'স্ক্রিন লাইট, চোখের নিরাপদ দূরত্ব ও সঠিক ভঙ্গি (Posture) গাইড'
+        'যেকোনো বাংলা বা ইংরেজি শব্দ লিখে ইনস্ট্যান্ট বই, গাইড ও ভিডিও সার্চ করা',
+        'মিডিয়া ফরম্যাট ফিল্টার (বই, পিডিএফ, ভিডিও সামারি, রিসার্চ পেপার)',
+        'ক্যাটাগরি ভিত্তিক (Technology, Health, Career, Education, Lifestyle) বাছাই',
+        'জনপ্রিয় ও ট্রেন্ডিং টপিকগুলোর তাৎক্ষণিক সাজেশন পাওয়া'
       ] : [
-        'Interactive 20-minute screen countdown & 20-second relaxation timer',
-        'Guided ocular gymnastics for resting fatigued ciliary muscles',
-        'Proactive dry-eye mitigation and blink rate reminders',
-        'Ergonomic display distances, angles, and blue-light guidelines'
+        'Instant real-time search across thousands of books, PDFs, and video guides',
+        'Sort by content formats (PDFs, Books, Video Summaries, Handbooks)',
+        'Filter by topical categories (Health, Tech, Career, Productivity, Education)',
+        'Trending tags and quick search keyword suggestions'
       ]
     },
     {
@@ -150,24 +151,24 @@ export const AppDocumentationModal: React.FC<AppDocumentationModalProps> = ({
       ]
     },
     {
-      id: 'search',
-      icon: Search,
+      id: 'personas',
+      icon: Bot,
       color: 'amber',
-      title: isBn ? '৬. স্মার্ট সার্চ ও ইনস্ট্যান্ট ফিল্টারিং' : '6. Smart Search & Dynamic Filtering',
-      category: isBn ? 'সার্চ ও ফিল্টার' : 'Search Engine',
+      title: isBn ? '৬. স্পেশালিস্ট এআই পার্সোনা ও মেন্টর মোড' : '6. Specialist AI Personas & Mentor Modes',
+      category: isBn ? 'এক্সপার্ট মেন্টর' : 'Specialist Personas',
       summary: isBn 
-        ? 'পুরো অ্যাপের রিসোর্স ও গাইড নিমেষেই কিওয়ার্ড দিয়ে খুঁজে বের করার সুবিধা।' 
-        : 'Fast keyword autocomplete and category/format filtering across the repository.',
+        ? 'বিসিএস স্টাডি মেন্টর, ক্যারিয়ার কাউন্সেলর ও কোডিং বিশেষজ্ঞের ডেডিকেটেড এআই মোড।' 
+        : 'Dedicated AI modes for study mentorship, career coaching, coding, and health guidance.',
       capabilities: isBn ? [
-        'যেকোনো বাংলা বা ইংরেজি শব্দ লিখে ইনস্ট্যান্ট গাইড সার্চ করা',
-        'ক্যাটাগরি ভিত্তিক (Technology, Health, Career, Mindfulness) ফিল্টারিং',
-        'মিডিয়া টাইপ (Book, PDF, Video, Talk) আলাদা করে বাছাই করার সুবিধা',
-        'জনপ্রিয় ও ট্রেন্ডিং টপিকগুলোর তাৎক্ষণিক সাজেশন পাওয়া'
+        'নির্দিষ্ট বিষয়ের জন্য প্রস্তুতকৃত বিশেষজ্ঞ এআই মোড নির্বাচন',
+        'বিসিএস ও সরকারি চাকরির প্রস্তুতিতে ডেডিকেটেড স্টাডি পার্সোনা',
+        'টেকনিক্যাল কোডিং ও সফটওয়্যার সমস্যা সমাধানে প্রোগ্রামিং মেন্টর',
+        'লাইফস্টাইল ও শারীরিক সুস্থতার পরামর্শক গাইড'
       ] : [
-        'Instant real-time search across thousands of guides in Bengali & English',
-        'Filter by topical categories (Health, Tech, Career, Mindfulness)',
-        'Sort by content formats (PDFs, Books, Video Summaries, Guides)',
-        'Trending tags and quick search keyword suggestions'
+        'Select domain-tailored mentor modes for targeted guidance',
+        'Dedicated BCS & academic exam preparation study personas',
+        'Programming & software engineering technical code mentor',
+        'Daily lifestyle, habits, and wellness counseling'
       ]
     },
     {
@@ -285,15 +286,15 @@ export const AppDocumentationModal: React.FC<AppDocumentationModalProps> = ({
             <span>{isBn ? 'এআই অ্যাসিস্ট্যান্ট' : 'AI Assistant'}</span>
           </button>
           <button
-            onClick={() => setActiveTab('vision')}
+            onClick={() => setActiveTab('search')}
             className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'vision'
-                ? 'bg-teal-600 text-white'
-                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-teal-600'
+              activeTab === 'search'
+                ? 'bg-amber-600 text-white'
+                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-amber-600'
             }`}
           >
-            <Eye className="w-3.5 h-3.5" />
-            <span>{isBn ? 'আই কেয়ার ট্র্যাকার' : 'Vision Timer'}</span>
+            <Search className="w-3.5 h-3.5" />
+            <span>{isBn ? 'স্মার্ট সার্চ' : 'Smart Search'}</span>
           </button>
           <button
             onClick={() => setActiveTab('library')}
@@ -304,7 +305,7 @@ export const AppDocumentationModal: React.FC<AppDocumentationModalProps> = ({
             }`}
           >
             <BookOpen className="w-3.5 h-3.5" />
-            <span>{isBn ? 'নলেজ লাইব্রেরি' : 'Library'}</span>
+            <span>{isBn ? 'নলেজ ও বই' : 'Library'}</span>
           </button>
           <button
             onClick={() => setActiveTab('goals')}
@@ -315,18 +316,18 @@ export const AppDocumentationModal: React.FC<AppDocumentationModalProps> = ({
             }`}
           >
             <Target className="w-3.5 h-3.5" />
-            <span>{isBn ? 'মাই গোলস ট্র্যাকার' : 'Goals Tracker'}</span>
+            <span>{isBn ? 'মাই গোলস' : 'Goals'}</span>
           </button>
           <button
-            onClick={() => setActiveTab('helpline')}
+            onClick={() => setActiveTab('personas')}
             className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'helpline'
-                ? 'bg-rose-600 text-white'
-                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-rose-600'
+              activeTab === 'personas'
+                ? 'bg-amber-600 text-white'
+                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-amber-600'
             }`}
           >
-            <PhoneCall className="w-3.5 h-3.5" />
-            <span>{isBn ? 'জরুরি হেল্পলাইন' : 'Helpline'}</span>
+            <Bot className="w-3.5 h-3.5" />
+            <span>{isBn ? 'স্পেশালিস্ট পার্সোনা' : 'Personas'}</span>
           </button>
         </div>
 
@@ -340,8 +341,8 @@ export const AppDocumentationModal: React.FC<AppDocumentationModalProps> = ({
                 {isBn ? 'Askio এর মাধ্যমে আপনি যা যা করতে পারবেন:' : 'What you can accomplish inside Askio:'}
               </strong>
               {isBn 
-                ? 'এআই পরামর্শ নেওয়া, চোখের ২০-২০-২০ ব্রেক ট্র্যাকিং, ১৪,০০০+ হ্যান্ডবুক পড়া ও বুকমার্ক করা, প্রতিদিনের গোলস ও স্ট্রিক বজায় রাখা এবং জরুরি স্বাস্থ্য হটলাইনে যোগাযোগ—সব এক অ্যাপে।' 
-                : 'Consult AI in natural Bengali/English, track 20-20-20 eye rests, bookmark 14,000+ handbooks, track daily habit streaks, and access health helplines.'}
+                ? 'এআই সার্চ ও পরামর্শ নেওয়া, বই ও পিডিএফ পড়া, ভিডিও লেকচার দেখা ও এআই সামারি তৈরি, প্রতিদিনের স্টাডি গোলস ট্র্যাকিং এবং স্পেশালিস্ট এআই মেন্টরের সহায়তা—সব এক প্ল্যাটফর্মে।' 
+                : 'Search with AI, read books & PDFs, watch video lectures with instant takeaways, track daily study goals, and consult specialist AI mentors.'}
             </div>
           </div>
 

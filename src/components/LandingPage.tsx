@@ -50,7 +50,9 @@ import {
   Menu,
   X,
   Search,
-  Bot
+  Bot,
+  Bookmark,
+  Video
 } from 'lucide-react';
 import { 
   validateMobileNumber, 
@@ -94,12 +96,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
   // Interactive Features Showcase Carousel Slider (1-by-1 Slide)
   const [currentFeatureSlide, setCurrentFeatureSlide] = useState(0);
-  const totalFeatureSlides = 7;
-  
-  // Interactive mini 20-20-20 preview timer on landing page
-  const [timerSecondsLeft, setTimerSecondsLeft] = useState(20);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [timerCompleted, setTimerCompleted] = useState(false);
+  const totalFeatureSlides = 6;
 
   // Modals
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
@@ -120,9 +117,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       title: isBn ? 'প্রোগ্রামার ও কোডার' : 'Developers & Coders',
       tag: isBn ? 'কোডিং ও টেক গাইড' : 'Tech & Coding',
       desc: isBn
-        ? 'কোডিং সমস্যা সমাধান, টেকনিক্যাল রিসার্চ, বাগ ফিক্সিং পরামর্শ ও ৮-১২ ঘণ্টার স্ক্রিন টাইমে ২০-২০-২০ আই কেয়ার।'
-        : 'Rapid code assistance, debugging tips, library documentation, and ocular strain reduction for long sprints.',
-      badge: isBn ? '২৪/৭ এআই ও আই কেয়ার' : '24/7 AI & Eye Care'
+        ? 'কোডিং সমস্যা সমাধান, টেকনিক্যাল ডকুমেন্টেশন, বাগ ফিক্সিং পরামর্শ ও প্রোগ্রামিং বই-পিডিএফ সহজে সার্চ।'
+        : 'Rapid code assistance, debugging tips, architecture documentation, and programming PDF books search.',
+      badge: isBn ? '২৪/৭ এআই ও কোড লাইব্রেরি' : '24/7 AI & Code Library'
     },
     {
       id: 'students',
@@ -132,9 +129,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       title: isBn ? 'শিক্ষার্থী ও বিসিএস পরীক্ষার্থী' : 'Students & BCS Aspirants',
       tag: isBn ? 'স্টাডি ও বিসিএস প্রিপারেশন' : 'Academics & Exams',
       desc: isBn
-        ? 'বিসিএস ও চাকরির জন্য ১৪,০০০+ হ্যান্ডবুক, প্রতিদিনের গোলস ট্র্যাকিং এবং জটিল যেকোনো বিষয়ের সহজ এআই ব্যাখ্যা।'
-        : 'Access 14,000+ handbooks, daily habit tracking, and crystal-clear AI explanations for study topics.',
-      badge: isBn ? '১৪,০০০+ হ্যান্ডবুক' : '14,000+ Handbooks'
+        ? 'বিসিএস ও চাকরির জন্য হাজার হাজার বই, ভিডিও ও পিডিএফ গাইড, ডেইলি গোলস ট্র্যাকিং এবং সহজ এআই ব্যাখ্যা।'
+        : 'Access thousands of books, video summaries, PDFs, daily habit tracking, and crystal-clear AI explanations.',
+      badge: isBn ? 'বই, ভিডিও ও পিডিএফ' : 'Books, Videos & PDFs'
     },
     {
       id: 'executives',
@@ -144,8 +141,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       title: isBn ? 'চাকরিজীবী ও পেশাজীবী' : 'Executives & Professionals',
       tag: isBn ? 'অফিস প্রোডাক্টিভিটি' : 'Workplace Productivity',
       desc: isBn
-        ? 'প্রফেশনাল ইমেইল ও রিপোর্ট ড্রাফটিং, অফিসিয়াল মিটিং নোটস সামারি, কাজের প্রায়োরিটি ও কর্মদক্ষতা বৃদ্ধি।'
-        : 'Draft executive emails, summarize complex briefs, organize workflow priorities, and boost day-to-day focus.',
+        ? 'প্রফেশনাল ইমেইল ও রিপোর্ট ড্রাফটিং, অফিসিয়াল মিটিং নোটস সামারি, কাজের প্রায়োরিটি ও প্রফেশনাল হ্যান্ডবুক সার্চ।'
+        : 'Draft executive emails, summarize briefs, search professional business books, and boost day-to-day focus.',
       badge: isBn ? 'স্মার্ট অ্যাসিস্ট্যান্ট' : 'Smart Workflow'
     },
     {
@@ -156,9 +153,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       title: isBn ? 'রিমোট ওয়ার্কার ও ফ্রিল্যান্সার' : 'Freelancers & Remote Workers',
       tag: isBn ? 'কাজের ভারসাম্য' : 'Work-Life Balance',
       desc: isBn
-        ? 'কাজের ফাঁকে চোখ ও ঘাড়ের ক্লান্তি দূর করা, ক্লায়েন্ট কমিউনিকেশন পরামর্শ ও নতুন স্কিল শেখার দ্রুত গাইড।'
-        : 'Protect vision during midnight client deadlines while rapidly learning new digital tools and skills.',
-      badge: isBn ? 'ফ্লেক্সিবল লার্নিং' : 'Ocular Longevity'
+        ? 'যেকোনো প্রবলেমে সার্চ করে সমাধান, ক্লায়েন্ট কমিউনিকেশন পরামর্শ ও নতুন স্কিল শেখার দ্রুত ভিডিও ও বই গাইড।'
+        : 'Search any problem for rapid solutions, client communication tips, and multimedia skill tutorials.',
+      badge: isBn ? 'ফ্লেক্সিবল লার্নিং' : 'Skills & Search'
     },
     {
       id: 'teachers',
@@ -274,34 +271,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     setCurrentFeatureSlide((prev) => (prev >= totalFeatureSlides - 1 ? 0 : prev + 1));
   };
 
-  // Interactive timer effect on landing page
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (isTimerRunning && timerSecondsLeft > 0) {
-      interval = setInterval(() => {
-        setTimerSecondsLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (isTimerRunning && timerSecondsLeft === 0) {
-      setIsTimerRunning(false);
-      setTimerCompleted(true);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isTimerRunning, timerSecondsLeft]);
-
-  const handleStartDemoTimer = () => {
-    setTimerSecondsLeft(20);
-    setTimerCompleted(false);
-    setIsTimerRunning(true);
-  };
-
-  const handleResetDemoTimer = () => {
-    setIsTimerRunning(false);
-    setTimerSecondsLeft(20);
-    setTimerCompleted(false);
-  };
-
   // Handle direct phone subscription / check from hero card
   const handleInitiateSubscription = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -395,12 +364,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       a: 'না, ইতিমধ্যে সক্রিয় সাবস্ক্রিপশন থাকলে লগইন অপশনে গিয়ে আপনার মোবাইল নম্বরটি লিখলেই কোনো অতিরিক্ত চার্জ বা ওটিপি ছাড়াই সরাসরি অ্যাপে প্রবেশ করতে পারবেন।'
     },
     {
-      q: '২০-২০-২০ আই কেয়ার রুটিন আসলে কী?',
-      a: 'এটি চক্ষু চিকিৎসকদের একটি বৈজ্ঞানিক নিয়ম: প্রতি ২০ মিনিট স্ক্রিনের দিকে তাকানোর পর ২০ সেকেন্ডের জন্য অন্তত ২০ ফুট দূরত্বের কোনো বস্তুর দিকে তাকিয়ে চোখ রিল্যাক্স করতে হয়। Askio তে এর জন্য বিল্ট-ইন টাইমার ও গাইড রয়েছে।'
+      q: 'Askio তে কি ধরণের বই, ভিডিও এবং গাইড পাওয়া যাবে?',
+      a: 'Askio তে প্রযুক্তি, বিসিএস ও ক্যারিয়ার, সাধারণ জ্ঞান, স্বাস্থ্য ও লাইফস্টাইল সহ অসংখ্য বিষয়ের কিউরেটেড বই, সামারি ভিডিও, তথ্যবহুল পিডিএফ এবং এআই নির্দেশিকা রয়েছে। যেকোনো সমস্যা সার্চ করলেই প্রয়োজনীয় তথ্য নিমেষেই পাওয়া যায়।'
     },
     {
       q: 'Askio AI অ্যাসিস্ট্যান্ট কি বাংলায় কথা বলতে পারে?',
-      a: 'হ্যাঁ, Askio AI বাংলা এবং ইংরেজি উভয় ভাষায় সাবলীলভাবে যেকোনো প্রশ্নের সংক্ষিপ্ত, প্রাসঙ্গিক ও কার্যকরী পরামর্শ দিতে পারে।'
+      a: 'হ্যাঁ, Askio AI বাংলা এবং ইংরেজি উভয় ভাষায় সাবলীলভাবে যেকোনো প্রশ্নের সংক্ষিপ্ত, প্রাসঙ্গিক ও কার্যকরী সমাধান এবং বই-ভিডিওর তথ্য দিতে পারে।'
     }
   ] : [
     {
@@ -416,12 +385,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       a: 'No. If your daily subscription is currently active, simply enter your phone number via "Log In" to access the app immediately with zero extra charges.'
     },
     {
-      q: 'What is the 20-20-20 eye wellness routine?',
-      a: 'It is a clinically approved protocol: every 20 minutes of screen use, pause for 20 seconds and look at an object at least 20 feet away to relax ciliary eye muscles. Askio includes an interactive timer for this.'
+      q: 'What kinds of books, videos, and PDFs can I search in Askio?',
+      a: 'Askio hosts a vast collection of curated books, video summaries, and research PDFs across technology, career prep, science, academics, and personal growth. Simply search any query to discover tailored resources.'
     },
     {
       q: 'Does Askio AI support Bengali language?',
-      a: 'Yes, Askio AI provides native, fluent, and highly accurate answers in both Bengali and English with complete contextual awareness.'
+      a: 'Yes, Askio AI provides native, fluent, and highly accurate answers in both Bengali and English with complete contextual understanding.'
     }
   ];
 
@@ -434,7 +403,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           <div className="flex items-center gap-2 shrink-0">
             <AppLogo 
               imgClassName="h-7 sm:h-8 md:h-9 w-auto" 
-              subtitle={isBn ? 'নলেজ ও ভিশন প্ল্যাটফর্ম' : 'Knowledge & Vision Platform'}
+              subtitle={isBn ? 'এআই স্টাডি ও নলেজ' : 'AI Study & Knowledge'}
             />
           </div>
 
@@ -617,16 +586,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-zinc-900 dark:text-zinc-100 leading-[1.15]">
               {isBn ? (
-                <>আপনার সার্বক্ষণিক <span className="text-emerald-600 dark:text-emerald-400">এআই ভিশন</span> ও সমৃদ্ধ জ্ঞানভাণ্ডার</>
+                <>যেকোনো প্রয়োজনে <span className="text-emerald-600 dark:text-emerald-400">স্মার্ট সার্চ</span>, বই, ভিডিও ও এআই সমাধান</>
               ) : (
-                <>Your Daily Intelligent <span className="text-emerald-600 dark:text-emerald-400">AI Vision</span> & Knowledge Platform</>
+                <>Search Any Problem for <span className="text-emerald-600 dark:text-emerald-400">Instant AI Solutions</span>, Books & Videos</>
               )}
             </h1>
 
             <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto lg:mx-0 leading-relaxed">
               {isBn 
-                ? 'চোখের সুরক্ষায় ২০-২০-২০ ব্রেক টাইমার, ১৪,০০০+ হ্যান্ডবুক ও গাইড, ডেইলি গোলস ট্র্যাকার এবং ২৪/৭ এআই গাইডেন্স—কোনো ক্রেডিট কার্ড ছাড়াই প্রতিদিন মাত্র ৳২.৭৮ এ।' 
-                : 'Empowering digital workers & students with evidence-based eye wellness, 14,000+ research guides, daily habit streak tracking, and 24/7 bilingual AI for only ৳2.78 / day.'}
+                ? 'যেকোনো সমস্যার সমাধানে সার্চ করুন আর পেয়ে যান সম্পর্কিত দরকারি বই, ভিডিও সামারি, পিডিএফ হ্যান্ডবুক ও ২৪/৭ এআই গাইডেন্স—কোনো ক্রেডিট কার্ড ছাড়াই প্রতিদিন মাত্র ৳২.৭৮ এ।' 
+                : 'Search any problem to discover curated books, video summaries, research PDFs, habit goals, and 24/7 bilingual AI guidance for only ৳2.78 / day.'}
             </p>
 
             {/* Micro Highlights */}
@@ -636,16 +605,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   14,000+
                 </div>
                 <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-                  {isBn ? 'গাইড ও হ্যান্ডবুক' : 'Curated Guides'}
+                  {isBn ? 'বই, পিডিএফ ও ভিডিও' : 'Books, PDFs & Videos'}
                 </div>
               </div>
 
               <div className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800">
                 <div className="font-extrabold text-lg text-teal-600 dark:text-teal-400">
-                  20-20-20
+                  Smart AI
                 </div>
                 <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-                  {isBn ? 'আই কেয়ার টাইমার' : 'Eye Care Timer'}
+                  {isBn ? 'ইনস্ট্যান্ট সার্চ ইঞ্জিন' : 'Search Engine'}
                 </div>
               </div>
 
@@ -816,8 +785,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </h2>
           <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
             {isBn 
-              ? 'একটি একটি করে স্লাইড করে দেখুন প্রতিটি টুল কীভাবে আপনার পড়ালেখা, কাজ ও চোখের যত্নে সহায়তা করবে।' 
-              : 'Slide through each tool to preview how it elevates your studies, work, and ocular health.'}
+              ? 'একটি একটি করে স্লাইড করে দেখুন এআই সার্চ, বই, ভিডিও, লাইব্রেরি ও গোল ট্র্যাকার কীভাবে আপনার কাজ ও পড়াশোনায় সহায়তা করবে।' 
+              : 'Slide through each tool to preview how AI search, books, video summaries, library, and goal tracking elevate your workflow.'}
           </p>
         </div>
 
@@ -829,7 +798,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               className="flex transition-transform duration-700 ease-in-out"
               style={{ transform: `translateX(-${currentFeatureSlide * 100}%)` }}
             >
-              {/* SLIDE 0: AI CHAT ASSISTANT (MAIN AI) */}
+              {/* SLIDE 0: AI CHAT ASSISTANT (CORE AI) */}
               <div className="w-full shrink-0 px-1 sm:px-3">
                 {/* Feature Name Button-shape (Centered Middle Highlight) */}
                 <div className="flex flex-col items-center justify-center mb-5">
@@ -841,7 +810,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                     </span>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center">
-                    {isBn ? 'বাংলা ও ইংরেজিতে যেকোনো প্রশ্নের তাৎক্ষণিক বিশেষজ্ঞ সমাধান' : 'Instant bilingual intelligent guidance & multi-domain solutions'}
+                    {isBn ? 'বাংলা ও ইংরেজিতে যেকোনো বিষয়ের প্রশ্ন ও তাৎক্ষণিক বুদ্ধিমত্তা সমাধান' : 'Instant bilingual intelligent answers, deep explanations & problem solving'}
                   </p>
                 </div>
 
@@ -853,7 +822,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                       <ChatbotAvatar sizeClassName="w-10 h-10" showOnlineBadge={true} />
                       <div>
                         <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Askio AI Assistant</h4>
-                        <p className="text-[11px] text-zinc-400">{isBn ? 'যেকোনো বিষয়ের তাৎক্ষণিক উত্তর' : 'Intelligent multi-domain assistant'}</p>
+                        <p className="text-[11px] text-zinc-400">{isBn ? 'যেকোনো বিষয়ের তাৎক্ষণিক উত্তর ও সমাধান' : 'Intelligent multi-domain assistant'}</p>
                       </div>
                     </div>
                     <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
@@ -865,7 +834,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   <div className="space-y-3 pt-3">
                     <div className="flex justify-end">
                       <div className="bg-emerald-600 text-white text-xs sm:text-sm px-4 py-2.5 rounded-2xl rounded-tr-xs max-w-md shadow-sm">
-                        {isBn ? 'দীর্ঘক্ষণ কম্পিউটারে কাজ করলে চোখের ক্লান্তি কীভাবে কমানো যায়?' : 'How do I relieve eye fatigue after 8 hours of computer work?'}
+                        {isBn ? 'বিসিএস পরীক্ষার জন্য সাধারণ বিজ্ঞানের গুরুত্বপূর্ণ টপিক ও পড়ার কৌশল কী?' : 'What is the best study strategy and high-yield topics for BCS General Science?'}
                       </div>
                     </div>
 
@@ -874,17 +843,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                       <div className="bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs sm:text-sm px-4 py-3 rounded-2xl rounded-tl-xs max-w-lg leading-relaxed shadow-sm">
                         {isBn ? (
                           <>
-                            <p className="font-semibold text-emerald-600 dark:text-emerald-400 mb-1">চোখের ক্লান্তি কমাতে ৩টি কার্যকর নিয়ম:</p>
-                            <p>১. <strong>২০-২০-২০ নিয়ম:</strong> প্রতি ২০ মিনিট পর ২০ সেকেন্ড ২০ ফুট দূরের কোনো দৃশ্যে তাকান।</p>
-                            <p>২. <strong>ঘন ঘন পলক ফেলা:</strong> প্রতি মিনিটে ১২-১৫ বার পলক ফেলুন যেন চোখ আর্দ্র থাকে।</p>
-                            <p>৩. <strong>স্ক্রিনের দূরত্ব:</strong> চোখ থেকে স্ক্রিন অন্তত ২০-২৪ ইঞ্চি দূরে রাখুন এবং চোখের লেভেলের সামান্য নিচে সেট করুন।</p>
+                            <p className="font-semibold text-emerald-600 dark:text-emerald-400 mb-1">বিসিএস বিজ্ঞানের ৩টি পরীক্ষিত প্রস্তুতি ধাপ:</p>
+                            <p>১. <strong>হাই-ইল্ড টপিক:</strong> পদার্থ ও আলোর প্রকৃতি, মানবদেহ ও ভিটামিন, কম্পিউটার ও তথ্যপ্রযুক্তি আগে শেষ করুন।</p>
+                            <p>২. <strong>প্রশ্নব্যাংক অ্যানালাইসিস:</strong> বিগত ১০-১৫ বছরের প্রশ্ন সমাধান করে প্যাটার্ন বুঝুন।</p>
+                            <p>৩. <strong>কনসেপ্ট ক্লিয়ারেন্স:</strong> মুখস্থ না করে মূল সূত্র ও বাস্তব উদাহরণ বুঝে নোট করুন।</p>
                           </>
                         ) : (
                           <>
-                            <p className="font-semibold text-emerald-600 dark:text-emerald-400 mb-1">3 Evidence-Based Steps for Instant Relief:</p>
-                            <p>1. <strong>20-20-20 Rule:</strong> Every 20 minutes, focus on an object 20 feet away for 20 seconds.</p>
-                            <p>2. <strong>Blink Consciously:</strong> Complete 12-15 full blinks per minute to preserve the tear film.</p>
-                            <p>3. <strong>Ergonomic Distance:</strong> Position the screen 20-24 inches away, slightly below eye level.</p>
+                            <p className="font-semibold text-emerald-600 dark:text-emerald-400 mb-1">3 High-Yield BCS Science Steps:</p>
+                            <p>1. <strong>Core High-Yield:</strong> Prioritize Optics, Human Physiology, Vitamins & ICT foundational modules.</p>
+                            <p>2. <strong>Past Papers:</strong> Solve 10-15 years of question banks to analyze recurring question types.</p>
+                            <p>3. <strong>Concept-First:</strong> Focus on understanding scientific mechanisms over rote memorization.</p>
                           </>
                         )}
                       </div>
@@ -912,7 +881,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                     </span>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center">
-                    {isBn ? '১৪,০০০+ হ্যান্ডবুক, বিসিএস প্রস্তুতি ও স্বাস্থ্য নির্দেশিকা নিমেষেই খুঁজুন' : 'Lightning-fast search across 14,000+ handbooks, symptoms & study guides'}
+                    {isBn ? 'বই, পিডিএফ, ভিডিও ও যেকোনো বিষয়ের সমাধান এক ক্লিকে খুঁজুন' : 'Lightning-fast search across 14,000+ books, study guides, video lessons & topics'}
                   </p>
                 </div>
 
@@ -924,7 +893,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                       <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-2 border-indigo-500/40 dark:border-indigo-500/30 shadow-inner">
                         <Search className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                         <div className="flex-1 font-medium text-xs sm:text-sm text-zinc-800 dark:text-zinc-200 truncate">
-                          {isBn ? 'বিসিএস প্রিলিমিনারি সাধারণ বিজ্ঞান ও চোখের যত্ন গাইড...' : 'BCS Preliminary General Science & Eye Care Guide...'}
+                          {isBn ? 'বিসিএস প্রিলিমিনারি পূর্ণাঙ্গ সিলেবাস ও বই...' : 'BCS Preliminary Complete Syllabus, Books & Video Lectures...'}
                         </div>
                         <span className="px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold">
                           {isBn ? '০.০৩ সেকেন্ড' : '0.03s'}
@@ -938,7 +907,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                         {isBn ? 'সব (All)' : 'All'}
                       </span>
                       <span className="px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-medium">
-                        {isBn ? 'চোখ ও স্বাস্থ্য' : 'Eye & Health'}
+                        {isBn ? 'বই ও পিডিএফ' : 'Books & PDFs'}
+                      </span>
+                      <span className="px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-medium">
+                        {isBn ? 'ভিডিও লেকচার' : 'Video Lectures'}
                       </span>
                       <span className="px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-medium">
                         {isBn ? 'বিসিএস ও চাকরি' : 'BCS & Career'}
@@ -953,23 +925,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                       <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-indigo-400 transition-colors flex items-center justify-between">
                         <div className="space-y-1 pr-3">
                           <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
-                              {isBn ? 'স্বাস্থ্য নির্দেশিকা' : 'Health Guide'}
-                            </span>
-                            <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
-                              {isBn ? 'কম্পিউটার ভিশন সিন্ড্রোম ও আই কেয়ার প্রটোকল' : 'Computer Vision Syndrome & Eye Care Protocol'}
-                            </h5>
-                          </div>
-                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
-                            {isBn ? 'চক্ষু বিশেষজ্ঞ নির্দেশিত স্ক্রিন টাইম কমানো ও ড্রাই আই প্রতিরোধের উপায়।' : 'Evidence-based routine for screen fatigue & digital eye strain.'}
-                          </p>
-                        </div>
-                        <ArrowRight className="w-4 h-4 text-indigo-500 shrink-0" />
-                      </div>
-
-                      <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-indigo-400 transition-colors flex items-center justify-between">
-                        <div className="space-y-1 pr-3">
-                          <div className="flex items-center gap-2">
                             <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-[10px] font-bold">
                               {isBn ? 'বিসিএস স্টাডি' : 'BCS Study'}
                             </span>
@@ -978,7 +933,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                             </h5>
                           </div>
                           <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
-                            {isBn ? 'বিগত ১০ বছরের প্রশ্ন সমাধান ও শর্টকাট টেকনিকসহ হ্যান্ডবুক।' : '10-year question bank solutions and high-yield topic summaries.'}
+                            {isBn ? 'বিগত ১০ বছরের প্রশ্ন সমাধান, শর্টকাট টেকনিক ও সম্পূর্ণ অধ্যায়ভিত্তিক সারসংক্ষেপ।' : '10-year question bank solutions, shortcut techniques and topic summaries.'}
+                          </p>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-indigo-500 shrink-0" />
+                      </div>
+
+                      <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-indigo-400 transition-colors flex items-center justify-between">
+                        <div className="space-y-1 pr-3">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 text-[10px] font-bold">
+                              {isBn ? 'প্রযুক্তি ও প্রোগ্রামিং' : 'Tech & Code'}
+                            </span>
+                            <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
+                              {isBn ? 'ফুল-স্ট্যাক ওয়েব ডেভেলপমেন্ট ও পাইথন হ্যান্ডবুক' : 'Full-Stack Web Development & Python Mastery Handbook'}
+                            </h5>
+                          </div>
+                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                            {isBn ? 'কোডিং কনসেপ্ট, প্রোজেক্ট আর্কিটেকচার ও টেকনিক্যাল ইন্টারভিউ প্রস্তুতি।' : 'Coding concepts, project architectures and technical interview blueprints.'}
                           </p>
                         </div>
                         <ArrowRight className="w-4 h-4 text-indigo-500 shrink-0" />
@@ -988,88 +960,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 </div>
               </div>
 
-              {/* SLIDE 2: 20-20-20 EYE TIMER */}
-              <div className="w-full shrink-0 px-1 sm:px-3">
-                {/* Feature Name Button-shape (Centered Middle Highlight) */}
-                <div className="flex flex-col items-center justify-center mb-5">
-                  <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-teal-600 text-white shadow-lg shadow-teal-600/30 ring-4 ring-teal-500/20 font-black text-sm sm:text-base tracking-wide">
-                    <Eye className="w-4 h-4 text-teal-200 animate-pulse" />
-                    <span>{isBn ? '20-20-20 Eye Timer' : '20-20-20 Eye Timer'}</span>
-                    <span className="text-[11px] bg-teal-700/80 text-teal-100 px-2 py-0.5 rounded-full font-bold ml-1">
-                      {isBn ? 'আই টাইমার' : 'Eye Care'}
-                    </span>
-                  </div>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center">
-                    {isBn ? 'স্ক্রিন ব্যবহারে চোখের ক্লান্তি রোধে বৈজ্ঞানিক ২০ সেকেন্ড টেস্ট' : 'Evidence-based ocular relaxation test for screens'}
-                  </p>
-                </div>
-
-                {/* Demo Card Below */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-xl">
-                  {/* Interactive Timer Content */}
-                  <div className="text-center space-y-6 py-2">
-                    <div className="space-y-1">
-                      <h4 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                        {isBn ? 'স্ক্রিন থেকে চোখ সরিয়ে ২০ ফুট দূরে তাকান' : 'Look 20 feet away from the screen now'}
-                      </h4>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {isBn ? 'টাইমার স্টার্ট করে দেখুন আপনার চোখের সিলিয়ারি পেশী কতটা হালকা অনুভব করে' : 'Start the timer to experience ocular relaxation in real time'}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col items-center justify-center">
-                      <div className={`w-36 h-36 rounded-full border-4 flex flex-col items-center justify-center transition-all ${
-                        isTimerRunning 
-                          ? 'border-teal-500 bg-teal-500/10 scale-105' 
-                          : timerCompleted
-                          ? 'border-emerald-500 bg-emerald-500/10'
-                          : 'border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800'
-                      }`}>
-                        <span className="font-mono text-4xl font-black text-zinc-900 dark:text-zinc-100">
-                          {timerSecondsLeft}s
-                        </span>
-                        <span className="text-[10px] font-bold text-zinc-400">
-                          {isTimerRunning ? (isBn ? 'বিশ্রাম নিন...' : 'Resting...') : timerCompleted ? (isBn ? 'সম্পূর্ণ!' : 'Complete!') : (isBn ? 'প্রস্তুত' : 'Ready')}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-center gap-3">
-                      {!isTimerRunning ? (
-                        <button
-                          onClick={handleStartDemoTimer}
-                          className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
-                        >
-                          <Play className="w-3.5 h-3.5" />
-                          <span>{isBn ? '২০ সেকেন্ড টেস্ট শুরু করুন' : 'Start 20s Test'}</span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={handleResetDemoTimer}
-                          className="px-6 py-2.5 bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-bold rounded-xl hover:bg-zinc-300 transition-all flex items-center gap-2 cursor-pointer"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                          <span>{isBn ? 'রিসেট' : 'Reset'}</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* SLIDE 3: KNOWLEDGE LIBRARY */}
+              {/* SLIDE 2: KNOWLEDGE & PDF LIBRARY */}
               <div className="w-full shrink-0 px-1 sm:px-3">
                 {/* Feature Name Button-shape (Centered Middle Highlight) */}
                 <div className="flex flex-col items-center justify-center mb-5">
                   <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-600/30 ring-4 ring-blue-500/20 font-black text-sm sm:text-base tracking-wide">
                     <BookOpen className="w-4 h-4 text-blue-200" />
-                    <span>{isBn ? 'Knowledge Library' : 'Knowledge Library'}</span>
+                    <span>{isBn ? 'Knowledge & PDF Library' : 'Knowledge & PDF Library'}</span>
                     <span className="text-[11px] bg-blue-700/80 text-blue-100 px-2 py-0.5 rounded-full font-bold ml-1">
-                      {isBn ? 'নলেজ লাইব্রেরি' : 'Handbooks'}
+                      {isBn ? 'বই ও লাইব্রেরি' : 'Books & PDFs'}
                     </span>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center">
-                    {isBn ? 'স্বাস্থ্য, প্রযুক্তি, ক্যারিয়ার ও বিসিএস স্টাডি গাইড' : 'Medical, Technology, Career and Productivity handbooks'}
+                    {isBn ? 'হাজারো বই, ইবুক, হ্যান্ডবুক ও গবেষণাপত্র সম্পূর্ণ অফলাইনে পড়ার সুবিধা' : 'Thousands of ebooks, curated handbooks, and topic guides at your fingertips'}
                   </p>
                 </div>
 
@@ -1078,7 +981,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   {/* Sub Header */}
                   <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
                     <span className="text-xs font-bold text-zinc-600 dark:text-zinc-300">
-                      {isBn ? 'জনপ্রিয় রিসার্চ গাইডসমূহ' : 'Featured Guides & Handbooks'}
+                      {isBn ? 'জনপ্রিয় বই ও হ্যান্ডবুকসমূহ' : 'Featured Handbooks & Curated PDFs'}
                     </span>
                     <span className="px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-bold">
                       10+ Categories
@@ -1088,45 +991,45 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   {/* Library Cards Preview */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3">
                     <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-2">
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
-                        Health • PDF Guide
-                      </span>
-                      <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
-                        {isBn ? 'ডিজিটাল আই স্ট্রেন ও নীল আলো থেকে সুরক্ষার হ্যান্ডবুক' : 'Complete Guide to Digital Eye Strain & Blue Light Protection'}
-                      </h5>
-                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                        {isBn ? 'চক্ষু বিশেষজ্ঞদের পরীক্ষিত ৭টি দৈনিক রুটিন ও চোখের ব্যায়াম।' : 'Clinical ophthalmology protocols for prolonged display usage.'}
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-2">
                       <span className="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-[10px] font-bold">
-                        Career • Handbook
+                        Academic • PDF Guide
                       </span>
                       <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
                         {isBn ? 'স্মার্ট স্টাডি মেথড ও ডিপ ফোকাস ফ্রেমওয়ার্ক' : 'Deep Work & Smart Study Workflow Framework'}
                       </h5>
                       <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                        {isBn ? 'পড়ার স্মৃতিশক্তি ধরে রাখা এবং ফোকাস ধরে রাখার বৈজ্ঞানিক উপায়।' : 'Retention mechanics and cognitive focus routines.'}
+                        {isBn ? 'পড়ার স্মৃতিশক্তি বৃদ্ধি, দীর্ঘসময় ফোকাস ও পরীক্ষা প্রস্তুতির বৈজ্ঞানিক নিয়ম।' : 'Cognitive retention models and structured focus protocols.'}
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-2">
+                      <span className="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 text-[10px] font-bold">
+                        Career • Handbook
+                      </span>
+                      <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
+                        {isBn ? 'ক্যারিয়ার প্ল্যানিং ও প্রফেশনাল স্কিল ডেভেলপমেন্ট' : 'Professional Career Blueprint & Leadership Guide'}
+                      </h5>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                        {isBn ? 'সিভি তৈরি, কমিউনিকেশন স্কিল ও কর্পোরেট জব ক্র্যাকিং গাইড।' : 'Resume mastery, workplace communication and leadership principles.'}
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* SLIDE 4: MY GOALS TRACKER */}
+              {/* SLIDE 3: VIDEO LECTURES & AI SUMMARIES */}
               <div className="w-full shrink-0 px-1 sm:px-3">
                 {/* Feature Name Button-shape (Centered Middle Highlight) */}
                 <div className="flex flex-col items-center justify-center mb-5">
-                  <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-purple-600 text-white shadow-lg shadow-purple-600/30 ring-4 ring-purple-500/20 font-black text-sm sm:text-base tracking-wide">
-                    <Target className="w-4 h-4 text-purple-200" />
-                    <span>{isBn ? 'My Goals Tracker' : 'My Goals Tracker'}</span>
-                    <span className="text-[11px] bg-purple-700/80 text-purple-100 px-2 py-0.5 rounded-full font-bold ml-1">
-                      {isBn ? 'গোলস ট্র্যাকার' : 'Habit & Goals'}
+                  <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-red-600 text-white shadow-lg shadow-red-600/30 ring-4 ring-red-500/20 font-black text-sm sm:text-base tracking-wide">
+                    <Video className="w-4 h-4 text-red-200" />
+                    <span>{isBn ? 'Video Lectures & AI Summaries' : 'Video Lectures & AI Summaries'}</span>
+                    <span className="text-[11px] bg-red-700/80 text-red-100 px-2 py-0.5 rounded-full font-bold ml-1">
+                      {isBn ? 'ভিডিও ও সামারি' : 'Video Hub'}
                     </span>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center">
-                    {isBn ? 'প্রতিদিনের লক্ষ্য পূরণ, হাইড্রেশন ও স্ট্রিক পয়েন্ট অর্জন' : 'Daily discipline tracking with milestone badges and streaks'}
+                    {isBn ? 'যেকোনো বিষয়ের ভিডিও লেকচার দেখা ও এআই দিয়ে তাৎক্ষণিক সামারি তৈরি' : 'Watch topic-wise video lectures and generate instant key takeaway summaries'}
                   </p>
                 </div>
 
@@ -1135,7 +1038,70 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   {/* Sub Header */}
                   <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
                     <span className="text-xs font-bold text-zinc-600 dark:text-zinc-300">
-                      {isBn ? 'চলমান দৈনিক রুটিন' : 'Active Daily Routine'}
+                      {isBn ? 'জনপ্রিয় ভিডিও লেকচার ও ক্লাস' : 'Curated Video Tutorials & Key Takeaways'}
+                    </span>
+                    <span className="px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 text-xs font-bold">
+                      HD Quality + Notes
+                    </span>
+                  </div>
+
+                  {/* Video Preview Items */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3">
+                    <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded-md bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 text-[10px] font-bold">
+                          Video Lesson • 18 mins
+                        </span>
+                        <span className="text-[10px] text-zinc-400 font-semibold">AI Notes Ready</span>
+                      </div>
+                      <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
+                        {isBn ? 'বিসিএস গণিত শর্টকাট টেকনিক ও সমাধান ক্লাস' : 'BCS Math Shortcut Techniques & Problem Breakdown'}
+                      </h5>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                        {isBn ? 'কঠিন গণিতের সহজ শর্টকাট সূত্র ও এআই জেনারেটেড রিভিশন বুলেট পয়েন্ট।' : 'Concise mental math tricks and instant key concept revision sheets.'}
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                          Coding Workshop • 24 mins
+                        </span>
+                        <span className="text-[10px] text-zinc-400 font-semibold">AI Notes Ready</span>
+                      </div>
+                      <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
+                        {isBn ? 'জাভাস্ক্রিপ্ট ও রিঅ্যাক্ট মাস্টারক্লাস' : 'Modern JavaScript & React Full Architecture'}
+                      </h5>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                        {isBn ? 'প্রোজেক্ট বিল্ড স্টেপ-বাই-স্টেপ ভিডিও এবং সাথে কোড স্নsnippet গাইড।' : 'Live project architecture code-along with AI summarized key takeaways.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SLIDE 4: MY GOALS & STUDY PLANNER */}
+              <div className="w-full shrink-0 px-1 sm:px-3">
+                {/* Feature Name Button-shape (Centered Middle Highlight) */}
+                <div className="flex flex-col items-center justify-center mb-5">
+                  <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-purple-600 text-white shadow-lg shadow-purple-600/30 ring-4 ring-purple-500/20 font-black text-sm sm:text-base tracking-wide">
+                    <Target className="w-4 h-4 text-purple-200" />
+                    <span>{isBn ? 'My Goals & Study Planner' : 'My Goals & Study Planner'}</span>
+                    <span className="text-[11px] bg-purple-700/80 text-purple-100 px-2 py-0.5 rounded-full font-bold ml-1">
+                      {isBn ? 'গোলস ট্র্যাকার' : 'Habit & Goals'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center">
+                    {isBn ? 'প্রতিদিনের পড়াশোনা ও কাজের লক্ষ্য পূরণ, স্ট্রিক পয়েন্ট ও ট্র্যাকিং' : 'Daily study targets, reading routine tracking and streak milestones'}
+                  </p>
+                </div>
+
+                {/* Demo Card Below */}
+                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+                  {/* Sub Header */}
+                  <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+                    <span className="text-xs font-bold text-zinc-600 dark:text-zinc-300">
+                      {isBn ? 'চলমান দৈনিক রুটিন ও স্টাডি গোল' : 'Active Daily Routine & Study Goals'}
                     </span>
                     <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-extrabold text-xs">
                       <Flame className="w-4 h-4 text-amber-500 fill-amber-500" />
@@ -1150,9 +1116,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                         <CheckCircle className="w-5 h-5 text-emerald-500 fill-emerald-500/20" />
                         <div>
                           <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 block">
-                            {isBn ? '৪ বার ২০-২০-২০ আই ব্রেক সম্পন্ন' : '4x 20-20-20 Eye Breaks Completed'}
+                            {isBn ? 'বিসিএস প্রশ্নব্যাংক ৩০টি মডেল টেস্ট সমাধান' : '30 BCS Model Test Questions Solved'}
                           </span>
-                          <span className="text-[10px] text-zinc-400">Target: 4/4 sessions</span>
+                          <span className="text-[10px] text-zinc-400">Target: 30/30 questions</span>
                         </div>
                       </div>
                       <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">100%</span>
@@ -1163,9 +1129,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                         <CheckCircle className="w-5 h-5 text-emerald-500 fill-emerald-500/20" />
                         <div>
                           <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 block">
-                            {isBn ? '২ লিটার পানি পান ও হাইড্রেশন' : '2 Liters Hydration Goal'}
+                            {isBn ? 'নলেজ বেস থেকে ১টি রিসার্চ হ্যান্ডবুক পড়া' : 'Read 1 Curated Research Handbook'}
                           </span>
-                          <span className="text-[10px] text-zinc-400">Target: 2000ml</span>
+                          <span className="text-[10px] text-zinc-400">Target: 1 Handbook Completed</span>
                         </div>
                       </div>
                       <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">100%</span>
@@ -1173,117 +1139,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
                     <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-full border-2 border-zinc-400 flex items-center justify-center text-[10px] font-bold text-zinc-400">
+                        <div className="w-5 h-5 rounded-full border-2 border-purple-400 flex items-center justify-center text-[10px] font-bold text-purple-600">
                           3
                         </div>
                         <div>
                           <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 block">
-                            {isBn ? 'নলেজ বেস থেকে ১টি রিসার্চ হ্যান্ডবুক পড়া' : 'Read 1 Curated Research Handbook'}
+                            {isBn ? '১টি ভিডিও লেকচার ও এআই সামারি রিভিউ' : '1 Video Lecture & AI Summary Review'}
                           </span>
                           <span className="text-[10px] text-zinc-400">In progress • 15 mins left</span>
                         </div>
                       </div>
-                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400">60%</span>
+                      <span className="text-xs font-bold text-purple-600 dark:text-purple-400">60%</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* SLIDE 5: HEALTH & EMERGENCY HELPLINE HUB */}
-              <div className="w-full shrink-0 px-1 sm:px-3">
-                {/* Feature Name Button-shape (Centered Middle Highlight) */}
-                <div className="flex flex-col items-center justify-center mb-5">
-                  <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-rose-600 text-white shadow-lg shadow-rose-600/30 ring-4 ring-rose-500/20 font-black text-sm sm:text-base tracking-wide">
-                    <HeartPulse className="w-4 h-4 text-rose-200 animate-pulse" />
-                    <span>{isBn ? 'Health & Emergency Hub' : 'Health & Emergency Hub'}</span>
-                    <span className="text-[11px] bg-rose-700/80 text-rose-100 px-2 py-0.5 rounded-full font-bold ml-1">
-                      {isBn ? 'জরুরি সেবা' : 'Emergency 24/7'}
-                    </span>
-                  </div>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center">
-                    {isBn ? 'জাতীয় জরুরি হটলাইন (৯৯৯, ১৬২৬৩), ব্লাড ব্যাংক ও সার্বক্ষণিক সহায়তা' : 'Instant access to national 24/7 emergency hotlines, ambulance & blood banks'}
-                  </p>
-                </div>
-
-                {/* Demo Card Below */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-xl">
-                  {/* Sub Header */}
-                  <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
-                    <span className="text-xs font-bold text-zinc-600 dark:text-zinc-300">
-                      {isBn ? 'জরুরি হেল্পলাইন নম্বরসমূহ (বাংলাদেশ)' : 'Official Bangladesh Emergency Hotlines'}
-                    </span>
-                    <span className="px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-                      Toll Free 24/7
-                    </span>
-                  </div>
-
-                  {/* Emergency Calling Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3">
-                    {/* 999 */}
-                    <div className="p-3.5 rounded-2xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 flex flex-col justify-between">
-                      <div>
-                        <span className="text-[10px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider block">
-                          {isBn ? 'জাতীয় জরুরি সেবা' : 'National Emergency'}
-                        </span>
-                        <h4 className="text-xl font-black text-rose-600 dark:text-rose-400 mt-0.5">999</h4>
-                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-                          {isBn ? 'পুলিশ, অ্যাম্বুলেন্স ও ফায়ার সার্ভিস' : 'Police, Ambulance & Fire Service'}
-                        </p>
-                      </div>
-                      <a 
-                        href="tel:999" 
-                        className="mt-3 py-1.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors"
-                      >
-                        <PhoneCall className="w-3.5 h-3.5" />
-                        <span>{isBn ? 'কল করুন' : 'Call 999'}</span>
-                      </a>
-                    </div>
-
-                    {/* 16263 */}
-                    <div className="p-3.5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 flex flex-col justify-between">
-                      <div>
-                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider block">
-                          {isBn ? 'স্বাস্থ্য বাতায়ন' : 'Health Helpline'}
-                        </span>
-                        <h4 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">16263</h4>
-                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-                          {isBn ? 'সরকারি ডাক্তারের তাৎক্ষণিক পরামর্শ' : '24/7 Certified Doctor Advice'}
-                        </p>
-                      </div>
-                      <a 
-                        href="tel:16263" 
-                        className="mt-3 py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors"
-                      >
-                        <PhoneCall className="w-3.5 h-3.5" />
-                        <span>{isBn ? 'কল করুন' : 'Call 16263'}</span>
-                      </a>
-                    </div>
-
-                    {/* 333 */}
-                    <div className="p-3.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 flex flex-col justify-between">
-                      <div>
-                        <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider block">
-                          {isBn ? 'জাতীয় তথ্য সেবা' : 'Govt Services'}
-                        </span>
-                        <h4 className="text-xl font-black text-blue-600 dark:text-blue-400 mt-0.5">333</h4>
-                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-                          {isBn ? 'সরকারি তথ্য ও সেবা সংক্রান্ত সহায়তা' : 'Citizen Assistance & Relief'}
-                        </p>
-                      </div>
-                      <a 
-                        href="tel:333" 
-                        className="mt-3 py-1.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors"
-                      >
-                        <PhoneCall className="w-3.5 h-3.5" />
-                        <span>{isBn ? 'কল করুন' : 'Call 333'}</span>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* SLIDE 6: SPECIALIST AI PERSONAS */}
+              {/* SLIDE 5: SPECIALIST AI PERSONAS */}
               <div className="w-full shrink-0 px-1 sm:px-3">
                 {/* Feature Name Button-shape (Centered Middle Highlight) */}
                 <div className="flex flex-col items-center justify-center mb-5">
@@ -1295,7 +1167,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                     </span>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center">
-                    {isBn ? 'চক্ষু বিশেষজ্ঞ, বিসিএস স্টাডি মেন্টর, ক্যারিয়ার কোচ ও কোডিং এক্সপার্ট' : 'Ophthalmologist, BCS mentor, career counselor & software mentor in one app'}
+                    {isBn ? 'বিসিএস স্টাডি মেন্টর, ক্যারিয়ার কোচ, কোডিং এক্সপার্ট ও রিসার্চ গাইড' : 'BCS mentor, career counselor, software architect & academic research coach'}
                   </p>
                 </div>
 
@@ -1313,18 +1185,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
                   {/* 3 Persona Cards Preview */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3">
-                    <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-2">
-                      <div className="w-8 h-8 rounded-xl bg-teal-100 dark:bg-teal-950 text-teal-600 flex items-center justify-center font-bold text-sm">
-                        👁️
-                      </div>
-                      <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
-                        {isBn ? 'ডা. চক্ষু বিশেষজ্ঞ' : 'Dr. Eye Specialist'}
-                      </h5>
-                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                        {isBn ? 'চোখের চাপ, ঝাপসা দেখা, ড্রাই আই ও স্ক্রিন চশমার বৈজ্ঞানিক পরামর্শ।' : 'Clinical guidance on ocular strain, dry eyes & display ergonomics.'}
-                      </p>
-                    </div>
-
                     <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-2">
                       <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 flex items-center justify-center font-bold text-sm">
                         🎓
@@ -1348,6 +1208,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                         {isBn ? 'প্রোগ্রামিং সমস্যা সমাধান, সিভি রিভিউ ও ক্যারিয়ার রোডম্যাপ।' : 'Code debugging, architectural guidance & technical interview prep.'}
                       </p>
                     </div>
+
+                    <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-2">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center font-bold text-sm">
+                        📚
+                      </div>
+                      <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
+                        {isBn ? 'একাডেমিক রিসার্চ গাইড' : 'Academic Research Guide'}
+                      </h5>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                        {isBn ? 'গবেষণাপত্র বিশ্লেষণ, থিসিস রাইটিং ও দ্রুত রেফারেন্স চেকিং।' : 'Literature review, thesis structure assistance & citation guidance.'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1367,7 +1239,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
             {/* Indicator Dots */}
             <div className="flex items-center gap-2">
-              {[0, 1, 2, 3, 4, 5, 6].map((idx) => (
+              {[0, 1, 2, 3, 4, 5].map((idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentFeatureSlide(idx)}
@@ -1578,10 +1450,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 </tr>
                 <tr className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
                   <td className="py-4 px-5 font-semibold text-zinc-900 dark:text-zinc-100">
-                    {isBn ? 'চোখের সুরক্ষা ও নলেজ' : 'Eye Health & Library'}
+                    {isBn ? 'বই, ভিডিও ও অল-ইন-ওয়ান নলেজ' : 'Books, Videos & Knowledge'}
                   </td>
                   <td className="py-4 px-5 text-zinc-500 dark:text-zinc-400">
-                    {isBn ? 'আলাদা আলাদা টুলস' : 'Fragmented separate apps'}
+                    {isBn ? 'আলাদা আলাদা টুলস ও সাইট' : 'Fragmented separate apps'}
                   </td>
                   <td className="py-4 px-5 font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5">
                     {isBn ? 'সব এক অ্যাপে সমন্বিত' : 'All-in-One Seamless App'}
@@ -1695,12 +1567,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             <div className="lg:col-span-4 space-y-3.5">
               <AppLogo 
                 imgClassName="h-8 w-auto"
-                subtitle={isBn ? 'নলেজ ও ভিশন প্ল্যাটফর্ম' : 'Knowledge & Vision Platform'}
+                subtitle={isBn ? 'এআই স্টাডি ও নলেজ' : 'AI Study & Knowledge'}
               />
               <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-sm">
                 {isBn
-                  ? 'Askio — আপনার বিশ্বস্ত এআই স্বাস্থ্য, চোখের সুরক্ষা ও সমৃদ্ধ নলেজ প্ল্যাটফর্ম। রবি ও সার্কেল বিডিঅ্যাপস ভেরিফাইড।'
-                  : 'Askio — Your trusted bilingual AI health, ocular ergonomics, and curated knowledge platform powered by BDApps.'}
+                  ? 'Askio — আপনার বিশ্বস্ত এআই অ্যাসিস্ট্যান্ট, বই, ভিডিও লেকচার ও স্মার্ট নলেজ প্ল্যাটফর্ম। রবি ও সার্কেল বিডিঅ্যাপস ভেরিফাইড।'
+                  : 'Askio — Your trusted bilingual AI study assistant, books, video lectures, and curated knowledge platform powered by BDApps.'}
               </p>
 
               <div className="pt-2 flex items-center gap-2">
@@ -1727,27 +1599,33 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setIsDocModalOpen(true)} className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors flex items-center gap-1.5 cursor-pointer">
-                    <Eye className="w-3 h-3 text-teal-500" />
-                    <span>{isBn ? '২০-২০-২০ আই কেয়ার টাইমার' : '20-20-20 Eye Care Timer'}</span>
+                  <button onClick={() => setIsDocModalOpen(true)} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <Search className="w-3 h-3 text-indigo-500" />
+                    <span>{isBn ? 'গ্লোবাল সার্চ ইঞ্জিন' : 'Global Search Engine'}</span>
                   </button>
                 </li>
                 <li>
                   <button onClick={() => setIsDocModalOpen(true)} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5 cursor-pointer">
                     <BookOpen className="w-3 h-3 text-blue-500" />
-                    <span>{isBn ? '১৪,০০০+ নলেজ লাইব্রেরি' : '14,000+ Curated Library'}</span>
+                    <span>{isBn ? 'বই, ইবুক ও পিডিএফ লাইব্রেরি' : 'Books & PDF Library'}</span>
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => setIsDocModalOpen(true)} className="hover:text-red-600 dark:hover:text-red-400 transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <Video className="w-3 h-3 text-red-500" />
+                    <span>{isBn ? 'ভিডিও লেকচার ও সামারি' : 'Video Lectures & Summaries'}</span>
                   </button>
                 </li>
                 <li>
                   <button onClick={() => setIsDocModalOpen(true)} className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors flex items-center gap-1.5 cursor-pointer">
                     <Target className="w-3 h-3 text-purple-500" />
-                    <span>{isBn ? 'মাই গোলস ও স্ট্রিক ট্র্যাকার' : 'Goals & Streak Tracker'}</span>
+                    <span>{isBn ? 'মাই গোলস ও স্টাডি প্ল্যানার' : 'Goals & Study Planner'}</span>
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setIsDocModalOpen(true)} className="hover:text-rose-600 dark:hover:text-rose-400 transition-colors flex items-center gap-1.5 cursor-pointer">
-                    <PhoneCall className="w-3 h-3 text-rose-500" />
-                    <span>{isBn ? 'জরুরি হেল্পলাইন ও হেলথ হাব' : 'Helpline & Health Hub'}</span>
+                  <button onClick={() => setIsDocModalOpen(true)} className="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <Bot className="w-3 h-3 text-amber-500" />
+                    <span>{isBn ? 'স্পেশালিস্ট এআই পারসোনা' : 'Specialist AI Personas'}</span>
                   </button>
                 </li>
               </ul>
