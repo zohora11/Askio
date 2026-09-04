@@ -12,7 +12,8 @@ import {
   TrendingUp, 
   Clock, 
   ChevronRight,
-  Eye
+  Eye,
+  Flame
 } from 'lucide-react';
 import { ResourceCard } from '../components/ResourceCard';
 import { MOCK_RESOURCES, WELLNESS_TIPS, CATEGORIES_DATA } from '../data/mockData';
@@ -46,7 +47,11 @@ export const HomeScreen: React.FC = () => {
   return (
     <div className="space-y-8 pb-12 animate-fade-in">
       {/* Top Welcome Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border border-zinc-800/80">
+        {/* Ambient Decorative Lighting Aura */}
+        <div className="absolute -top-20 -right-20 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+
         <div className="relative z-10 max-w-xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold mb-3">
             <Sparkles className="w-3.5 h-3.5" />
@@ -85,30 +90,47 @@ export const HomeScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Floating Stat Badge & Chatbot Avatar */}
-        <div className="relative z-10 sm:self-center shrink-0 flex items-center gap-3">
+        {/* Floating Stat Badge & Premium Holographic AI Portal */}
+        <div className="relative z-10 sm:self-center shrink-0 flex items-center gap-4">
+          {/* Ethereal Floating AI Orb (No Box Border) */}
           <div 
             onClick={() => setActiveTab('ai')}
-            className="cursor-pointer group flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
-            title="Chat with Askio AI"
+            className="cursor-pointer group flex flex-col items-center justify-center relative select-none"
+            title={language === 'bn' ? 'Askio এআই সহকারীর সাথে কথা বলুন' : 'Chat with Askio AI'}
           >
-            <ChatbotAvatar sizeClassName="w-12 h-12 group-hover:scale-110 transition-transform" showOnlineBadge={true} />
-            <span className="text-[10px] text-emerald-400 font-semibold mt-1">Askio AI</span>
+            {/* Ambient Radial Pulsing Aura */}
+            <span className="absolute -inset-2 bg-gradient-to-tr from-emerald-500/40 via-teal-400/30 to-emerald-400/50 rounded-full blur-md group-hover:blur-lg opacity-80 group-hover:opacity-100 transition-all duration-500 animate-pulse pointer-events-none" />
+
+            {/* Circular Holographic Glass Orb Frame */}
+            <div className="relative w-15 h-15 rounded-full bg-gradient-to-br from-emerald-950/80 via-zinc-900/90 to-teal-950/80 p-0.5 border-2 border-emerald-400/60 flex items-center justify-center shadow-[0_0_25px_rgba(16,185,129,0.35)] group-hover:border-emerald-300 group-hover:scale-105 transition-all duration-300">
+              <ChatbotAvatar sizeClassName="w-11 h-11 group-hover:scale-110 transition-transform" showOnlineBadge={true} />
+            </div>
+
+            {/* Floating Soft Pill Badge */}
+            <div className="mt-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 backdrop-blur-md flex items-center gap-1 shadow-sm group-hover:bg-emerald-500/30 transition-colors">
+              <Sparkles className="w-2.5 h-2.5 text-emerald-400" />
+              <span className="text-[10px] text-emerald-300 font-bold tracking-wide">
+                {language === 'bn' ? 'আস্ক এআই' : 'Askio AI'}
+              </span>
+            </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center min-w-[130px] text-center">
-            <div className="text-2xl font-bold text-emerald-400">
-              {goals[0]?.streakDays || 7} {t('home.streak_days', language)}
+          {/* Frosted Glass Streak Capsule */}
+          <div className="p-4 rounded-3xl bg-white/10 dark:bg-zinc-800/40 backdrop-blur-xl border border-white/15 dark:border-zinc-700/60 flex flex-col items-center justify-center min-w-[135px] text-center shadow-lg hover:border-emerald-400/40 transition-all">
+            <div className="flex items-center gap-1.5 text-2xl font-black text-emerald-400">
+              <Flame className="w-5 h-5 text-amber-400 fill-amber-400/30 animate-pulse" />
+              <span>{goals[0]?.streakDays || 7}</span>
+              <span className="text-sm font-semibold text-zinc-300">{t('home.streak_days', language)}</span>
             </div>
-            <span className="text-[11px] text-zinc-300 font-medium">
+            <span className="text-[11px] text-zinc-300 font-medium mt-0.5">
               {t('home.wellness_streak', language)}
             </span>
             <button
               onClick={() => setActiveTab('goals')}
-              className="mt-2 text-xs text-white/80 hover:text-white flex items-center gap-1 underline"
+              className="mt-2 text-xs text-emerald-300 hover:text-white flex items-center gap-1 font-semibold group"
             >
               <span>{t('home.view_goals', language)}</span>
-              <ChevronRight className="w-3 h-3" />
+              <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
         </div>

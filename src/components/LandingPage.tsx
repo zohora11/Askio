@@ -63,6 +63,7 @@ import {
   isLocalSubscriber,
   markLocalSubscriber
 } from '../services/bdapps';
+import { findUserByPhone } from '../services/firebase';
 import { AppLogo } from './AppLogo';
 import { ChatbotAvatar } from './ChatbotAvatar';
 import { AppDocumentationModal } from './AppDocumentationModal';
@@ -81,6 +82,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     setLanguage, 
     setAuthModalOpen, 
     setAuthView,
+    setPendingPhone,
     updateProfile
   } = useApp();
 
@@ -284,16 +286,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     }
 
     setIsSubmitting(true);
-    setStatusMessage(isBn ? 'সাবস্ক্রিপশন স্ট্যাটাস যাচাই করা হচ্ছে...' : 'Checking subscription status with BDApps...');
+    setStatusMessage(isBn ? 'সাবস্ক্রিপশন ও অ্যাকাউন্ট যাচাই করা হচ্ছে...' : 'Checking subscription status...');
 
     try {
-      // Step 1: Check if already subscribed (via local record or BDApps API)
-      const isAlreadySub = isLocalSubscriber(validation.cleaned);
+      const cleanMobile = validation.cleaned;
+      setPendingPhone(cleanMobile);
+
+      // Check if user has an existing account in Firebase Firestore
+      const existingFirebaseUser = await findUserByPhone(cleanMobile);
+
+      if (existingFirebaseUser && existingFirebaseUser.email) {
+        // Registered subscriber with account -> Open Password Login Modal
+        setIsSubmitting(false);
+        setStatusMessage(isBn ? 'আপনার সাবস্ক্রিপশন ও অ্যাকাউন্ট পাওয়া গেছে! পাসওয়ার্ড দিয়ে লগইন করুন।' : 'Account found! Please enter your password to sign in.');
+        setTimeout(() => {
+          setAuthView('firebase_login');
+          setAuthModalOpen(true);
+          setStatusMessage('');
+        }, 500);
+        return;
+      }
+
+      // Check if already subscribed locally
+      const isAlreadySub = isLocalSubscriber(cleanMobile);
       let registered = isAlreadySub;
 
       if (!registered) {
         try {
-          const checkRes = await checkSubscription(validation.cleaned);
+          const checkRes = await checkSubscription(cleanMobile);
           registered = isSubscriptionRegistered(checkRes);
         } catch (apiErr) {
           console.warn('BDApps check API notice:', apiErr);
@@ -301,26 +321,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       }
 
       if (registered) {
-        // Already subscribed! Log them in and enter the app directly without OTP
-        markLocalSubscriber(validation.cleaned);
-        storeSubscriberSession(validation.cleaned);
-        updateProfile({
-          phone: validation.cleaned,
-          isLoggedIn: true,
-          isPremium: true,
-          membershipPlan: 'Daily Micro (৳2.78/day)'
-        });
-        setStatusMessage(isBn ? 'আপনার সাবস্ক্রিপশন ইতিমধ্যে সক্রিয় আছে! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Active subscription verified! Logging you in...');
+        // Subscribed without Firebase account yet -> open Firebase Register screen
+        setIsSubmitting(false);
+        setStatusMessage(isBn ? 'সাবস্ক্রিপশন সক্রিয়! অ্যাকাউন্ট তৈরির জন্য তথ্য দিন।' : 'Subscription active! Set up your account details.');
         setTimeout(() => {
-          setIsSubmitting(false);
-          if (onEnterApp) onEnterApp();
-        }, 700);
+          setAuthView('firebase_register');
+          setAuthModalOpen(true);
+          setStatusMessage('');
+        }, 500);
         return;
       }
 
-      // Step 2: Not subscribed yet! Send SMS OTP and open dedicated OTP modal
+      // New user! Send SMS OTP and open dedicated OTP modal
       setStatusMessage(isBn ? 'এসএমএস ওটিপি পাঠানো হচ্ছে...' : 'Sending BDApps verification OTP...');
-      const otpRes = await sendOTP(validation.cleaned);
+      const otpRes = await sendOTP(cleanMobile);
       const ref = otpRes.referenceNo || otpRes.subscriberId || 'REF-' + Date.now();
       setReferenceNo(ref);
       setIsSubmitting(false);

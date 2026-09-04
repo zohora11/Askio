@@ -38,7 +38,12 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
   onSuccess,
   onChangePhone
 }) => {
-  const { language, updateProfile } = useApp();
+  const { 
+    language, 
+    setPendingPhone, 
+    setAuthView, 
+    setAuthModalOpen 
+  } = useApp();
   const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -129,34 +134,28 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
 
       markLocalSubscriber(cleanMobile);
       storeSubscriberSession(cleanMobile);
-      updateProfile({
-        phone: cleanMobile,
-        isLoggedIn: true,
-        isPremium: true,
-        membershipPlan: 'Daily Micro (৳2.78/day)'
-      });
 
-      setSuccessMsg(isBn ? 'ওটিপি যাচাই সম্পন্ন! অ্যাপে প্রবেশ করা হচ্ছে...' : 'OTP Verified! Redirecting to Askio...');
+      setSuccessMsg(isBn ? 'ওটিপি যাচাই সম্পন্ন! অ্যাকাউন্ট তৈরির স্ক্রিনে নিয়ে যাওয়া হচ্ছে...' : 'OTP Verified! Redirecting to Firebase account setup...');
       setTimeout(() => {
         setLoading(false);
-        onSuccess();
+        setPendingPhone(cleanMobile);
+        setAuthView('firebase_register');
+        setAuthModalOpen(true);
+        onClose();
       }, 700);
     } catch (err: any) {
       // In sandbox/carrier fallback, allow verification for good UX
       const cleanMobile = validateMobileNumber(phoneNumber).cleaned || phoneNumber;
       markLocalSubscriber(cleanMobile);
       storeSubscriberSession(cleanMobile);
-      updateProfile({
-        phone: cleanMobile,
-        isLoggedIn: true,
-        isPremium: true,
-        membershipPlan: 'Daily Micro (৳2.78/day)'
-      });
 
-      setSuccessMsg(isBn ? 'সাবস্ক্রিপশন সফলভাবে সক্রিয় হয়েছে!' : 'Subscription activated!');
+      setSuccessMsg(isBn ? 'ওটিপি সফল! অ্যাকাউন্ট সেটআপ স্ক্রিনে নিয়ে যাওয়া হচ্ছে...' : 'OTP Verified! Opening account registration...');
       setTimeout(() => {
         setLoading(false);
-        onSuccess();
+        setPendingPhone(cleanMobile);
+        setAuthView('firebase_register');
+        setAuthModalOpen(true);
+        onClose();
       }, 700);
     }
   };

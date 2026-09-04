@@ -1,0 +1,27 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered Askio user profile and subscription metadata",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "fullName": { "type": "string", "description": "User full name" },
+        "email": { "type": "string", "description": "User email address" },
+        "phone": { "type": "string", "description": "11-digit Bangladeshi mobile number" },
+        "isPremium": { "type": "boolean", "description": "Active subscription status" },
+        "membershipPlan": { "type": "string", "description": "Subscription plan name" },
+        "avatar": { "type": "string", "description": "Profile photo URL" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "fullName", "email", "phone"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profile document indexed by Firebase Auth UID"
+    }
+  }
+}

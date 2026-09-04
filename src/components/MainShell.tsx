@@ -15,7 +15,9 @@ import {
   Bot, 
   Plus,
   Compass,
-  LogOut
+  LogOut,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { HomeScreen } from '../screens/HomeScreen';
 import { AiAssistantScreen } from '../screens/AiAssistantScreen';
@@ -45,9 +47,19 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
     unreadNotificationsCount, 
     language, 
     setLanguage, 
+    theme,
+    setTheme,
     setSubscriptionModalOpen,
     setAuthModalOpen 
   } = useApp();
+
+  const toggleTheme = () => {
+    if (theme === 'dark') {
+      setTheme('light');
+    } else {
+      setTheme('dark');
+    }
+  };
 
   const navItems = [
     { id: 'home', label: t('nav.home', language), icon: Home },
@@ -108,12 +120,27 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
             <span>{t('nav.subscribe_badge', language)}</span>
           </button>
 
+          {/* Theme Toggle (Light / Dark Mode) */}
+          <button
+            id="appbar-theme-toggle"
+            onClick={toggleTheme}
+            className="p-2 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center justify-center text-zinc-700 dark:text-zinc-300 cursor-pointer"
+            title={theme === 'dark' ? (language === 'bn' ? 'লাইট মোড চালু করুন' : 'Switch to Light Mode') : (language === 'bn' ? 'ডার্ক মোড চালু করুন' : 'Switch to Dark Mode')}
+            aria-label="Toggle App Theme"
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Moon className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+            )}
+          </button>
+
           {/* Language Switch */}
           <button
             id="appbar-lang-toggle"
             onClick={() => setLanguage(language === 'en' ? 'bn' : 'en')}
             className="px-2.5 py-1.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1 text-zinc-700 dark:text-zinc-300 cursor-pointer"
-            title="Switch Language"
+            title={language === 'en' ? 'বাংলা ভাষায় পরিবর্তন করুন' : 'Switch to English'}
           >
             <Globe className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
             <span>{language === 'en' ? 'বাংলা' : 'EN'}</span>
@@ -176,7 +203,43 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
             );
           })}
 
-          <div className="pt-6 mt-6 border-t border-zinc-200 dark:border-zinc-800 space-y-1">
+          <div className="pt-6 mt-6 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
+            <div className="px-3 py-1 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 font-semibold">
+              <span>{language === 'bn' ? 'থিম ও ভাষা' : 'Theme & Language'}</span>
+            </div>
+            
+            {/* Quick Theme Switcher Pill in Sidebar */}
+            <div className="flex items-center gap-1.5 p-1 bg-zinc-200/60 dark:bg-zinc-800/80 rounded-2xl border border-zinc-200 dark:border-zinc-700/60">
+              <button
+                type="button"
+                id="sidebar-theme-light-btn"
+                onClick={() => setTheme('light')}
+                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  theme === 'light'
+                    ? 'bg-white text-amber-600 shadow-xs'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                }`}
+                title="Light Mode"
+              >
+                <Sun className="w-3.5 h-3.5" />
+                <span>{language === 'bn' ? 'লাইট' : 'Light'}</span>
+              </button>
+              <button
+                type="button"
+                id="sidebar-theme-dark-btn"
+                onClick={() => setTheme('dark')}
+                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  theme === 'dark'
+                    ? 'bg-zinc-900 text-emerald-400 shadow-xs'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                }`}
+                title="Dark Mode"
+              >
+                <Moon className="w-3.5 h-3.5" />
+                <span>{language === 'bn' ? 'ডার্ক' : 'Dark'}</span>
+              </button>
+            </div>
+
             <button
               id="desktop-nav-settings"
               onClick={() => setActiveTab('settings')}
@@ -234,24 +297,39 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
         </main>
       </div>
 
-      {/* --- 3D FLOATING AI QUICK ACTION BUTTON --- */}
+      {/* --- 3D FLOATING AI QUICK ACTION BUTTON (ULTRA-PREMIUM GLASS CAPSULE) --- */}
       {activeTab !== 'ai' && (
         <button
           id="floating-3d-ai-btn"
           onClick={() => setActiveTab('ai')}
-          className="fixed bottom-20 sm:bottom-8 right-6 z-40 p-4 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 border-2 border-emerald-400/40 flex items-center gap-2.5 group cursor-pointer"
-          style={{
-            boxShadow: '0 20px 35px -10px rgba(16, 185, 129, 0.45), 0 8px 16px -4px rgba(0, 0, 0, 0.2)'
-          }}
-          title="Open Askio AI Assistant"
+          className="fixed bottom-20 sm:bottom-8 right-5 sm:right-7 z-40 group cursor-pointer"
+          title={language === 'bn' ? 'Askio এআই সহকারীর সাথে কথা বলুন' : 'Open Askio AI Assistant'}
+          aria-label="Open Askio AI Assistant"
         >
-          <div className="relative bg-transparent flex items-center justify-center">
-            <ChatbotAvatar sizeClassName="w-7 h-7" showOnlineBadge={false} />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-emerald-700 animate-pulse" />
+          {/* Ambient Breathing Glow Behind Capsule */}
+          <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 opacity-60 group-hover:opacity-100 blur-md group-hover:blur-lg transition-all duration-500 animate-pulse pointer-events-none" />
+
+          {/* Main Floating Capsule */}
+          <div className="relative flex items-center gap-2.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-full bg-zinc-950/85 dark:bg-black/90 backdrop-blur-xl border border-emerald-400/50 shadow-[0_12px_32px_-4px_rgba(16,185,129,0.45),0_4px_16px_rgba(0,0,0,0.5)] group-hover:border-emerald-300 group-hover:scale-105 active:scale-95 transition-all duration-300">
+            {/* Holographic light reflection streak */}
+            <span className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent pointer-events-none" />
+
+            {/* AI Avatar with Glowing Halo Ring */}
+            <div className="relative shrink-0 flex items-center justify-center">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-emerald-600/40 via-teal-500/30 to-emerald-400/20 p-0.5 border border-emerald-400/40 flex items-center justify-center shadow-inner group-hover:rotate-6 transition-transform">
+                <ChatbotAvatar sizeClassName="w-7 h-7 sm:w-8 sm:h-8" showOnlineBadge={false} />
+              </div>
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-zinc-950 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse" />
+            </div>
+
+            {/* Label & Sparkle Badge */}
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-xs sm:text-sm tracking-wide text-white group-hover:text-emerald-300 transition-colors">
+                {language === 'bn' ? 'আস্ক এআই' : 'Ask AI'}
+              </span>
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />
+            </div>
           </div>
-          <span className="font-bold text-xs sm:text-sm tracking-wide pr-1">
-            Ask AI
-          </span>
         </button>
       )}
 

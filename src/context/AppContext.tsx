@@ -38,9 +38,10 @@ interface AppContextType {
   logout: () => void;
   isAuthModalOpen: boolean;
   setAuthModalOpen: (open: boolean) => void;
-  authView: 'login' | 'phone' | 'otp' | 'register';
-  setAuthView: (view: 'login' | 'phone' | 'otp' | 'register') => void;
+  authView: 'login' | 'phone' | 'otp' | 'register' | 'firebase_login' | 'firebase_register' | 'forgot_password' | 'verify_reset_otp' | 'reset_password';
+  setAuthView: (view: 'login' | 'phone' | 'otp' | 'register' | 'firebase_login' | 'firebase_register' | 'forgot_password' | 'verify_reset_otp' | 'reset_password') => void;
   pendingPhone: string;
+  setPendingPhone: (phone: string) => void;
   
   // Library & Bookmarks
   bookmarkedIds: string[];
@@ -167,8 +168,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Auth modal state
   const [isAuthModalOpen, setAuthModalOpen] = useState<boolean>(false);
-  const [authView, setAuthView] = useState<'login' | 'phone' | 'otp' | 'register'>('login');
-  const [pendingPhone, setPendingPhone] = useState<string>('+880 ');
+  const [authView, setAuthView] = useState<'login' | 'phone' | 'otp' | 'register' | 'firebase_login' | 'firebase_register' | 'forgot_password' | 'verify_reset_otp' | 'reset_password'>('phone');
+  const [pendingPhone, setPendingPhone] = useState<string>('');
 
   // Bookmarks & History
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(() => {
@@ -677,6 +678,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         authView,
         setAuthView,
         pendingPhone,
+        setPendingPhone,
         bookmarkedIds,
         toggleBookmark,
         isBookmarked,
