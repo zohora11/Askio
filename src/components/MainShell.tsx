@@ -13,7 +13,9 @@ import {
   Crown, 
   Settings, 
   Bot, 
-  Plus
+  Plus,
+  Compass,
+  LogOut
 } from 'lucide-react';
 import { HomeScreen } from '../screens/HomeScreen';
 import { AiAssistantScreen } from '../screens/AiAssistantScreen';
@@ -28,7 +30,11 @@ import { ResourceDetailModal } from './ResourceDetailModal';
 import { AuthModal } from './AuthModal';
 import { SubscriptionModal } from './SubscriptionModal';
 
-export const MainShell: React.FC = () => {
+interface MainShellProps {
+  onOpenLandingPage?: () => void;
+}
+
+export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
   const { 
     activeTab, 
     setActiveTab, 
@@ -87,6 +93,19 @@ export const MainShell: React.FC = () => {
 
         {/* Header Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Landing Page button */}
+          {onOpenLandingPage && (
+            <button
+              id="appbar-landing-btn"
+              onClick={onOpenLandingPage}
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-zinc-700 dark:text-zinc-300"
+              title="View Public Landing Page"
+            >
+              <Compass className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Landing Page</span>
+            </button>
+          )}
+
           {/* Micro-subscription badge */}
           <button
             id="appbar-subscription-btn"
@@ -181,6 +200,17 @@ export const MainShell: React.FC = () => {
               <Settings className="w-4 h-4" />
               <span>{language === 'bn' ? 'সেটিংস' : 'Settings'}</span>
             </button>
+
+            {onOpenLandingPage && (
+              <button
+                id="desktop-nav-landing-page"
+                onClick={onOpenLandingPage}
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all w-full text-left text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 hover:text-emerald-600 dark:hover:text-emerald-400"
+              >
+                <Compass className="w-4 h-4 text-emerald-500" />
+                <span>Landing Page</span>
+              </button>
+            )}
           </div>
 
           {/* Micro-Subscription Banner in Desktop Rail */}

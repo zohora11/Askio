@@ -16,14 +16,21 @@ import {
   LogOut, 
   Settings, 
   ShieldCheck,
-  Activity
+  Activity,
+  ShieldAlert,
+  AlertTriangle,
+  CheckCircle2,
+  Sparkles
 } from 'lucide-react';
+import { UnsubscribeModal } from '../components/UnsubscribeModal';
+import { unsubscribe, clearSubscriptionSession } from '../services/bdapps';
 
 export const ProfileScreen: React.FC = () => {
   const { 
     user, 
     updateProfile, 
     logout, 
+    cancelPremium,
     bookmarkedIds, 
     recentlyViewedIds, 
     recentSearches, 
@@ -33,11 +40,28 @@ export const ProfileScreen: React.FC = () => {
   } = useApp();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isUnsubscribeModalOpen, setIsUnsubscribeModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   const [nameInput, setNameInput] = useState(user.fullName);
   const [emailInput, setEmailInput] = useState(user.email);
   const [phoneInput, setPhoneInput] = useState(user.phone);
   const [passwordInput, setPasswordInput] = useState(user.password || '');
   const [avatarInput, setAvatarInput] = useState(user.avatar);
+
+  const handleConfirmUnsubscribe = async (): Promise<boolean> => {
+    try {
+      await unsubscribe(user.phone);
+    } catch (err) {
+      console.warn('BDApps unsubscribe error handled:', err);
+    }
+    cancelPremium();
+    clearSubscriptionSession();
+    setIsUnsubscribeModalOpen(false);
+    setToastMessage('You have successfully unsubscribed from Askio Premium.');
+    setTimeout(() => setToastMessage(null), 4500);
+    return true;
+  };
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -213,6 +237,101 @@ export const ProfileScreen: React.FC = () => {
         </div>
       </div>
 
+      {/* Toast Alert */}
+      {toastMessage && (
+        <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center justify-between animate-fade-in shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>{toastMessage}</span>
+          </div>
+          <button 
+            onClick={() => setToastMessage(null)}
+            className="p-1 text-emerald-600 hover:text-emerald-800 dark:text-emerald-400"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Subscription & Membership Management Card */}
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm">
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold ${
+              user.isPremium 
+                ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400' 
+                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'
+            }`}>
+              <Crown className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base text-zinc-900 dark:text-zinc-100">
+                Subscription & Membership
+              </h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                BDApps Telco Micro-Billing & Member Status
+              </p>
+            </div>
+          </div>
+
+          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+            user.isPremium
+              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+          }`}>
+            {user.isPremium ? 'Active Premium' : 'Free Tier'}
+          </span>
+        </div>
+
+        {user.isPremium ? (
+          <div className="space-y-4">
+            <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 space-y-2 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-zinc-500 dark:text-zinc-400">Current Plan:</span>
+                <span className="font-bold text-zinc-800 dark:text-zinc-200">{user.membershipPlan || 'Daily Micro (৳2.78/day)'}</span>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-zinc-500 dark:text-zinc-400">Subscribed Phone (Carrier):</span>
+                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{user.phone} (Robi / Cirkle)</span>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-zinc-500 dark:text-zinc-400">Billing Model:</span>
+                <span className="font-medium text-zinc-700 dark:text-zinc-300">৳2.78 / day auto-deducted from mobile balance</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+              <p className="text-[11px] text-zinc-400">
+                Cancel your daily telco plan anytime. When clicked, you will be prompted to confirm.
+              </p>
+
+              <button
+                id="profile-unsubscribe-btn"
+                onClick={() => setIsUnsubscribeModalOpen(true)}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0"
+              >
+                <ShieldAlert className="w-4 h-4" />
+                <span>Unsubscribe from Askio</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              You are currently on the Free Tier with limited AI guidance queries and catalog downloads.
+            </p>
+            <button
+              id="profile-upgrade-btn"
+              onClick={() => setSubscriptionModalOpen(true)}
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all flex items-center gap-2 shadow-sm"
+            >
+              <Crown className="w-4 h-4" />
+              <span>Upgrade to Askio Premium (৳2.78/day)</span>
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Chronological Activity Log */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm">
         <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-4">
@@ -245,6 +364,53 @@ export const ProfileScreen: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Dedicated Account Session & Log Out Section */}
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm">
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center font-bold">
+              <LogOut className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base text-zinc-900 dark:text-zinc-100">
+                Account & Session
+              </h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Current session active for {user.fullName}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1 text-xs text-zinc-500 dark:text-zinc-400 max-w-md">
+            <p className="font-semibold text-zinc-700 dark:text-zinc-300">
+              Logged in as: <span className="font-mono text-zinc-900 dark:text-zinc-100">{user.email || user.phone}</span>
+            </p>
+            <p>
+              Logging out will securely terminate your session on this device and return you to the Askio landing page.
+            </p>
+          </div>
+
+          <button
+            id="profile-main-logout-btn"
+            onClick={logout}
+            className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Log Out of Askio</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Unsubscribe Confirmation Modal */}
+      <UnsubscribeModal
+        isOpen={isUnsubscribeModalOpen}
+        onClose={() => setIsUnsubscribeModalOpen(false)}
+        mobileNumber={user.phone}
+        onConfirmUnsubscribe={handleConfirmUnsubscribe}
+      />
 
       {/* In-App Edit Profile Sheet / Modal */}
       {isEditModalOpen && (

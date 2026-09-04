@@ -17,6 +17,153 @@ import {
 } from 'lucide-react';
 import { SUGGESTED_AI_PROMPTS } from '../data/mockData';
 
+// Helper to render inline markdown styling
+const renderFormattedInline = (line: string): React.ReactNode => {
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(line)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(line.substring(lastIndex, match.index));
+    }
+    const token = match[0];
+    if (token.startsWith('**') && token.endsWith('**')) {
+      parts.push(
+        <strong key={match.index} className="font-semibold text-zinc-900 dark:text-zinc-50">
+          {token.slice(2, -2)}
+        </strong>
+      );
+    } else if (token.startsWith('`') && token.endsWith('`')) {
+      parts.push(
+        <code key={match.index} className="px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-700/80 font-mono text-xs text-emerald-600 dark:text-emerald-400">
+          {token.slice(1, -1)}
+        </code>
+      );
+    } else if (token.startsWith('*') && token.endsWith('*')) {
+      parts.push(
+        <em key={match.index} className="italic text-zinc-700 dark:text-zinc-300">
+          {token.slice(1, -1)}
+        </em>
+      );
+    }
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < line.length) {
+    parts.push(line.substring(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : line;
+};
+
+const FormattedMessage: React.FC<{ content: string; isUser: boolean }> = ({ content, isUser }) => {
+  if (isUser) {
+    return <div className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">{content}</div>;
+  }
+
+  const lines = content.split('\n');
+  const renderedElements: React.ReactNode[] = [];
+  let inCodeBlock = false;
+  let codeBlockBuffer: string[] = [];
+  let codeBlockLang = '';
+
+  for (let idx = 0; idx < lines.length; idx++) {
+    const line = lines[idx];
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('```')) {
+      if (inCodeBlock) {
+        renderedElements.push(
+          <div key={`code-${idx}`} className="my-2 p-3 rounded-xl bg-zinc-900 text-zinc-100 dark:bg-black font-mono text-xs overflow-x-auto border border-zinc-800">
+            {codeBlockLang && <div className="text-[10px] uppercase text-zinc-400 font-bold mb-1 tracking-wider">{codeBlockLang}</div>}
+            <pre className="whitespace-pre">{codeBlockBuffer.join('\n')}</pre>
+          </div>
+        );
+        codeBlockBuffer = [];
+        inCodeBlock = false;
+      } else {
+        inCodeBlock = true;
+        codeBlockLang = trimmed.slice(3).trim();
+      }
+      continue;
+    }
+
+    if (inCodeBlock) {
+      codeBlockBuffer.push(line);
+      continue;
+    }
+
+    if (!trimmed) {
+      renderedElements.push(<div key={`empty-${idx}`} className="h-1.5" />);
+      continue;
+    }
+
+    if (trimmed === '---' || trimmed === '***') {
+      renderedElements.push(<hr key={`hr-${idx}`} className="my-2.5 border-zinc-200 dark:border-zinc-700/80" />);
+      continue;
+    }
+
+    if (trimmed.startsWith('### ') || trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
+      const headerText = trimmed.replace(/^#+\s*/, '');
+      renderedElements.push(
+        <h4 key={`h-${idx}`} className="font-bold text-zinc-900 dark:text-white pt-2 pb-0.5 text-base sm:text-lg">
+          {renderFormattedInline(headerText)}
+        </h4>
+      );
+      continue;
+    }
+
+    if (trimmed.startsWith('• ') || trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+      const bulletText = trimmed.replace(/^([•\*\-]\s*)/, '');
+      renderedElements.push(
+        <div key={`b-${idx}`} className="flex items-start gap-2 pl-1 my-0.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
+          <div className="flex-1">{renderFormattedInline(bulletText)}</div>
+        </div>
+      );
+      continue;
+    }
+
+    const numMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
+    if (numMatch) {
+      const num = numMatch[1];
+      const text = numMatch[2];
+      renderedElements.push(
+        <div key={`n-${idx}`} className="flex items-start gap-2 pl-1 my-0.5">
+          <span className="font-semibold text-emerald-600 dark:text-emerald-400 min-w-[1.2rem] text-xs sm:text-sm mt-0.5">
+            {num}.
+          </span>
+          <div className="flex-1">{renderFormattedInline(text)}</div>
+        </div>
+      );
+      continue;
+    }
+
+    renderedElements.push(
+      <p key={`p-${idx}`} className="leading-relaxed">
+        {renderFormattedInline(line)}
+      </p>
+    );
+  }
+
+  // If code block wasn't closed
+  if (inCodeBlock && codeBlockBuffer.length > 0) {
+    renderedElements.push(
+      <div key="code-unclosed" className="my-2 p-3 rounded-xl bg-zinc-900 text-zinc-100 dark:bg-black font-mono text-xs overflow-x-auto border border-zinc-800">
+        <pre className="whitespace-pre">{codeBlockBuffer.join('\n')}</pre>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5 text-sm sm:text-base leading-relaxed text-zinc-800 dark:text-zinc-200">
+      {renderedElements}
+    </div>
+  );
+};
+
 export const AiAssistantScreen: React.FC = () => {
   const { chatMessages, sendChatMessage, clearChatHistory, isAiGenerating } = useApp();
   const [inputText, setInputText] = useState('');
@@ -129,9 +276,7 @@ export const AiAssistantScreen: React.FC = () => {
                   </div>
                 )}
 
-                <div className="text-sm sm:text-base leading-relaxed whitespace-pre-line">
-                  {msg.text}
-                </div>
+                <FormattedMessage content={msg.text} isUser={isUser} />
 
                 <div className="flex items-center justify-between gap-4 mt-2.5 pt-2 border-t border-black/10 dark:border-white/10 text-[11px] opacity-70">
                   <span>{msg.timestamp}</span>

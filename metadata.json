@@ -1,6 +1,6 @@
 {
   "name": "Askio",
-  "description": "Askio AI Guidance, Search, Knowledge Catalog, Learning Goals, and Health Portal.",
+  "description": "Askio - AI Guidance Engine, Global Search & Discovery Catalog, Personal Library, Goals Tracker, Health & Wellness Portal, and Premium Micro-Subscription.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

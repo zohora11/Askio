@@ -16,7 +16,7 @@ export const AuthModal: React.FC = () => {
   } = useApp();
 
   const [phoneInput, setPhoneInput] = useState('1712345678');
-  const [otpCode, setOtpCode] = useState(['5', '8', '2', '0']);
+  const [otpCode, setOtpCode] = useState(['5', '8', '2', '0', '1', '9']);
   const [email, setEmail] = useState('fatematuzzohora004@gmail.com');
   const [password, setPassword] = useState('password123');
   const [fullName, setFullName] = useState('Fatema Tuz Zohora');
@@ -37,13 +37,13 @@ export const AuthModal: React.FC = () => {
   const handleOtpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const fullOtp = otpCode.join('');
-    if (fullOtp.length < 4) {
-      setErrorMsg('Please enter all 4 digits of the OTP.');
+    if (fullOtp.length < 6) {
+      setErrorMsg('Please enter all 6 digits of the OTP.');
       return;
     }
     const ok = verifyOtp(fullOtp);
     if (!ok) {
-      setErrorMsg('Invalid OTP code. Try 5820 or any 4 digits.');
+      setErrorMsg('Invalid OTP code. Try 582019 or any 6 digits.');
     }
   };
 
@@ -93,7 +93,7 @@ export const AuthModal: React.FC = () => {
           </h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
             {authView === 'otp'
-              ? `We sent a 4-digit code to ${pendingPhone}`
+              ? `We sent a 6-digit code to ${pendingPhone}`
               : 'Access your saved guides, AI assistant, and personal learning streaks'}
           </p>
         </div>
@@ -153,8 +153,8 @@ export const AuthModal: React.FC = () => {
         {authView === 'otp' && (
           <form onSubmit={handleOtpSubmit} className="space-y-5">
             <div>
-              <div className="flex justify-center gap-3 my-2">
-                {[0, 1, 2, 3].map((idx) => (
+              <div className="flex justify-center gap-2 sm:gap-2.5 my-2">
+                {[0, 1, 2, 3, 4, 5].map((idx) => (
                   <input
                     key={idx}
                     id={`otp-input-${idx}`}
@@ -166,17 +166,17 @@ export const AuthModal: React.FC = () => {
                       const next = [...otpCode];
                       next[idx] = val;
                       setOtpCode(next);
-                      if (val && idx < 3) {
+                      if (val && idx < 5) {
                         const nextInput = document.getElementById(`otp-input-${idx + 1}`);
                         nextInput?.focus();
                       }
                     }}
-                    className="w-12 h-14 text-center text-xl font-bold bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-zinc-900 dark:text-zinc-100"
+                    className="w-10 sm:w-11 h-12 sm:h-14 text-center text-lg sm:text-xl font-bold bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-zinc-900 dark:text-zinc-100"
                   />
                 ))}
               </div>
               <p className="text-[11px] text-zinc-400 text-center mt-2">
-                Demo code: 5 8 2 0 or any 4 digits
+                Enter the 6-digit code received on your device
               </p>
             </div>
 
