@@ -183,8 +183,8 @@ Directly integrate relevant insights from this resource to answer the user's inq
         contents.push({ role: "user", parts: [{ text: message.trim() }] });
       }
 
-      // Prioritize ultra-fast responsive models
-      const candidateModels = ["gemini-3.1-flash-lite", "gemini-flash-latest", "gemini-3.8-flash"];
+      // Prioritize ultra-fast and reliable models
+      const candidateModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-pro"];
       let replyText = "";
       let lastError: any = null;
 
@@ -196,6 +196,7 @@ Directly integrate relevant insights from this resource to answer the user's inq
             config: {
               systemInstruction,
               temperature: 0.65,
+              maxOutputTokens: 600,
             },
           });
 

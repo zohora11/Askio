@@ -202,10 +202,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_ACTIVITIES;
   });
 
-  // Preferences
+  // Preferences - Default to dark mode, supports dark, light, and system
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('askio_theme') as ThemeMode;
-    return saved || 'light';
+    return saved || 'dark';
   });
   const [language, setLanguageState] = useState<AppLanguage>(() => {
     const saved = localStorage.getItem('askio_language') as AppLanguage;
@@ -242,19 +242,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('askio_activities', JSON.stringify(activities));
   }, [activities]);
 
-  // Apply Theme
+  // Apply Theme with system preference listener
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else if (theme === 'light') {
-      root.classList.remove('dark');
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (prefersDark) root.classList.add('dark');
-      else root.classList.remove('dark');
-    }
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const applyCurrentTheme = () => {
+      if (theme === 'dark') {
+        root.classList.add('dark');
+      } else if (theme === 'light') {
+        root.classList.remove('dark');
+      } else {
+        // 'system' mode: follow system preferences
+        if (mediaQuery.matches) {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+      }
+    };
+
+    applyCurrentTheme();
     localStorage.setItem('askio_theme', theme);
+
+    // Listen for system theme changes if theme is set to 'system'
+    const handleChange = () => {
+      if (theme === 'system') {
+        applyCurrentTheme();
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, [theme]);
 
   const setTheme = (t: ThemeMode) => setThemeState(t);

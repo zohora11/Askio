@@ -20,10 +20,14 @@ import {
   ShieldAlert,
   AlertTriangle,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  Compass,
+  User,
+  Globe
 } from 'lucide-react';
 import { UnsubscribeModal } from '../components/UnsubscribeModal';
 import { unsubscribe, clearSubscriptionSession, unmarkLocalSubscriber } from '../services/bdapps';
+import { t } from '../constants/translations';
 
 export const ProfileScreen: React.FC = () => {
   const { 
@@ -36,8 +40,11 @@ export const ProfileScreen: React.FC = () => {
     recentSearches, 
     activities, 
     setActiveTab, 
-    setSubscriptionModalOpen 
+    setSubscriptionModalOpen,
+    language
   } = useApp();
+
+  const isBn = language === 'bn';
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isUnsubscribeModalOpen, setIsUnsubscribeModalOpen] = useState(false);
@@ -48,6 +55,7 @@ export const ProfileScreen: React.FC = () => {
   const [phoneInput, setPhoneInput] = useState(user.phone);
   const [passwordInput, setPasswordInput] = useState(user.password || '');
   const [avatarInput, setAvatarInput] = useState(user.avatar);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleConfirmUnsubscribe = async (): Promise<boolean> => {
     try {
@@ -59,7 +67,6 @@ export const ProfileScreen: React.FC = () => {
     clearSubscriptionSession();
     cancelPremium();
     setIsUnsubscribeModalOpen(false);
-    // Directly redirect to landing page by ending the session
     updateProfile({
       isLoggedIn: false,
       isPremium: false,
@@ -67,7 +74,6 @@ export const ProfileScreen: React.FC = () => {
     });
     return true;
   };
-  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +92,10 @@ export const ProfileScreen: React.FC = () => {
   };
 
   const handleAvatarChangePrompt = () => {
-    const newUrl = prompt('Enter a new image URL for your avatar:', user.avatar);
+    const newUrl = prompt(
+      isBn ? 'আপনার প্রোফাইল ছবির জন্য একটি ইমেজ ইউআরএল দিন:' : 'Enter a new image URL for your avatar:',
+      user.avatar
+    );
     if (newUrl && newUrl.trim()) {
       setAvatarInput(newUrl.trim());
       updateProfile({ avatar: newUrl.trim() });
@@ -103,7 +112,7 @@ export const ProfileScreen: React.FC = () => {
             <button
               onClick={() => setActiveTab('settings')}
               className="p-2 rounded-xl bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-colors"
-              title="Settings"
+              title={t('nav.settings', language)}
             >
               <Settings className="w-4 h-4" />
             </button>
@@ -111,7 +120,7 @@ export const ProfileScreen: React.FC = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 -mt-16 sm:-mt-20">
-          {/* Facebook-Style Avatar Pen Overlay */}
+          {/* Avatar & Badges */}
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 text-center sm:text-left">
             <div className="relative group">
               <img
@@ -119,19 +128,17 @@ export const ProfileScreen: React.FC = () => {
                 alt={user.fullName}
                 className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white dark:border-zinc-900 shadow-xl"
               />
-              {/* Circular edit pen badge positioned over avatar */}
               <button
                 id="avatar-pen-badge"
                 onClick={handleAvatarChangePrompt}
                 className="absolute bottom-1 right-1 p-2.5 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-emerald-600 dark:hover:bg-emerald-500 shadow-lg border-2 border-white dark:border-zinc-900 transition-colors cursor-pointer"
-                title="Change Profile Photo"
+                title={isBn ? 'ছবি পরিবর্তন করুন' : 'Change Profile Photo'}
               >
                 <Camera className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-1">
-              {/* User Name with Secondary Quick-Edit Icon */}
               <div className="flex items-center justify-center sm:justify-start gap-2">
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-zinc-100">
                   {user.fullName}
@@ -140,7 +147,7 @@ export const ProfileScreen: React.FC = () => {
                   id="quick-edit-name-btn"
                   onClick={() => setIsEditModalOpen(true)}
                   className="p-1 text-zinc-400 hover:text-emerald-600 transition-colors"
-                  title="Quick edit profile"
+                  title={isBn ? 'প্রোফাইল সম্পাদন' : 'Quick edit profile'}
                 >
                   <Edit3 className="w-4 h-4" />
                 </button>
@@ -152,20 +159,20 @@ export const ProfileScreen: React.FC = () => {
 
               <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
                 <span className="px-2.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
-                  Member since {user.joinedDate}
+                  {isBn ? 'সদস্য হয়েছেন' : 'Member since'} {user.joinedDate}
                 </span>
 
                 {user.isPremium ? (
                   <span className="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[11px] font-bold flex items-center gap-1">
                     <Crown className="w-3 h-3" />
-                    <span>{user.membershipPlan}</span>
+                    <span>{user.membershipPlan || 'Daily Micro (৳2.78/day)'}</span>
                   </span>
                 ) : (
                   <button
                     onClick={() => setSubscriptionModalOpen(true)}
                     className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold hover:underline"
                   >
-                    Upgrade (৳2/day)
+                    {isBn ? 'আপগ্রেড (৳২.৭৮/দিন)' : 'Upgrade (৳2.78/day)'}
                   </button>
                 )}
               </div>
@@ -179,14 +186,14 @@ export const ProfileScreen: React.FC = () => {
               className="px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors flex items-center gap-1.5"
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>Edit Profile</span>
+              <span>{isBn ? 'প্রোফাইল সম্পাদন' : 'Edit Profile'}</span>
             </button>
 
             <button
               id="logout-btn"
               onClick={logout}
               className="p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-400 hover:text-rose-500 transition-colors"
-              title="Sign Out"
+              title={isBn ? 'লগ আউট' : 'Sign Out'}
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -194,12 +201,12 @@ export const ProfileScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Personal Activity Stats (MyActivityScreen section) */}
+      {/* Personal Activity Stats */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-            Personal Activity Stats
+            {isBn ? 'ব্যক্তিগত অ্যাক্টিভিটি পরিসংখ্যান' : 'Personal Activity Stats'}
           </h3>
         </div>
 
@@ -212,7 +219,7 @@ export const ProfileScreen: React.FC = () => {
               {recentSearches.length * 3 + 12}
             </div>
             <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-              Total Searches
+              {isBn ? 'মোট অনুসন্ধান' : 'Total Searches'}
             </span>
           </div>
 
@@ -224,7 +231,7 @@ export const ProfileScreen: React.FC = () => {
               {bookmarkedIds.length}
             </div>
             <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-              Saved Bookmarks
+              {isBn ? 'সংরক্ষিত বুকমার্ক' : 'Saved Bookmarks'}
             </span>
           </div>
 
@@ -236,27 +243,11 @@ export const ProfileScreen: React.FC = () => {
               {recentlyViewedIds.length}
             </div>
             <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-              Recent Views
+              {isBn ? 'সাম্প্রতিক পঠিত' : 'Recent Views'}
             </span>
           </div>
         </div>
       </div>
-
-      {/* Toast Alert */}
-      {toastMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center justify-between animate-fade-in shadow-sm">
-          <div className="flex items-center gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span>{toastMessage}</span>
-          </div>
-          <button 
-            onClick={() => setToastMessage(null)}
-            className="p-1 text-emerald-600 hover:text-emerald-800 dark:text-emerald-400"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
 
       {/* Subscription & Membership Management Card */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm">
@@ -271,7 +262,7 @@ export const ProfileScreen: React.FC = () => {
             </div>
             <div>
               <h3 className="font-extrabold text-base text-zinc-900 dark:text-zinc-100">
-                Subscription & Membership
+                {isBn ? 'সাবস্ক্রিপশন ও মেম্বারশিপ' : 'Subscription & Membership'}
               </h3>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 BDApps Telco Micro-Billing & Member Status
@@ -284,7 +275,7 @@ export const ProfileScreen: React.FC = () => {
               ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
               : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
           }`}>
-            {user.isPremium ? 'Active Premium' : 'Free Tier'}
+            {user.isPremium ? (isBn ? 'সক্রিয় প্রিমিয়াম' : 'Active Premium') : (isBn ? 'ফ্রি টিয়ার' : 'Free Tier')}
           </span>
         </div>
 
@@ -292,22 +283,24 @@ export const ProfileScreen: React.FC = () => {
           <div className="space-y-4">
             <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 space-y-2 text-xs">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-zinc-500 dark:text-zinc-400">Current Plan:</span>
+                <span className="text-zinc-500 dark:text-zinc-400">{isBn ? 'বর্তমান প্ল্যান:' : 'Current Plan:'}</span>
                 <span className="font-bold text-zinc-800 dark:text-zinc-200">{user.membershipPlan || 'Daily Micro (৳2.78/day)'}</span>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-zinc-500 dark:text-zinc-400">Subscribed Phone (Carrier):</span>
+                <span className="text-zinc-500 dark:text-zinc-400">{isBn ? 'সাবস্ক্রাইব করা নম্বর:' : 'Subscribed Phone (Carrier):'}</span>
                 <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{user.phone} (Robi / Cirkle)</span>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-zinc-500 dark:text-zinc-400">Billing Model:</span>
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">৳2.78 / day auto-deducted from mobile balance</span>
+                <span className="text-zinc-500 dark:text-zinc-400">{isBn ? 'বিলিং মডেল:' : 'Billing Model:'}</span>
+                <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                  {isBn ? 'প্রতিদিন মাত্র ৳২.৭৮ মোবাইল ব্যালেন্স থেকে অটো-ডিডাক্ট' : '৳2.78 / day auto-deducted from mobile balance'}
+                </span>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
               <p className="text-[11px] text-zinc-400">
-                Cancel your daily telco plan anytime. When clicked, you will be prompted to confirm.
+                {isBn ? 'যেকোনো সময় ১-ক্লিকে সাবস্ক্রিপশন বাতিল করতে পারেন।' : 'Cancel your daily telco plan anytime with 1 click.'}
               </p>
 
               <button
@@ -316,14 +309,14 @@ export const ProfileScreen: React.FC = () => {
                 className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0"
               >
                 <ShieldAlert className="w-4 h-4" />
-                <span>Unsubscribe from Askio</span>
+                <span>{isBn ? 'সাবস্ক্রিপশন বাতিল করুন' : 'Unsubscribe from Askio'}</span>
               </button>
             </div>
           </div>
         ) : (
           <div className="space-y-3">
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              You are currently on the Free Tier with limited AI guidance queries and catalog downloads.
+              {isBn ? 'আপনি বর্তমানে ফ্রি টিয়ারে রয়েছেন।' : 'You are currently on the Free Tier.'}
             </p>
             <button
               id="profile-upgrade-btn"
@@ -331,58 +324,25 @@ export const ProfileScreen: React.FC = () => {
               className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all flex items-center gap-2 shadow-sm"
             >
               <Crown className="w-4 h-4" />
-              <span>Upgrade to Askio Premium (৳2.78/day)</span>
+              <span>{isBn ? 'Askio প্রিমিয়াম চালু করুন (৳২.৭৮/দিন)' : 'Upgrade to Askio Premium (৳2.78/day)'}</span>
             </button>
           </div>
         )}
       </div>
 
-      {/* Chronological Activity Log */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm">
-        <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-          Chronological Activity Log
-        </h3>
-
-        <div className="space-y-3">
-          {activities.slice(0, 8).map((act) => (
-            <div
-              key={act.id}
-              className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800 text-xs"
-            >
-              <div className="flex items-center gap-3">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                <div>
-                  <h5 className="font-semibold text-zinc-800 dark:text-zinc-200">
-                    {act.title}
-                  </h5>
-                  {act.category && (
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-                      {act.category}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <span className="text-[11px] text-zinc-400 shrink-0">
-                {act.timestamp}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Dedicated Account Session & Log Out Section */}
+      {/* Account & Session Management Section */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm">
         <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center font-bold">
-              <LogOut className="w-4 h-4" />
+              <User className="w-4 h-4" />
             </div>
             <div>
               <h3 className="font-extrabold text-base text-zinc-900 dark:text-zinc-100">
-                Account & Session
+                {isBn ? 'অ্যাকাউন্ট ও সেশন' : 'Account & Session'}
               </h3>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Current session active for {user.fullName}
+                {isBn ? `${user.fullName} এর সক্রিয় অ্যাকাউন্ট` : `Current session active for ${user.fullName}`}
               </p>
             </div>
           </div>
@@ -391,20 +351,22 @@ export const ProfileScreen: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1 text-xs text-zinc-500 dark:text-zinc-400 max-w-md">
             <p className="font-semibold text-zinc-700 dark:text-zinc-300">
-              Logged in as: <span className="font-mono text-zinc-900 dark:text-zinc-100">{user.email || user.phone}</span>
+              {isBn ? 'লগইন অ্যাকাউন্ট:' : 'Logged in as:'} <span className="font-mono text-zinc-900 dark:text-zinc-100">{user.email || user.phone}</span>
             </p>
             <p>
-              Logging out will securely terminate your session on this device and return you to the Askio landing page.
+              {isBn 
+                ? 'লগআউট করলে এই ডিভাইসের সেশন বন্ধ হবে এবং আপনাকে ল্যান্ডিং পেজে ফিরিয়ে নেওয়া হবে।' 
+                : 'Logging out will securely terminate your session on this device and return you to the landing page.'}
             </p>
           </div>
 
           <button
             id="profile-main-logout-btn"
             onClick={logout}
-            className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
+            className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
-            <span>Log Out of Askio</span>
+            <span>{isBn ? 'Askio থেকে লগআউট করুন' : 'Log Out of Askio'}</span>
           </button>
         </div>
       </div>
@@ -417,17 +379,17 @@ export const ProfileScreen: React.FC = () => {
         onConfirmUnsubscribe={handleConfirmUnsubscribe}
       />
 
-      {/* In-App Edit Profile Sheet / Modal */}
+      {/* In-App Edit Profile Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div 
             id="edit-profile-sheet"
-            className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl transition-all"
+            className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl transition-all my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5 border-b border-zinc-100 dark:border-zinc-800 pb-3">
               <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                Edit Profile Information
+                {isBn ? 'প্রোফাইল তথ্য সম্পাদন' : 'Edit Profile Information'}
               </h3>
               <button
                 onClick={() => setIsEditModalOpen(false)}
@@ -440,93 +402,63 @@ export const ProfileScreen: React.FC = () => {
             {saveSuccess && (
               <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 text-emerald-700 text-xs rounded-xl flex items-center gap-2">
                 <Check className="w-4 h-4" />
-                <span>Profile updated successfully!</span>
+                <span>{isBn ? 'প্রোফাইল সফলভাবে আপডেট করা হয়েছে!' : 'Profile updated successfully!'}</span>
               </div>
             )}
 
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Full Name
+                  {isBn ? 'পূর্ণ নাম' : 'Full Name'}
                 </label>
                 <input
                   type="text"
-                  id="profile-name-input"
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-zinc-100"
+                  className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500"
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Email Address
+                  {isBn ? 'ইমেইল ঠিকানা' : 'Email Address'}
                 </label>
                 <input
                   type="email"
-                  id="profile-email-input"
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-zinc-100"
+                  className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500"
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Phone Number
+                  {isBn ? 'মোবাইল নম্বর' : 'Phone Number'}
                 </label>
                 <input
-                  type="text"
-                  id="profile-phone-input"
+                  type="tel"
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-zinc-100"
+                  className="w-full px-3.5 py-2.5 text-sm font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500"
                   required
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="profile-password-input"
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-zinc-100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Avatar Image URL
-                </label>
-                <input
-                  type="url"
-                  id="profile-avatar-input"
-                  value={avatarInput}
-                  onChange={(e) => setAvatarInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-zinc-100"
-                />
-              </div>
-
-              <div className="pt-3 flex items-center justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl"
+                  className="px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-600 dark:text-zinc-400"
                 >
-                  Cancel
+                  {isBn ? 'বাতিল' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
-                  id="save-profile-btn"
-                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm"
                 >
-                  Save Changes
+                  {isBn ? 'সংরক্ষণ করুন' : 'Save Changes'}
                 </button>
               </div>
             </form>

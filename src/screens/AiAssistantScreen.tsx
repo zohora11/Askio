@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { SUGGESTED_AI_PROMPTS } from '../data/mockData';
 import { ChatbotAvatar } from '../components/ChatbotAvatar';
+import { t } from '../constants/translations';
 
 // Helper to render inline markdown styling
 const renderFormattedInline = (line: string): React.ReactNode => {

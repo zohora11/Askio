@@ -15,6 +15,7 @@ import {
 import { ResourceCard } from '../components/ResourceCard';
 import { MOCK_RESOURCES, CATEGORIES_DATA, TRENDING_SEARCHES } from '../data/mockData';
 import { FormatType, CategoryDomain } from '../types';
+import { t, CATEGORY_TRANSLATIONS, FORMAT_TRANSLATIONS } from '../constants/translations';
 
 const FORMAT_OPTIONS: FormatType[] = [
   'All',
@@ -36,7 +37,8 @@ export const SearchScreen: React.FC = () => {
     recentSearches, 
     addRecentSearch, 
     removeRecentSearch,
-    clearRecentSearches 
+    clearRecentSearches,
+    language
   } = useApp();
 
   const [selectedCategory, setSelectedCategory] = useState<CategoryDomain | 'All'>('All');
@@ -81,7 +83,7 @@ export const SearchScreen: React.FC = () => {
             id="global-search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search eye health, TypeScript AI, focus habits, books, reels..."
+            placeholder={t('search.input_placeholder', language)}
             className="w-full px-3 py-3.5 text-sm sm:text-base bg-transparent text-zinc-900 dark:text-zinc-100 outline-none placeholder:text-zinc-400"
           />
 
@@ -90,8 +92,8 @@ export const SearchScreen: React.FC = () => {
               type="button"
               id="clear-search-btn"
               onClick={() => setSearchQuery('')}
-              className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 mr-1 rounded-lg"
-              title="Clear search"
+              className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 mr-1 rounded-lg cursor-pointer"
+              title={t('search.clear', language)}
             >
               <X className="w-4 h-4" />
             </button>
@@ -100,9 +102,9 @@ export const SearchScreen: React.FC = () => {
           <button
             type="submit"
             id="submit-search-btn"
-            className="hidden sm:flex items-center gap-1.5 px-5 py-3 mr-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 text-xs font-semibold transition-colors"
+            className="hidden sm:flex items-center gap-1.5 px-5 py-3 mr-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 text-xs font-semibold transition-colors cursor-pointer"
           >
-            <span>Search</span>
+            <span>{language === 'bn' ? 'অনুসন্ধান' : 'Search'}</span>
           </button>
         </div>
       </form>
@@ -111,20 +113,20 @@ export const SearchScreen: React.FC = () => {
       <div>
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
-            <Filter className="w-3.5 h-3.5" /> Formats:
+            <Filter className="w-3.5 h-3.5" /> {language === 'bn' ? 'ফরম্যাট:' : 'Formats:'}
           </span>
           {FORMAT_OPTIONS.map((format) => (
             <button
               key={format}
               id={`filter-format-${format}`}
               onClick={() => setSelectedFormat(format)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedFormat === format
                   ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'bg-zinc-100 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  : 'bg-zinc-100 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
-              {format}
+              {FORMAT_TRANSLATIONS[language]?.[format] || format}
             </button>
           ))}
         </div>
@@ -138,13 +140,13 @@ export const SearchScreen: React.FC = () => {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-400">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>Recent Searches</span>
+                  <span>{t('search.recent_searches', language)}</span>
                 </div>
                 <button
                   onClick={clearRecentSearches}
-                  className="text-[11px] text-zinc-400 hover:text-rose-500 font-medium"
+                  className="text-[11px] text-zinc-400 hover:text-rose-500 font-medium cursor-pointer"
                 >
-                  Clear all
+                  {t('search.clear_history', language)}
                 </button>
               </div>
 
@@ -156,13 +158,13 @@ export const SearchScreen: React.FC = () => {
                   >
                     <button
                       onClick={() => handleChipSearch(query)}
-                      className="hover:text-emerald-600 text-left truncate max-w-[200px]"
+                      className="hover:text-emerald-600 text-left truncate max-w-[200px] cursor-pointer"
                     >
                       {query}
                     </button>
                     <button
                       onClick={() => removeRecentSearch(query)}
-                      className="p-0.5 rounded-full text-zinc-400 hover:text-rose-500 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                      className="p-0.5 rounded-full text-zinc-400 hover:text-rose-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer"
                       title="Remove"
                     >
                       <X className="w-3 h-3" />
@@ -177,14 +179,14 @@ export const SearchScreen: React.FC = () => {
           <div>
             <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">
               <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Suggested & Trending Queries</span>
+              <span>{language === 'bn' ? 'প্রস্তাবিত ও ট্রেন্ডিং সার্চ' : 'Suggested & Trending Queries'}</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {TRENDING_SEARCHES.map((trend, i) => (
                 <button
                   key={i}
                   onClick={() => handleChipSearch(trend)}
-                  className="px-3 py-1.5 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 shadow-2xs transition-colors"
+                  className="px-3 py-1.5 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 shadow-2xs transition-colors cursor-pointer"
                 >
                   {trend}
                 </button>
@@ -199,25 +201,25 @@ export const SearchScreen: React.FC = () => {
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-zinc-200 dark:border-zinc-800">
           <button
             onClick={() => setSelectedCategory('All')}
-            className={`px-3 py-1 text-xs font-semibold transition-colors border-b-2 -mb-2 ${
+            className={`px-3 py-1 text-xs font-semibold transition-colors border-b-2 -mb-2 cursor-pointer ${
               selectedCategory === 'All'
                 ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
                 : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
             }`}
           >
-            All Domains (10+)
+            {language === 'bn' ? 'সকল ডোমেইন (১০+)' : 'All Domains (10+)'}
           </button>
           {CATEGORIES_DATA.map((cat) => (
             <button
               key={cat.domain}
               onClick={() => setSelectedCategory(cat.domain)}
-              className={`px-3 py-1 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 -mb-2 ${
+              className={`px-3 py-1 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 -mb-2 cursor-pointer ${
                 selectedCategory === cat.domain
                   ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
                   : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
               }`}
             >
-              {cat.domain} ({cat.solutionsCount})
+              {CATEGORY_TRANSLATIONS[language]?.[cat.domain] || cat.domain} ({cat.solutionsCount})
             </button>
           ))}
         </div>
@@ -227,10 +229,12 @@ export const SearchScreen: React.FC = () => {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100">
-            {searchQuery ? `Results for "${searchQuery}"` : 'All Verified Resources'}
+            {searchQuery 
+              ? (language === 'bn' ? `"${searchQuery}" এর ফলাফল` : `Results for "${searchQuery}"`)
+              : (language === 'bn' ? 'সকল যাচাইকৃত রিসোর্স' : 'All Verified Resources')}
           </h3>
           <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            Showing {filteredResources.length} items
+            {language === 'bn' ? `${filteredResources.length} টি আইটেম প্রদর্শিত` : `Showing ${filteredResources.length} items`}
           </span>
         </div>
 
@@ -246,10 +250,10 @@ export const SearchScreen: React.FC = () => {
               <Search className="w-6 h-6" />
             </div>
             <h4 className="font-bold text-base text-zinc-800 dark:text-zinc-200">
-              No matching resources found
+              {t('search.no_results', language)}
             </h4>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto">
-              Try adjusting your format filters or search for another keyword like "Eye strain", "TypeScript", or "Focus".
+              {t('search.no_results_sub', language)}
             </p>
             <button
               onClick={() => {
@@ -257,9 +261,9 @@ export const SearchScreen: React.FC = () => {
                 setSelectedFormat('All');
                 setSelectedCategory('All');
               }}
-              className="mt-4 px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200"
+              className="mt-4 px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200 cursor-pointer"
             >
-              Reset All Filters
+              {t('search.reset_filters', language)}
             </button>
           </div>
         )}

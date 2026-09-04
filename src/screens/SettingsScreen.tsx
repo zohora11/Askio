@@ -19,6 +19,7 @@ import {
   FileText
 } from 'lucide-react';
 import { ThemeMode, AppLanguage } from '../types';
+import { t } from '../constants/translations';
 
 export const SettingsScreen: React.FC = () => {
   const { 
@@ -38,7 +39,24 @@ export const SettingsScreen: React.FC = () => {
   const [activeSection, setActiveSection] = useState<'all' | 'appearance' | 'language' | 'security' | 'content' | 'privacy' | 'help' | 'about'>('all');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const faqs = [
+  const faqs = language === 'bn' ? [
+    {
+      q: 'Askio-তে ২০-২০-২০ চোখের স্ট্রেন নিয়মটি কীভাবে কাজ করে?',
+      a: 'প্রতি ২০ মিনিট স্ক্রিনে একটানা তাকানোর পর, Askio আপনাকে ২০ ফুট দূরের কোনো বস্তুর দিকে ২০ সেকেন্ডের জন্য তাকাতে নির্দেশ দেয়। এটি সিলিয়ারি পেশীর ক্লান্তি কমায়।'
+    },
+    {
+      q: 'আমি কি অফলাইনে Askio ব্যবহার করতে পারি?',
+      a: 'হ্যাঁ! আপনার বুকমার্ক করা হ্যান্ডবুক, সংরক্ষিত গাইড এবং সুস্থতার অভ্যাসগুলো লোকাল স্টোরেজে সেভ থাকে, ফলে ইন্টারনেট সংযোগ ছাড়াও এগুলো পড়া যায়।'
+    },
+    {
+      q: 'দৈনিক ৳২ মাইক্রো-সাবস্ক্রিপশন কীভাবে কাজ করে?',
+      a: 'Askio বিকাশ, নগদ বা মোবাইল ব্যালেন্সের মাধ্যমে সহজ দৈনিক মাইক্রো-বিলিং প্রদান করে। এর মাধ্যমে আপনি আনলিমিটেড এআই প্রশ্ন ও বিজ্ঞাপনহীন গাইড পাবেন, যা যেকোনো সময় বন্ধ করা যাবে।'
+    },
+    {
+      q: 'চিকিৎসাগত তথ্যগুলো কি বিশেষজ্ঞদের দ্বারা যাচাইকৃত?',
+      a: 'হ্যাঁ, আমাদের সকল দৃষ্টি সুস্থতা ও স্বাস্থ্য বিষয়ক নির্দেশনা সার্টিফাইড চক্ষু বিশেষজ্ঞ ও অপটোমেট্রিস্টদের দ্বারা পর্যালোচিত।'
+    }
+  ] : [
     {
       q: 'How does the 20-20-20 eye strain rule work in Askio?',
       a: 'Every 20 minutes spent focusing on your screen, Askio prompts you to gaze at an object 20 feet away for 20 seconds. This relaxes your ciliary muscles and prevents screen-induced ocular spasms.'
@@ -62,10 +80,10 @@ export const SettingsScreen: React.FC = () => {
       {/* Header */}
       <div className="border-b border-zinc-200 dark:border-zinc-800 pb-4">
         <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
-          Settings & Personalization
+          {t('settings.title', language)}
         </h2>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-          Customize display themes, bilingual preferences, privacy controls, and security
+          {t('settings.subtitle', language)}
         </p>
       </div>
 
@@ -77,19 +95,19 @@ export const SettingsScreen: React.FC = () => {
           </div>
           <div>
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-              Appearance & Theme
+              {t('settings.appearance', language)}
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Select your interface palette for optimal eye comfort
+              {t('settings.appearance_sub', language)}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           {[
-            { id: 'light', label: 'Light Mode', icon: Sun },
-            { id: 'dark', label: 'Dark Mode', icon: Moon },
-            { id: 'system', label: 'System Default', icon: Monitor }
+            { id: 'light', label: t('settings.light_mode', language), icon: Sun },
+            { id: 'dark', label: t('settings.dark_mode', language), icon: Moon },
+            { id: 'system', label: t('settings.system_mode', language), icon: Monitor }
           ].map((item) => {
             const Icon = item.icon;
             const isSelected = theme === item.id;
@@ -98,10 +116,10 @@ export const SettingsScreen: React.FC = () => {
                 key={item.id}
                 id={`theme-btn-${item.id}`}
                 onClick={() => setTheme(item.id as ThemeMode)}
-                className={`p-3.5 rounded-2xl border flex flex-col items-center gap-2 transition-all ${
+                className={`p-3.5 rounded-2xl border flex flex-col items-center gap-2 transition-all cursor-pointer ${
                   isSelected
                     ? 'border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 font-bold shadow-2xs'
-                    : 'border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 text-zinc-600 dark:text-zinc-400'
+                    : 'border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -120,10 +138,10 @@ export const SettingsScreen: React.FC = () => {
           </div>
           <div>
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-              Language / ভাষা নির্বাচন
+              {t('settings.language', language)}
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Switch the Askio knowledge portal interface language
+              {t('settings.language_sub', language)}
             </p>
           </div>
         </div>
@@ -139,10 +157,10 @@ export const SettingsScreen: React.FC = () => {
                 key={lang.id}
                 id={`lang-btn-${lang.id}`}
                 onClick={() => setLanguage(lang.id as AppLanguage)}
-                className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                   isSelected
                     ? 'border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 font-bold shadow-2xs'
-                    : 'border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 text-zinc-700 dark:text-zinc-300'
+                    : 'border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
               >
                 <div>
@@ -164,10 +182,10 @@ export const SettingsScreen: React.FC = () => {
           </div>
           <div>
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-              Account Security & Sessions
+              {language === 'bn' ? 'অ্যাকাউন্ট নিরাপত্তা ও সেশন' : 'Account Security & Sessions'}
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Manage credentials, two-step OTP verification, and connected devices
+              {language === 'bn' ? 'লগইন তথ্য ও সক্রিয় ডিভাইস পরিচালনা করুন' : 'Manage credentials, two-step OTP verification, and connected devices'}
             </p>
           </div>
         </div>
@@ -175,33 +193,33 @@ export const SettingsScreen: React.FC = () => {
         <div className="space-y-2.5 text-xs">
           <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60">
             <div>
-              <div className="font-semibold text-zinc-800 dark:text-zinc-200">Registered Email</div>
+              <div className="font-semibold text-zinc-800 dark:text-zinc-200">{language === 'bn' ? 'নিবন্ধিত ইমেইল' : 'Registered Email'}</div>
               <div className="text-zinc-500">{user.email}</div>
             </div>
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold">Verified</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold">{language === 'bn' ? 'যাচাইকৃত' : 'Verified'}</span>
           </div>
 
           <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60">
             <div>
-              <div className="font-semibold text-zinc-800 dark:text-zinc-200">Mobile Phone OTP</div>
+              <div className="font-semibold text-zinc-800 dark:text-zinc-200">{language === 'bn' ? 'মোবাইল নম্বর ও ওটিপি' : 'Mobile Phone OTP'}</div>
               <div className="text-zinc-500">{user.phone}</div>
             </div>
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold">Active</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold">{language === 'bn' ? 'সক্রিয়' : 'Active'}</span>
           </div>
 
           <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60">
             <div>
-              <div className="font-semibold text-zinc-800 dark:text-zinc-200">Active Web Sessions</div>
-              <div className="text-zinc-500">1 session in Chrome / Linux Container</div>
+              <div className="font-semibold text-zinc-800 dark:text-zinc-200">{language === 'bn' ? 'সক্রিয় ওয়েব সেশন' : 'Active Web Sessions'}</div>
+              <div className="text-zinc-500">{language === 'bn' ? '১টি সেশন (বর্তমান ব্রাউজার)' : '1 session in Chrome / Linux Container'}</div>
             </div>
             <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold text-[10px]">
-              Current Device
+              {language === 'bn' ? 'বর্তমান ডিভাইস' : 'Current Device'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* 4. Privacy & Activity Tracking (PrivacySecurityScreen) */}
+      {/* 4. Privacy & Activity Tracking */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 sm:p-6 shadow-sm">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -209,10 +227,10 @@ export const SettingsScreen: React.FC = () => {
           </div>
           <div>
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-              Privacy & Activity Controls
+              {t('settings.privacy', language)}
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Control search history logging and anonymous analytics
+              {language === 'bn' ? 'অনুসন্ধান ইতিহাস এবং অ্যানালিটিক্স পছন্দসমূহ নিয়ন্ত্রণ করুন' : 'Control search history logging and anonymous analytics'}
             </p>
           </div>
         </div>
@@ -221,10 +239,10 @@ export const SettingsScreen: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                Log Personal Activity & Searches
+                {t('settings.tracking', language)}
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                Powers your MyActivity timeline and goal streak calculations
+                {language === 'bn' ? 'আপনার ব্যক্তিগত ইতিহাস ও স্ট্রিক গণনায় সাহায্য করে' : 'Powers your MyActivity timeline and goal streak calculations'}
               </div>
             </div>
             <input
@@ -239,10 +257,10 @@ export const SettingsScreen: React.FC = () => {
           <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800">
             <div>
               <div className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                Anonymous Health Analytics
+                {t('settings.analytics', language)}
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                Help improve vision ergonomics recommendation models
+                {language === 'bn' ? 'দৃষ্টি সুস্থতার রেকমেন্ডেশন মডেল উন্নত করতে সাহায্য করে' : 'Help improve vision ergonomics recommendation models'}
               </div>
             </div>
             <input
@@ -256,13 +274,13 @@ export const SettingsScreen: React.FC = () => {
 
           <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
             <span className="text-xs text-rose-500 font-semibold">
-              Account Deletion & Data Purge
+              {language === 'bn' ? 'অ্যাকাউন্ট ও ডাটা মুছে ফেলা' : 'Account Deletion & Data Purge'}
             </span>
             <button
-              onClick={() => alert('Account deletion request submitted. An email confirmation has been sent.')}
-              className="px-3 py-1.5 rounded-xl border border-rose-300 dark:border-rose-900 text-rose-600 text-xs font-semibold hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+              onClick={() => alert(language === 'bn' ? 'ডাটা মুছে ফেলার অনুরোধ গৃহীত হয়েছে। ইমেইলে কনফার্মেশন পাঠানো হয়েছে।' : 'Account deletion request submitted. An email confirmation has been sent.')}
+              className="px-3 py-1.5 rounded-xl border border-rose-300 dark:border-rose-900 text-rose-600 text-xs font-semibold hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
             >
-              Request Data Deletion
+              {language === 'bn' ? 'ডাটা মোছার অনুরোধ' : 'Request Data Deletion'}
             </button>
           </div>
         </div>
@@ -276,10 +294,10 @@ export const SettingsScreen: React.FC = () => {
           </div>
           <div>
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-              Help & Frequently Asked Questions
+              {language === 'bn' ? 'সহায়তা ও সাধারণ প্রশ্নোত্তর (FAQ)' : 'Help & Frequently Asked Questions'}
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Answers regarding eye ergonomics, micro-billing, and study workflows
+              {language === 'bn' ? 'চোখের যত্ন, মাইক্রো-বিলিং ও স্টাডি গাইড সংক্রান্ত তথ্য' : 'Answers regarding eye ergonomics, micro-billing, and study workflows'}
             </p>
           </div>
         </div>
@@ -294,7 +312,7 @@ export const SettingsScreen: React.FC = () => {
               >
                 <button
                   onClick={() => setOpenFaq(isOpen ? null : idx)}
-                  className="w-full p-3.5 text-left flex items-center justify-between text-xs sm:text-sm font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-50/50 dark:bg-zinc-800/40 hover:bg-zinc-100 transition-colors"
+                  className="w-full p-3.5 text-left flex items-center justify-between text-xs sm:text-sm font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-50/50 dark:bg-zinc-800/40 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                 >
                   <span>{faq.q}</span>
                   <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -319,15 +337,15 @@ export const SettingsScreen: React.FC = () => {
           Askio Knowledge & Vision Platform
         </h4>
         <p className="text-xs text-zinc-400">
-          Version 1.0.0 (Production Build) • Powered by Askio AI Guidance Engine
+          Version 1.0.0 (Production Build) • {language === 'bn' ? 'Askio এআই গাইডেন্স ইঞ্জিন দ্বারা চালিত' : 'Powered by Askio AI Guidance Engine'}
         </p>
 
         <div className="flex items-center justify-center gap-4 text-xs text-emerald-600 dark:text-emerald-400 pt-2 font-medium">
-          <a href="#" className="hover:underline">Terms of Service</a>
+          <a href="#" className="hover:underline">{language === 'bn' ? 'ব্যবহারের শর্তাবলী' : 'Terms of Service'}</a>
           <span>•</span>
-          <a href="#" className="hover:underline">Privacy Policy</a>
+          <a href="#" className="hover:underline">{language === 'bn' ? 'গোপনীয়তা নীতি' : 'Privacy Policy'}</a>
           <span>•</span>
-          <a href="#" className="hover:underline">Ophthalmology Advisory Board</a>
+          <a href="#" className="hover:underline">{language === 'bn' ? 'মেডিকেল অ্যাডভাইজরি' : 'Ophthalmology Advisory Board'}</a>
         </div>
       </div>
     </div>

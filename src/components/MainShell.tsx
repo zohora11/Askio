@@ -31,6 +31,7 @@ import { AuthModal } from './AuthModal';
 import { AppLogo } from './AppLogo';
 import { ChatbotAvatar } from './ChatbotAvatar';
 import { SubscriptionModal } from './SubscriptionModal';
+import { t } from '../constants/translations';
 
 interface MainShellProps {
   onOpenLandingPage?: () => void;
@@ -49,25 +50,25 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
   } = useApp();
 
   const navItems = [
-    { id: 'home', label: language === 'bn' ? 'হোম' : 'Home', icon: Home },
-    { id: 'search', label: language === 'bn' ? 'অনুসন্ধান' : 'Search', icon: Search },
-    { id: 'ai', label: language === 'bn' ? 'এআই গাইড' : 'AI Guide', icon: Sparkles },
-    { id: 'goals', label: language === 'bn' ? 'লক্ষ্য' : 'Goals', icon: Target },
-    { id: 'health', label: language === 'bn' ? 'স্বাস্থ্য' : 'Health', icon: HeartPulse },
-    { id: 'library', label: language === 'bn' ? 'লাইব্রেরি' : 'Library', icon: Bookmark },
-    { id: 'profile', label: language === 'bn' ? 'প্রোফাইল' : 'Profile', icon: User },
+    { id: 'home', label: t('nav.home', language), icon: Home },
+    { id: 'search', label: t('nav.search', language), icon: Search },
+    { id: 'ai', label: t('nav.ai', language), icon: Sparkles },
+    { id: 'goals', label: t('nav.goals', language), icon: Target },
+    { id: 'health', label: t('nav.health', language), icon: HeartPulse },
+    { id: 'library', label: t('nav.library', language), icon: Bookmark },
+    { id: 'profile', label: t('nav.profile', language), icon: User },
   ];
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col font-sans selection:bg-emerald-500/20">
-      {/* --- TOP APPBAR --- */}
-      <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-zinc-200/80 dark:border-zinc-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between transition-colors">
+      {/* --- TOP APPBAR (Transparent with subtle backdrop blur) --- */}
+      <header className="sticky top-0 z-40 bg-transparent backdrop-blur-md border-b border-zinc-200/60 dark:border-zinc-800/60 px-4 sm:px-8 py-3.5 flex items-center justify-between transition-colors">
         <div className="flex items-center gap-3">
           {/* Askio Logo with transparent background */}
           <AppLogo 
             id="brand-logo"
             onClick={() => setActiveTab('home')}
-            subtitle="AI Knowledge"
+            subtitle={language === 'bn' ? 'এআই জ্ঞান ও স্বাস্থ্য' : 'AI Knowledge'}
             imgClassName="h-9 w-auto"
           />
         </div>
@@ -75,11 +76,11 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
         {/* Global Quick Search (Desktop) */}
         <div 
           onClick={() => setActiveTab('search')}
-          className="hidden md:flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 px-4 py-2 rounded-xl text-xs text-zinc-400 w-80 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors border border-transparent hover:border-zinc-300"
+          className="hidden md:flex items-center gap-2 bg-zinc-100/80 dark:bg-zinc-800/80 px-4 py-2 rounded-xl text-xs text-zinc-500 dark:text-zinc-400 w-80 cursor-pointer hover:bg-zinc-200/90 dark:hover:bg-zinc-700/90 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700"
         >
-          <Search className="w-4 h-4 text-zinc-400" />
-          <span>Search 14,000+ guides, eye health, topics...</span>
-          <span className="ml-auto px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-[10px] font-mono">⌘K</span>
+          <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+          <span className="truncate">{t('nav.search_placeholder', language)}</span>
+          <span className="ml-auto px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-[10px] font-mono text-zinc-600 dark:text-zinc-300">⌘K</span>
         </div>
 
         {/* Header Actions */}
@@ -89,11 +90,11 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
             <button
               id="appbar-landing-btn"
               onClick={onOpenLandingPage}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-zinc-700 dark:text-zinc-300"
-              title="View Public Landing Page"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors text-zinc-700 dark:text-zinc-300 cursor-pointer"
+              title={t('nav.landing', language)}
             >
-              <Compass className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Landing Page</span>
+              <Compass className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <span className="hidden sm:inline">{t('nav.landing', language)}</span>
             </button>
           )}
 
@@ -101,20 +102,20 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
           <button
             id="appbar-subscription-btn"
             onClick={() => setSubscriptionModalOpen(true)}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs font-bold hover:bg-amber-100 transition-colors shadow-2xs"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs font-bold hover:bg-amber-100 dark:hover:bg-amber-900/60 hover:text-amber-900 dark:hover:text-amber-200 transition-colors shadow-2xs cursor-pointer"
           >
             <Crown className="w-3.5 h-3.5 text-amber-500" />
-            <span>৳2/day Premium</span>
+            <span>{t('nav.subscribe_badge', language)}</span>
           </button>
 
           {/* Language Switch */}
           <button
             id="appbar-lang-toggle"
             onClick={() => setLanguage(language === 'en' ? 'bn' : 'en')}
-            className="px-2.5 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1 text-zinc-700 dark:text-zinc-300"
+            className="px-2.5 py-1.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1 text-zinc-700 dark:text-zinc-300 cursor-pointer"
             title="Switch Language"
           >
-            <Globe className="w-3.5 h-3.5 text-zinc-500" />
+            <Globe className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
             <span>{language === 'en' ? 'বাংলা' : 'EN'}</span>
           </button>
 
@@ -122,8 +123,8 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
           <button
             id="appbar-notification-btn"
             onClick={() => setActiveTab('notifications')}
-            className="relative p-2.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-zinc-600 dark:text-zinc-300"
-            title="Notification Center"
+            className="relative p-2.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors text-zinc-600 dark:text-zinc-300 cursor-pointer"
+            title={t('nav.notifications', language)}
           >
             <Bell className="w-5 h-5" />
             {unreadNotificationsCount > 0 && (
@@ -136,10 +137,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
           {/* Profile Avatar Quick Navigation */}
           <div
             id="appbar-avatar-btn"
-            onClick={() => {
-              if (user.isLoggedIn) setActiveTab('profile');
-              else setAuthModalOpen(true);
-            }}
+            onClick={() => setActiveTab('profile')}
             className="flex items-center gap-2 cursor-pointer p-1 rounded-full hover:ring-2 hover:ring-emerald-500 transition-all"
           >
             <img
@@ -155,8 +153,8 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
       <div className="flex-1 flex max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 gap-8">
         {/* Desktop Navigation Rail (Hidden on mobile) */}
         <aside className="hidden lg:flex flex-col w-56 shrink-0 space-y-1.5 sticky top-24 self-start">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 px-3 mb-1">
-            Menu Navigation
+          <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3 mb-1">
+            {language === 'bn' ? 'মেনু নেভিগেশন' : 'Menu Navigation'}
           </span>
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -169,7 +167,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all ${
                   isActive
                     ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 hover:text-zinc-900'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400 dark:text-emerald-600' : ''}`} />
@@ -185,21 +183,21 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
               className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all w-full text-left ${
                 activeTab === 'settings'
                   ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/80'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
               <Settings className="w-4 h-4" />
-              <span>{language === 'bn' ? 'সেটিংস' : 'Settings'}</span>
+              <span>{t('nav.settings', language)}</span>
             </button>
 
             {onOpenLandingPage && (
               <button
                 id="desktop-nav-landing-page"
                 onClick={onOpenLandingPage}
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all w-full text-left text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 hover:text-emerald-600 dark:hover:text-emerald-400"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all w-full text-left text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 hover:text-emerald-600 dark:hover:text-emerald-400"
               >
                 <Compass className="w-4 h-4 text-emerald-500" />
-                <span>Landing Page</span>
+                <span>{t('nav.landing', language)}</span>
               </button>
             )}
           </div>
@@ -208,16 +206,16 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
           <div className="mt-6 p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-emerald-50 dark:from-zinc-900 dark:to-zinc-800 border border-amber-200 dark:border-amber-900/60 shadow-2xs">
             <div className="flex items-center gap-2 mb-1 text-amber-700 dark:text-amber-400 font-bold text-xs">
               <Crown className="w-3.5 h-3.5" />
-              <span>Askio Micro-Plan</span>
+              <span>{language === 'bn' ? 'Askio মাইক্রো-প্ল্যান' : 'Askio Micro-Plan'}</span>
             </div>
             <p className="text-[11px] text-zinc-600 dark:text-zinc-400 mb-2.5">
-              Get unlimited AI guidance for only ৳2 / day.
+              {language === 'bn' ? 'মাত্র ৳২ / দিনে আনলিমিটেড এআই পরামর্শ ও গাইড নিন।' : 'Get unlimited AI guidance for only ৳2 / day.'}
             </p>
             <button
               onClick={() => setSubscriptionModalOpen(true)}
               className="w-full py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs transition-colors shadow-xs"
             >
-              Subscribe ৳2
+              {language === 'bn' ? 'সাবস্ক্রাইব ৳২' : 'Subscribe ৳2'}
             </button>
           </div>
         </aside>
@@ -273,7 +271,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
               className={`flex flex-col items-center justify-center p-1.5 rounded-xl transition-all ${
                 isActive
                   ? 'text-emerald-600 dark:text-emerald-400 font-bold scale-105'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
               <Icon className="w-5 h-5" />

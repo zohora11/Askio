@@ -1,0 +1,302 @@
+import { AppLanguage, CategoryDomain, FormatType } from '../types';
+
+export const CATEGORY_TRANSLATIONS: Record<AppLanguage, Record<CategoryDomain | 'All', string>> = {
+  en: {
+    'All': 'All Domains',
+    'Health': 'Health & Vision',
+    'Education': 'Education',
+    'Career': 'Career',
+    'Technology': 'Technology & AI',
+    'Motivation': 'Motivation',
+    'Productivity': 'Productivity',
+    'Self Improvement': 'Self Improvement',
+    'Finance': 'Finance & Wealth',
+    'Lifestyle': 'Lifestyle',
+    'Communication': 'Communication'
+  },
+  bn: {
+    'All': 'সকল বিভাগ',
+    'Health': 'স্বাস্থ্য ও দৃষ্টিশক্তি',
+    'Education': 'শিক্ষা ও জ্ঞান',
+    'Career': 'ক্যারিয়ার',
+    'Technology': 'প্রযুক্তি ও এআই',
+    'Motivation': 'অনুপ্রেরণা',
+    'Productivity': 'কর্মদক্ষতা',
+    'Self Improvement': 'আত্মউন্নয়ন',
+    'Finance': 'অর্থ ও সঞ্চয়',
+    'Lifestyle': 'জীবনযাত্রা',
+    'Communication': 'যোগাযোগ দক্ষতা'
+  }
+};
+
+export const FORMAT_TRANSLATIONS: Record<AppLanguage, Record<FormatType, string>> = {
+  en: {
+    'All': 'All Formats',
+    'Books': 'Books',
+    'Videos': 'Videos',
+    'Reels': 'Reels',
+    'PDFs': 'PDFs',
+    'Articles': 'Articles',
+    'Guides': 'Guides',
+    'Talks': 'Talks'
+  },
+  bn: {
+    'All': 'সকল ফরম্যাট',
+    'Books': 'বই',
+    'Videos': 'ভিডিও',
+    'Reels': 'রিলস',
+    'PDFs': 'পিডিএফ',
+    'Articles': 'প্রবন্ধ',
+    'Guides': 'গাইডলাইন',
+    'Talks': 'বক্তব্য'
+  }
+};
+
+export const UI_TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
+  en: {
+    // Navigation
+    'nav.home': 'Home',
+    'nav.search': 'Search',
+    'nav.ai': 'AI Guide',
+    'nav.goals': 'Goals',
+    'nav.health': 'Health',
+    'nav.library': 'Library',
+    'nav.profile': 'Profile',
+    'nav.settings': 'Settings',
+    'nav.notifications': 'Notifications',
+    'nav.landing': 'Landing Page',
+    'nav.subscribe_badge': '৳২/day Premium',
+    'nav.search_placeholder': 'Search 14,000+ guides, eye health, topics...',
+
+    // Home
+    'home.badge': 'Askio AI Engine 2.0 Live',
+    'home.welcome': 'Hello',
+    'home.subtitle': 'What knowledge or vision wellness guidance do you need today? Search across 14,000+ verified solutions or consult our AI assistant.',
+    'home.quick_eye': 'Eye exercises (2-min)',
+    'home.quick_specialist': 'Find a specialist',
+    'home.quick_guide': 'Book a vision guide',
+    'home.streak_days': 'Days',
+    'home.wellness_streak': 'Daily Wellness Streak 🔥',
+    'home.view_goals': 'View Goals',
+    'home.daily_tip': 'Daily Wellness Tip',
+    'home.explore_all_tips': 'Explore all 10 Wellness Tips',
+    'home.start_timer': 'Start 20s Break',
+    'home.stop_timer': 'Stop Timer',
+    'home.relax_eyes': 'Look 20 feet away at an object and blink gently.',
+    'home.explore_categories': 'Explore Knowledge Domains',
+    'home.categories_sub': 'Discover 14,000+ handbooks, clinical tips, and guides',
+    'home.view_all_catalogs': 'View All Catalogs',
+    'home.featured_resources': 'Featured Knowledge Guides',
+    'home.featured_sub': 'Handpicked guides, clinical vision workflows, and systems',
+    'home.see_all_resources': 'See All Guides',
+    'home.ask_ai_banner_title': 'Need personalized vision or career guidance?',
+    'home.ask_ai_banner_sub': 'Our conversational AI answers questions instantly in clear Bengali & English.',
+    'home.ask_ai_btn': 'Chat with Askio AI',
+
+    // Search
+    'search.title': 'Universal Search & Discovery',
+    'search.subtitle': 'Search across 14,000+ verified guides, medical vision resources, and tutorials',
+    'search.input_placeholder': 'Search guides, ocular exercises, topics, authors...',
+    'search.clear': 'Clear',
+    'search.recent_searches': 'Recent Searches',
+    'search.clear_history': 'Clear History',
+    'search.filters': 'Filters',
+    'search.all_categories': 'All Categories',
+    'search.all_formats': 'All Formats',
+    'search.results_found': 'guides found',
+    'search.no_results': 'No matching guides found',
+    'search.no_results_sub': 'Try searching with different keywords or clear your filters to see more results.',
+    'search.reset_filters': 'Reset Filters',
+
+    // AI Assistant
+    'ai.title': 'Askio AI Guidance Assistant',
+    'ai.subtitle': 'Ask anything about eye health, vision exercises, career, study, or habits',
+    'ai.online': 'Online & Ready',
+    'ai.disclaimer': 'Guidance provided by Askio AI. For severe eye symptoms or sudden vision loss, always consult an optometrist.',
+    'ai.welcome_msg': 'Hello! I am your Askio guidance assistant. How can I help you with vision wellness, career, or study routines today?',
+    'ai.input_placeholder': 'Ask a question in English or বাংলা...',
+    'ai.send': 'Send',
+    'ai.suggested_prompts': 'Suggested Guidance Topics',
+    'ai.prompt_1': 'Explain the 20-20-20 rule for eye strain in 2 sentences.',
+    'ai.prompt_2': 'How can I prevent dry eyes while working on a laptop?',
+    'ai.prompt_3': 'Give me a 3-step routine to maintain focus during long study sessions.',
+    'ai.prompt_4': 'When should I visit an optometrist vs an ophthalmologist?',
+
+    // Goals
+    'goals.title': 'Daily Goals & Habit Tracker',
+    'goals.subtitle': 'Build consistent screen breaks, hydration habits, and learning milestones',
+    'goals.streak_header': 'Your Active Streaks',
+    'goals.add_goal': 'Add Goal',
+    'goals.new_goal_title': 'Create New Daily Goal',
+    'goals.goal_name': 'Goal Title',
+    'goals.goal_target': 'Target per day',
+    'goals.save_goal': 'Save Goal',
+    'goals.cancel': 'Cancel',
+    'goals.completed': 'Completed today',
+    'goals.mark_complete': 'Mark Done',
+
+    // Health
+    'health.title': 'Vision Wellness & Eye Health Portal',
+    'health.subtitle': 'Evidence-based protocols to combat computer vision syndrome and fatigue',
+    'health.hotline': 'Emergency & Optometry Help',
+    'health.call_now': 'Call Hotline',
+    'health.timer_title': 'Interactive 20-20-20 Eye Break Timer',
+    'health.timer_sub': 'Protect your eyes from digital fatigue every 20 minutes',
+    'health.tips_heading': 'Clinical Wellness Protocols',
+
+    // Library
+    'library.title': 'Personal Library & Saved Guides',
+    'library.subtitle': 'Access your bookmarked handbooks and reading history offline',
+    'library.bookmarks': 'Saved Bookmarks',
+    'library.history': 'Recently Viewed',
+    'library.empty_bookmarks': 'No saved guides yet. Click the bookmark icon on any guide to save it here.',
+    'library.empty_history': 'No reading history recorded yet.',
+
+    // Settings
+    'settings.title': 'Settings & Personalization',
+    'settings.subtitle': 'Customize display themes, bilingual preferences, privacy controls, and security',
+    'settings.appearance': 'Appearance & Theme',
+    'settings.appearance_sub': 'Select your interface palette for optimal eye comfort',
+    'settings.light_mode': 'Light Mode',
+    'settings.dark_mode': 'Dark Mode',
+    'settings.system_mode': 'System Default',
+    'settings.language': 'Language / ভাষা',
+    'settings.language_sub': 'Choose your preferred platform language',
+    'settings.english': 'English',
+    'settings.bengali': 'বাংলা (Bengali)',
+    'settings.account': 'Account & Membership',
+    'settings.subscription_title': 'BDApps Micro-Subscription',
+    'settings.plan_daily': 'Daily Plan: ৳2.78 / day',
+    'settings.manage_subscription': 'Manage Subscription',
+    'settings.privacy': 'Data & Privacy',
+    'settings.tracking': 'Activity & Habit Logging',
+    'settings.analytics': 'Anonymous Platform Analytics',
+    'settings.security': 'Security',
+    'settings.logout': 'Log Out'
+  },
+  bn: {
+    // Navigation
+    'nav.home': 'হোম',
+    'nav.search': 'অনুসন্ধান',
+    'nav.ai': 'এআই গাইড',
+    'nav.goals': 'লক্ষ্য',
+    'nav.health': 'স্বাস্থ্য',
+    'nav.library': 'লাইব্রেরি',
+    'nav.profile': 'প্রোফাইল',
+    'nav.settings': 'সেটিংস',
+    'nav.notifications': 'বিজ্ঞপ্তি',
+    'nav.landing': 'ল্যান্ডিং পেজ',
+    'nav.subscribe_badge': '৳২/দিন প্রিমিয়াম',
+    'nav.search_placeholder': '১৪,০০০+ গাইড, চোখের যত্ন ও বিষয় সার্চ করুন...',
+
+    // Home
+    'home.badge': 'Askio এআই ইঞ্জিন ২.০ লাইভ',
+    'home.welcome': 'হ্যালো',
+    'home.subtitle': 'আজ আপনার কী ধরণের তথ্য বা দৃষ্টিশক্তি সুস্থতার গাইডলাইন প্রয়োজন? ১৪,০০০+ যাচাইকৃত সমাধান খুঁজুন অথবা আমাদের এআই সহকারীর সাহায্য নিন।',
+    'home.quick_eye': 'চোখের ব্যায়াম (২-মিনিট)',
+    'home.quick_specialist': 'বিশেষজ্ঞ খুঁজুন',
+    'home.quick_guide': 'ভিশন গাইড বুক করুন',
+    'home.streak_days': 'দিন',
+    'home.wellness_streak': 'দৈনিক সুস্থতা স্ট্রিক 🔥',
+    'home.view_goals': 'লক্ষ্য দেখুন',
+    'home.daily_tip': 'আজকের স্বাস্থ্য টিপস',
+    'home.explore_all_tips': 'সকল ১০টি সুস্থতা টিপস দেখুন',
+    'home.start_timer': '২০ সেকেন্ডের বিরতি শুরু করুন',
+    'home.stop_timer': 'টাইমার বন্ধ করুন',
+    'home.relax_eyes': '২০ ফুট দূরের কোনো বস্তুর দিকে তাকান এবং সাবলীলভাবে চোখের পলক ফেলুন।',
+    'home.explore_categories': 'জ্ঞানের বিভিন্ন ক্ষেত্র এক্সপ্লোর করুন',
+    'home.categories_sub': '১৪,০০০+ হ্যান্ডবুক, স্বাস্থ্য বিষয়ক টিপস ও গাইড দেখুন',
+    'home.view_all_catalogs': 'সকল ক্যাটালগ দেখুন',
+    'home.featured_resources': 'বিশেষ নির্বাচিত জ্ঞান গাইড',
+    'home.featured_sub': 'বিশেষজ্ঞদের তৈরি স্বাস্থ্য গাইড ও কার্যপদ্ধতি',
+    'home.see_all_resources': 'সকল গাইড দেখুন',
+    'home.ask_ai_banner_title': 'ব্যক্তিগত দৃষ্টি যত্ন বা ক্যারিয়ার পরামর্শ দরকার?',
+    'home.ask_ai_banner_sub': 'আমাদের এআই সহকারী বাংলা ও ইংরেজিতে তাৎক্ষণিক স্পষ্ট উত্তর প্রদান করে।',
+    'home.ask_ai_btn': 'Askio এআই এর সাথে চ্যাট করুন',
+
+    // Search
+    'search.title': 'ইউনিভার্সাল অনুসন্ধান ও তথ্য ভাণ্ডার',
+    'search.subtitle': '১৪,০০০+ যাচাইকৃত গাইড, চিকিৎসাগত পরামর্শ ও নির্দেশিকা খুঁজুন',
+    'search.input_placeholder': 'গাইড, চোখের ব্যায়াম, বিষয় বা লেখকের নাম লিখুন...',
+    'search.clear': 'মুছুন',
+    'search.recent_searches': 'সাম্প্রতিক অনুসন্ধানসমূহ',
+    'search.clear_history': 'হিস্ট্রি মুছুন',
+    'search.filters': 'ফিল্টারসমূহ',
+    'search.all_categories': 'সকল ক্যাটাগরি',
+    'search.all_formats': 'সকল ফরম্যাট',
+    'search.results_found': 'টি গাইড পাওয়া গেছে',
+    'search.no_results': 'কোনো গাইড খুঁজে পাওয়া যায়নি',
+    'search.no_results_sub': 'ভিন্ন কোনো কি-ওয়ার্ড দিয়ে খুঁজুন অথবা ফিল্টার রিসেট করুন।',
+    'search.reset_filters': 'ফিল্টার রিসেট করুন',
+
+    // AI Assistant
+    'ai.title': 'Askio এআই গাইড সহকারী',
+    'ai.subtitle': 'চোখের যত্ন, দৃষ্টির ব্যায়াম, ক্যারিয়ার বা পড়াশোনা নিয়ে যেকোনো প্রশ্ন করুন',
+    'ai.online': 'সক্রিয় ও প্রস্তুত',
+    'ai.disclaimer': 'Askio এআই দ্বারা পরিচালিত। চোখের তীব্র সমস্যা বা জরুরি প্রয়োজনে নিকটস্থ চক্ষু বিশেষজ্ঞের পরামর্শ নিন।',
+    'ai.welcome_msg': 'হ্যালো! আমি আপনার Askio গাইড সহকারী। চোখের যত্ন, পড়াশোনা বা ক্যারিয়ার বিষয়ে আপনাকে কীভাবে সাহায্য করতে পারি?',
+    'ai.input_placeholder': 'বাংলা বা ইংরেজিতে প্রশ্ন লিখুন...',
+    'ai.send': 'পাঠান',
+    'ai.suggested_prompts': 'প্রস্তাবিত বিষয়সমূহ',
+    'ai.prompt_1': 'চোখের ক্লান্তির জন্য ২০-২০-২০ নিয়মটা সংক্ষেপে বলো।',
+    'ai.prompt_2': 'কম্পিউটারে দীর্ঘক্ষণ কাজ করার সময় চোখ শুষ্ক হওয়া কীভাবে এড়াবো?',
+    'ai.prompt_3': 'পড়াশোনায় মনোযোগ ধরে রাখার জন্য ৩টি সহজ টিপস দাও।',
+    'ai.prompt_4': 'অপটোমেট্রিস্ট এবং অফথালমোলজিস্টের মধ্যে পার্থক্য কী?',
+
+    // Goals
+    'goals.title': 'দৈনিক লক্ষ্য ও অভ্যাস ট্র্যাকার',
+    'goals.subtitle': 'কাজের মাঝে স্ক্রিন বিরতি, পর্যাপ্ত পানি পান ও নিয়মিত শেখার অভ্যাস গড়ুন',
+    'goals.streak_header': 'আপনার সক্রিয় স্ট্রিকসমূহ',
+    'goals.add_goal': 'নতুন লক্ষ্য যোগ করুন',
+    'goals.new_goal_title': 'নতুন লক্ষ্য তৈরি করুন',
+    'goals.goal_name': 'লক্ষ্যের নাম',
+    'goals.goal_target': 'দৈনিক টার্গেট',
+    'goals.save_goal': 'সংরক্ষণ করুন',
+    'goals.cancel': 'বাতিল',
+    'goals.completed': 'আজ সম্পন্ন হয়েছে',
+    'goals.mark_complete': 'সম্পন্ন মার্ক করুন',
+
+    // Health
+    'health.title': 'দৃষ্টি সুস্থতা ও স্বাস্থ্য পোর্টাল',
+    'health.subtitle': 'কম্পিউটার ভিশন সিন্ড্রোম ও চোখের ক্লান্তি দূর করার পরীক্ষিত পদ্ধতিসমূহ',
+    'health.hotline': 'জরুরি ও চক্ষু বিশেষজ্ঞ সহায়তা',
+    'health.call_now': 'হটলাইনে কল করুন',
+    'health.timer_title': 'ইন্টারেক্টিভ ২০-২০-২০ চোখের বিরতি টাইমার',
+    'health.timer_sub': 'ডিজিটাল স্ক্রিনের চাপ থেকে প্রতি ২০ মিনিটে চোখকে সুরক্ষিত রাখুন',
+    'health.tips_heading': 'ক্লিনিক্যাল সুস্থতা প্রটোকল',
+
+    // Library
+    'library.title': 'ব্যক্তিগত লাইব্রেরি ও সংরক্ষিত গাইড',
+    'library.subtitle': 'আপনার বুকমার্ক করা হ্যান্ডবুক ও পড়ার ইতিহাস অফলাইনেও দেখুন',
+    'library.bookmarks': 'সংরক্ষিত বুকমার্কসমূহ',
+    'library.history': 'সম্প্রতি পড়া হয়েছে',
+    'library.empty_bookmarks': 'এখনো কোনো গাইড সংরক্ষণ করেননি। যেকোনো গাইডের বুকমার্ক আইকনে ক্লিক করে সংরক্ষণ করুন।',
+    'library.empty_history': 'এখনো কোনো পড়ার ইতিহাস নেই।',
+
+    // Settings
+    'settings.title': 'সেটিংস ও পার্সোনালাইজেশন',
+    'settings.subtitle': 'ডিসপ্লে থিম, ভাষা, গোপনীয়তা ও নিরাপত্তা নিয়ন্ত্রণ করুন',
+    'settings.appearance': 'ডিসপ্লে ও থিম',
+    'settings.appearance_sub': 'চোখের আরামের জন্য উপযুক্ত ইন্টারফেস কালার নির্বাচন করুন',
+    'settings.light_mode': 'লাইট মোড',
+    'settings.dark_mode': 'ডার্ক মোড',
+    'settings.system_mode': 'সিস্টেম ডিফল্ট',
+    'settings.language': 'ভাষা নির্বাচন',
+    'settings.language_sub': 'আপনার পছন্দের ভাষা নির্বাচন করুন',
+    'settings.english': 'English',
+    'settings.bengali': 'বাংলা',
+    'settings.account': 'অ্যাকাউন্ট ও মেম্বারশিপ',
+    'settings.subscription_title': 'BDApps মাইক্রো-সাবস্ক্রিপশন',
+    'settings.plan_daily': 'দৈনিক প্ল্যান: ৳২.৭৮ / দিন',
+    'settings.manage_subscription': 'সাবস্ক্রিপশন পরিচালনা',
+    'settings.privacy': 'ডাটা ও গোপনীয়তা',
+    'settings.tracking': 'অ্যাক্টিভিটি ও অভ্যাস ট্র্যাকিং',
+    'settings.analytics': 'প্ল্যাটফর্ম অ্যানালিটিক্স',
+    'settings.security': 'নিরাপত্তা',
+    'settings.logout': 'লগ আউট'
+  }
+};
+
+export function t(key: string, lang: AppLanguage = 'en'): string {
+  return UI_TRANSLATIONS[lang]?.[key] || UI_TRANSLATIONS['en']?.[key] || key;
+}
