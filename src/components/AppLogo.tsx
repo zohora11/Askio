@@ -6,15 +6,17 @@ interface AppLogoProps {
   imgClassName?: string;
   showText?: boolean;
   subtitle?: string;
+  subtitleClassName?: string;
   onClick?: () => void;
   id?: string;
 }
 
 export const AppLogo: React.FC<AppLogoProps> = ({
   className = '',
-  imgClassName = 'h-9 w-auto',
+  imgClassName = 'h-8 sm:h-9 w-auto',
   showText = true,
   subtitle = 'AI Knowledge',
+  subtitleClassName = 'hidden sm:inline text-[9px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400',
   onClick,
   id = 'app-brand-logo'
 }) => {
@@ -22,7 +24,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
     <div 
       id={id}
       onClick={onClick}
-      className={`flex items-center gap-2.5 bg-transparent select-none ${onClick ? 'cursor-pointer group' : ''} ${className}`}
+      className={`flex items-center gap-2 sm:gap-2.5 bg-transparent select-none shrink-0 ${onClick ? 'cursor-pointer group' : ''} ${className}`}
     >
       {/* Logo image with transparent background */}
       <div className="bg-transparent flex items-center justify-center shrink-0">
@@ -41,11 +43,11 @@ export const AppLogo: React.FC<AppLogoProps> = ({
 
       {showText && (
         <div className="flex flex-col bg-transparent">
-          <span className="font-extrabold text-xl tracking-tight text-zinc-900 dark:text-zinc-100 leading-tight">
+          <span className="font-extrabold text-lg sm:text-xl tracking-tight text-zinc-900 dark:text-zinc-100 leading-tight">
             Askio
           </span>
           {subtitle && (
-            <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+            <span className={subtitleClassName}>
               {subtitle}
             </span>
           )}
