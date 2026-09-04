@@ -328,6 +328,58 @@ export async function unsubscribe(mobile: string): Promise<UnsubscribeResponse> 
 // Local Storage Session Management
 // -------------------------------------------------------------
 const SESSION_STORAGE_KEY = 'askio_bdapps_session';
+const ACTIVE_SUBSCRIBERS_KEY = 'askio_active_subscribers';
+
+export function isLocalSubscriber(mobileNumber: string): boolean {
+  try {
+    const { cleaned } = validateMobileNumber(mobileNumber);
+    const num = cleaned || mobileNumber;
+    const raw = localStorage.getItem(ACTIVE_SUBSCRIBERS_KEY);
+    if (!raw) return false;
+    const records = JSON.parse(raw);
+    return Boolean(records[num] && records[num].subscribed);
+  } catch (err) {
+    return false;
+  }
+}
+
+export function markLocalSubscriber(mobileNumber: string): void {
+  try {
+    const { cleaned } = validateMobileNumber(mobileNumber);
+    const num = cleaned || mobileNumber;
+    const raw = localStorage.getItem(ACTIVE_SUBSCRIBERS_KEY);
+    const records = raw ? JSON.parse(raw) : {};
+    records[num] = {
+      subscribed: true,
+      updatedAt: Date.now()
+    };
+    localStorage.setItem(ACTIVE_SUBSCRIBERS_KEY, JSON.stringify(records));
+    saveSubscriptionSession(num);
+  } catch (err) {
+    console.warn('Failed to mark local subscriber:', err);
+  }
+}
+
+export function unmarkLocalSubscriber(mobileNumber: string): void {
+  try {
+    const { cleaned } = validateMobileNumber(mobileNumber);
+    const num = cleaned || mobileNumber;
+    const raw = localStorage.getItem(ACTIVE_SUBSCRIBERS_KEY);
+    if (raw) {
+      const records = JSON.parse(raw);
+      if (records[num]) {
+        records[num] = {
+          subscribed: false,
+          unsubscribedAt: Date.now()
+        };
+        localStorage.setItem(ACTIVE_SUBSCRIBERS_KEY, JSON.stringify(records));
+      }
+    }
+    clearSubscriptionSession();
+  } catch (err) {
+    console.warn('Failed to unmark local subscriber:', err);
+  }
+}
 
 export function saveSubscriptionSession(mobileNumber: string): void {
   try {

@@ -428,7 +428,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           message: text.trim(),
@@ -444,13 +445,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         })
       });
 
+      const contentType = response.headers.get('content-type') || '';
+      let reply = '';
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Server responded with status ${response.status}`);
+        let errorMsg = language === 'bn' 
+          ? `সার্ভার সংযোগে ত্রুটি (${response.status})` 
+          : `Server error (${response.status})`;
+        if (contentType.includes('application/json')) {
+          try {
+            const errData = await response.json();
+            errorMsg = errData.error || errorMsg;
+          } catch {
+            // ignore
+          }
+        } else {
+          const textErr = await response.text().catch(() => '');
+          if (textErr && !textErr.includes('<!DOCTYPE') && !textErr.includes('<html')) {
+            errorMsg = textErr.slice(0, 100);
+          }
+        }
+        throw new Error(errorMsg);
       }
 
-      const data = await response.json();
-      const aiReply = data.reply || "I received your question, but could not generate an answer right now. Please try asking again.";
+      if (contentType.includes('application/json')) {
+        const data = await response.json();
+        reply = data.reply || '';
+      } else {
+        const rawText = await response.text();
+        try {
+          const parsed = JSON.parse(rawText);
+          reply = parsed.reply || '';
+        } catch {
+          if (rawText && !rawText.includes('<!DOCTYPE') && !rawText.includes('<html')) {
+            reply = rawText.trim();
+          } else {
+            reply = language === 'bn'
+              ? 'আমি আপনার বার্তাটি পেয়েছি। অনুগ্রহ করে আপনার প্রশ্নটি আবার পাঠান।'
+              : 'I received your inquiry. Please try sending your message again.';
+          }
+        }
+      }
+
+      const aiReply = reply || (language === 'bn'
+        ? 'আমি আপনার বার্তাটি পেয়েছি। অনুগ্রহ করে প্রশ্নটি পুনরায় করুন।'
+        : 'I received your question. Please try asking again.');
 
       const aiMsg: ChatMessage = {
         id: 'ai-' + Date.now(),
@@ -461,11 +500,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setChatMessages(prev => [...prev, aiMsg]);
     } catch (err: any) {
       console.error("AI generation error:", err);
-      const errorMessage = err?.message || "Unable to reach Askio AI engine";
+      let userFriendlyMessage = language === 'bn'
+        ? 'এআই সার্ভারের সাথে সংযোগে সাময়িক বিলম্ব হচ্ছে। অনুগ্রহ করে ইন্টারনেট কানেকশন চেক করে আবার পাঠান।'
+        : 'Unable to connect to the Askio AI engine right now. Please check your connection and try again.';
+
+      if (err?.message && !err.message.includes('JSON.parse') && !err.message.includes('unexpected character')) {
+        userFriendlyMessage = err.message;
+      }
+
       const aiMsg: ChatMessage = {
         id: 'ai-' + Date.now(),
         sender: 'ai',
-        text: `⚠️ **AI Engine Notice**: ${errorMessage}.\n\nPlease try asking again.`,
+        text: `⚠️ **Askio AI Notice**: ${userFriendlyMessage}`,
         timestamp: 'Just now'
       };
       setChatMessages(prev => [...prev, aiMsg]);

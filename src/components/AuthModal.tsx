@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { X, Phone, Mail, Lock, User, ArrowRight, ShieldCheck, CheckCircle } from 'lucide-react';
+import { AppLogo } from './AppLogo';
 
 export const AuthModal: React.FC = () => {
   const { 
@@ -15,11 +16,11 @@ export const AuthModal: React.FC = () => {
     pendingPhone 
   } = useApp();
 
-  const [phoneInput, setPhoneInput] = useState('1712345678');
-  const [otpCode, setOtpCode] = useState(['5', '8', '2', '0', '1', '9']);
-  const [email, setEmail] = useState('fatematuzzohora004@gmail.com');
-  const [password, setPassword] = useState('password123');
-  const [fullName, setFullName] = useState('Fatema Tuz Zohora');
+  const [phoneInput, setPhoneInput] = useState('');
+  const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   if (!isAuthModalOpen) return null;
@@ -82,8 +83,8 @@ export const AuthModal: React.FC = () => {
 
         {/* Modal Header */}
         <div className="text-center mb-6">
-          <div className="w-12 h-12 mx-auto bg-zinc-900 dark:bg-white rounded-2xl flex items-center justify-center mb-3 text-white dark:text-zinc-900 font-bold text-xl shadow-md">
-            a.
+          <div className="flex justify-center mb-3 bg-transparent">
+            <AppLogo showText={false} imgClassName="h-12 w-auto" />
           </div>
           <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
             {authView === 'phone' && 'Phone Number Sign In'}

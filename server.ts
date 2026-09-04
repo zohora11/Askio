@@ -1,18 +1,25 @@
 import express from "express";
 import path from "path";
-import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  // Global CORS and Header configuration to ensure smooth mobile and proxy communication
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+    next();
+  });
 
   app.use(express.json());
 
@@ -106,19 +113,23 @@ async function startServer() {
 
       const ai = getAiClient();
 
-      // High-efficiency, optimized system instruction to ensure direct answers without filler
-      let systemInstruction = `You are Askio AI, the high-efficiency, expert guidance engine for the Askio platform.
-Your goal is to provide concise, direct, and optimized answers to whatever question the user asks.
+      // Fluent, appropriate, concise, and natural answer directives
+      let systemInstruction = `You are Askio AI, an intelligent, natural, and helpful guidance engine for the Askio platform.
 
-CRITICAL INSTRUCTIONS FOR OPTIMIZED RESPONSES:
-1. Direct Answer First: Immediately answer the specific question asked in the very first sentence. Never use introductory filler, greetings, pleasantries, or preamble (do NOT say "Hello! I am Askio AI", "Certainly!", "Great question", or "Sure, here is...").
-2. Optimized & High Signal:
-   - Deliver clear, high-density explanations directly targeting the user's question.
-   - Format with clean, scannable Markdown: bold lead-in keywords, bullet points, and numbered steps.
-   - For factual or technical questions, provide the exact answer or solution first, followed by practical steps or code examples.
-   - For vision wellness or eye care questions (e.g., 20-20-20 rule, screen fatigue, eye exercises, dry eyes, lighting), give the exact ergonomic protocol, duration, and actionable remedy immediately.
-   - For study, productivity, or career inquiries, provide structured, step-by-step methodologies.
-3. Eliminate Fluff: Do not append unsolicited meta-commentary, repeated summaries, or generic sign-offs. Focus 100% on answering the user's specific inquiry thoroughly and efficiently.`;
+CRITICAL INSTRUCTIONS FOR FLUENT AND CONCISE RESPONSES:
+1. Natural & Fluent Tone (সাবলীল ও প্রাসঙ্গিক ভাষা):
+   - Always respond in the exact language the user uses. If the user writes in Bengali (বাংলা), answer in clean, natural, modern Bengali. If the user writes in English, reply in natural, fluent English.
+2. Appropriate & Concise Length (উপযুক্ত ও সংক্ষিপ্ত উত্তর - খুব বড় নয়):
+   - Never output unnecessary walls of text, multi-page essays, or unsolicited long lists.
+   - Tailor the depth strictly to the question asked:
+     * Simple question or greeting: Respond in 1 to 3 clear, warm, and natural sentences.
+     * Specific inquiry: Provide a direct, focused answer in 2 to 4 sentences or a compact 3-item list.
+     * Technical, health, or how-to query: Provide concise, structured steps without repetitive fluff or filler.
+3. No Fluff or Filler:
+   - Do NOT use robotic preambles like "As an AI model...", "Sure, I'd be happy to explain...", or "Hello! I am Askio AI".
+   - Start immediately with the helpful, direct, and natural answer.
+4. Vision Wellness & Eye Health:
+   - If asked about eye fatigue, 20-20-20 rule, hydration, posture, or screen break habits, state the exact protocol and duration clearly and concisely.`;
 
       if (contextResource && typeof contextResource === "object") {
         systemInstruction += `\n\nContext Resource Inquiry:
@@ -172,7 +183,7 @@ Directly integrate relevant insights from this resource to answer the user's inq
         contents.push({ role: "user", parts: [{ text: message.trim() }] });
       }
 
-      // Use gemini-3.1-flash-lite as primary for rapid, reliable responses without 503 high-demand spikes
+      // Prioritize ultra-fast responsive models
       const candidateModels = ["gemini-3.1-flash-lite", "gemini-flash-latest", "gemini-3.8-flash"];
       let replyText = "";
       let lastError: any = null;
@@ -184,12 +195,12 @@ Directly integrate relevant insights from this resource to answer the user's inq
             contents,
             config: {
               systemInstruction,
-              temperature: 0.4,
+              temperature: 0.65,
             },
           });
 
           const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 10000)
+            setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 20000)
           );
 
           const response = await Promise.race([generatePromise, timeoutPromise]);
@@ -208,14 +219,14 @@ Directly integrate relevant insights from this resource to answer the user's inq
         if (lastError) {
           console.warn("AI generation fallback triggered:", lastError?.message || "Service unavailable");
         }
-        replyText = "I apologize, but the AI guidance engine is currently experiencing unusually high demand. Please try sending your question again in a few moments.";
+        replyText = "আমি আপনার প্রশ্নটি পেয়েছি। এই মুহূর্তে সাময়িক সংযোগ বিলম্ব হচ্ছে, অনুগ্রহ করে আবার প্রশ্নটি পাঠান।";
       }
 
       return res.json({ reply: replyText });
     } catch (err: any) {
-      const errorMessage = err?.message || "Failed to generate AI response";
+      console.error("AI chat handler error:", err);
       return res.status(200).json({
-        reply: "I am having difficulty connecting right now. Please check your network and try again."
+        reply: "আমি আপনার সাথে যুক্ত হতে পারছি না। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।"
       });
     }
   };
@@ -223,6 +234,11 @@ Directly integrate relevant insights from this resource to answer the user's inq
   // Support both /api/chat and /api/ai/chat endpoints
   app.post("/api/chat", handleChat);
   app.post("/api/ai/chat", handleChat);
+
+  // Ensure any unmatched /api route returns JSON, never the HTML SPA fallback
+  app.all("/api/*", (req, res) => {
+    res.status(404).json({ error: `API endpoint ${req.method} ${req.path} not found` });
+  });
 
   // --- VITE MIDDLEWARE / STATIC SERVING ---
   if (process.env.NODE_ENV !== "production") {

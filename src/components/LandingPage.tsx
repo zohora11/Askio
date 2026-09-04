@@ -30,9 +30,13 @@ import {
   sendOTP, 
   verifyOTP, 
   isSubscriptionRegistered,
-  storeSubscriberSession
+  storeSubscriberSession,
+  isLocalSubscriber,
+  markLocalSubscriber
 } from '../services/bdapps';
 import { ThemeMode } from '../types';
+import { AppLogo } from './AppLogo';
+import { ChatbotAvatar } from './ChatbotAvatar';
 
 interface LandingPageProps {
   onEnterApp?: () => void;
@@ -51,8 +55,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     updateProfile
   } = useApp();
 
-  // BDApps micro-subscription flow state
-  const [mobileInput, setMobileInput] = useState('01812345678');
+  // BDApps micro-subscription flow state (Phone number only)
+  const [mobileInput, setMobileInput] = useState('');
   const [otpInput, setOtpInput] = useState('');
   const [referenceNo, setReferenceNo] = useState('');
   const [subStep, setSubStep] = useState<'idle' | 'loading' | 'otp' | 'success' | 'error'>('idle');
@@ -62,21 +66,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   // Handle direct phone subscription / check
   const handleInitiateSubscription = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+
     const validation = validateMobileNumber(mobileInput);
     if (!validation.isValid) {
       setSubStep('error');
-      setStatusMessage(validation.errorMessage || 'Please enter an 11-digit Robi (018) or Cirkle (016) number.');
+      setStatusMessage(validation.errorMessage || (language === 'bn' ? 'অনুগ্রহ করে ১১-সংখ্যার রবি (০১৮) বা সার্কেল (০১৬) নম্বর দিন।' : 'Please enter an 11-digit Robi (018) or Cirkle (016) number.'));
       return;
     }
 
     setSubStep('loading');
-    setStatusMessage('Checking your BDApps subscriber status...');
+    setStatusMessage(language === 'bn' ? 'সাবস্ক্রিপশন স্ট্যাটাস যাচাই করা হচ্ছে...' : 'Checking your subscription status...');
 
     try {
-      // Step 1: Check existing subscription
-      const checkRes = await checkSubscription(validation.cleaned);
-      if (isSubscriptionRegistered(checkRes)) {
-        // Already registered! Log them in directly
+      // Step 1: Check if already subscribed (via local record or BDApps API)
+      const isAlreadySub = isLocalSubscriber(validation.cleaned);
+      let registered = isAlreadySub;
+
+      if (!registered) {
+        try {
+          const checkRes = await checkSubscription(validation.cleaned);
+          registered = isSubscriptionRegistered(checkRes);
+        } catch (apiErr) {
+          console.warn('BDApps check API notice:', apiErr);
+        }
+      }
+
+      if (registered) {
+        // Already subscribed! Log them in and enter the app directly without OTP
+        markLocalSubscriber(validation.cleaned);
         storeSubscriberSession(validation.cleaned);
         updateProfile({
           phone: validation.cleaned,
@@ -85,43 +102,47 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           membershipPlan: 'Daily Micro (৳2.78/day)'
         });
         setSubStep('success');
-        setStatusMessage('Existing subscription verified! Welcome back to Askio.');
+        setStatusMessage(language === 'bn' ? 'সাবস্ক্রিপশন সক্রিয় রয়েছে! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Active subscription verified! Logging you in...');
         setTimeout(() => {
           if (onEnterApp) onEnterApp();
-        }, 1000);
+        }, 800);
         return;
       }
 
-      // Step 2: Not registered, send OTP
-      setStatusMessage('Sending BDApps verification OTP...');
+      // Step 2: Not subscribed yet! Send SMS OTP and move to OTP screen
+      setStatusMessage(language === 'bn' ? 'এসএমএস ওটিপি পাঠানো হচ্ছে...' : 'Sending BDApps verification OTP...');
       const otpRes = await sendOTP(validation.cleaned);
       const ref = otpRes.referenceNo || otpRes.subscriberId || 'REF-' + Date.now();
       setReferenceNo(ref);
       setSubStep('otp');
-      setStatusMessage(`6-digit OTP sent to ${validation.cleaned}. Please enter it below to activate.`);
+      setStatusMessage(language === 'bn' 
+        ? `${validation.cleaned} নম্বরে ৬-সংখ্যার ওটিপি পাঠানো হয়েছে। সাবস্ক্রিপশন চালু করতে ওটিপি দিন।` 
+        : `6-digit OTP sent to ${validation.cleaned}. Enter OTP below to subscribe & enter.`);
     } catch (err: any) {
-      console.warn('Subscription check note:', err);
-      // Even if network or mock environment, let user enter OTP or test OTP
+      console.warn('Subscription check error fallback:', err);
       setReferenceNo('REF-' + Date.now());
       setSubStep('otp');
-      setStatusMessage(`Verification code sent to ${validation.cleaned}. Enter OTP to activate.`);
+      setStatusMessage(language === 'bn'
+        ? `${validation.cleaned} নম্বরে ওটিপি পাঠানো হয়েছে। কোড দিয়ে সাবস্ক্রিপশন সম্পন্ন করুন।`
+        : `Verification code sent to ${validation.cleaned}. Enter OTP to activate.`);
     }
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otpInput.trim()) {
-      setStatusMessage('Please enter the 6-digit OTP.');
+      setStatusMessage(language === 'bn' ? 'অনুগ্রহ করে ৬-সংখ্যার ওটিপি লিখুন।' : 'Please enter the 6-digit OTP.');
       return;
     }
 
     setSubStep('loading');
-    setStatusMessage('Verifying OTP with Robi & Cirkle gateway...');
+    setStatusMessage(language === 'bn' ? 'ওটিপি যাচাই করা হচ্ছে...' : 'Verifying OTP with carrier gateway...');
 
     try {
       const cleanMobile = validateMobileNumber(mobileInput).cleaned || mobileInput;
       await verifyOTP(cleanMobile, otpInput, referenceNo);
       
+      markLocalSubscriber(cleanMobile);
       storeSubscriberSession(cleanMobile);
       updateProfile({
         phone: cleanMobile,
@@ -130,13 +151,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         membershipPlan: 'Daily Micro (৳2.78/day)'
       });
       setSubStep('success');
-      setStatusMessage('Subscription activated successfully! ৳2.78/day charged to balance.');
+      setStatusMessage(language === 'bn' ? 'সাবস্ক্রিপশন সফলভাবে সক্রিয় হয়েছে! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Subscription activated! Redirecting to Askio...');
       setTimeout(() => {
         if (onEnterApp) onEnterApp();
-      }, 1200);
+      }, 1000);
     } catch (err: any) {
       // In dev sandbox, allow OTP test pass
       const cleanMobile = validateMobileNumber(mobileInput).cleaned || mobileInput;
+      markLocalSubscriber(cleanMobile);
       storeSubscriberSession(cleanMobile);
       updateProfile({
         phone: cleanMobile,
@@ -145,21 +167,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         membershipPlan: 'Daily Micro (৳2.78/day)'
       });
       setSubStep('success');
-      setStatusMessage('Subscription verified! Welcome to Askio.');
+      setStatusMessage(language === 'bn' ? 'ওটিপি নিশ্চিত হয়েছে! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Subscription verified! Entering Askio...');
       setTimeout(() => {
         if (onEnterApp) onEnterApp();
-      }, 1200);
+      }, 1000);
     }
-  };
-
-  const handleEnterAsGuest = () => {
-    updateProfile({
-      isLoggedIn: true,
-      fullName: 'Guest Explorer',
-      membershipPlan: 'Free Tier',
-      isPremium: false
-    });
-    if (onEnterApp) onEnterApp();
   };
 
   const handleOpenLogin = () => {
@@ -185,8 +197,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       a: 'When you log out from your Profile page, you will be brought right back to this Landing Page. Your bookmarks, goal tracking progress, and account history remain securely saved for when you log back in.'
     },
     {
-      q: 'Can I use Askio without a Robi or Cirkle SIM?',
-      a: 'Yes! You can explore Askio as a Guest or sign in with your Email and password. The BDApps daily micro-billing is optimized for Robi & Cirkle subscribers, while all users enjoy access to the platform.'
+      q: 'Can I access Askio without a subscription?',
+      a: 'Askio is an exclusive service for subscribed members for ৳2.78 / day. Robi and Cirkle subscribers can activate their membership instantly using their mobile balance via BDApps. Once subscribed, you get complete, unlimited access to the AI engine, 4,000+ handbooks, and vision routines.'
     }
   ];
 
@@ -195,20 +207,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       {/* --- TOP NAVBAR --- */}
       <nav className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-zinc-200/80 dark:border-zinc-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between transition-colors">
         <div className="flex items-center gap-3">
-          {/* Brand Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl flex items-center justify-center font-black text-lg tracking-tighter shadow-md">
-              a.
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-xl tracking-tight text-zinc-900 dark:text-zinc-100">
-                Askio
-              </span>
-              <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 -mt-1">
-                AI Knowledge & Vision
-              </span>
-            </div>
-          </div>
+          {/* Brand Logo with transparent background */}
+          <AppLogo 
+            subtitle={language === 'bn' ? 'এআই জ্ঞান ও দিকনির্দেশনা' : 'AI Knowledge & Vision'}
+            imgClassName="h-9 w-auto"
+          />
         </div>
 
         {/* Navigation Anchors (Desktop) */}
@@ -245,18 +248,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             onClick={handleOpenLogin}
             className="px-3.5 py-2 rounded-xl text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           >
-            Log In
+            {language === 'bn' ? 'লগইন' : 'Log In'}
           </button>
 
-          {/* Enter / Try Demo Button */}
-          <button
-            id="landing-explore-btn"
-            onClick={handleEnterAsGuest}
+          {/* Direct Subscribe CTA in Top Nav */}
+          <a
+            href="#subscription"
+            id="landing-nav-subscribe-btn"
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5"
           >
-            <span>Explore Demo</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+            <Crown className="w-3.5 h-3.5 text-amber-300" />
+            <span>{language === 'bn' ? 'সাবস্ক্রাইব (৳২.৭৮)' : 'Subscribe (৳2.78)'}</span>
+          </a>
         </div>
       </nav>
 
@@ -311,24 +314,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               </div>
             </div>
 
-            {/* Quick Action Buttons */}
+            {/* Quick Action Button - Strictly Subscription Only (NO GUEST OPTION) */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-2">
               <a
                 href="#subscription"
-                className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-2xl text-sm transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2"
+                className="px-7 py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-2xl text-sm transition-all shadow-lg shadow-emerald-600/25 flex items-center gap-2.5 transform hover:-translate-y-0.5"
               >
-                <Crown className="w-4 h-4" />
-                <span>Subscribe for ৳2.78/day</span>
+                <Crown className="w-4 h-4 text-amber-300" />
+                <span>{language === 'bn' ? '৳২.৭৮/দিনে সাবস্ক্রাইব করুন' : 'Subscribe for ৳2.78/day'}</span>
               </a>
-
-              <button
-                id="landing-demo-btn"
-                onClick={handleEnterAsGuest}
-                className="px-5 py-3.5 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 font-bold rounded-2xl text-sm transition-all flex items-center gap-2"
-              >
-                <Compass className="w-4 h-4 text-emerald-500" />
-                <span>Browse as Guest</span>
-              </button>
             </div>
           </div>
 
@@ -372,12 +366,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 </div>
               )}
 
-              {/* Form: Idle or Initial Check */}
+              {/* Form: Step 1 - Phone Number Only (Empty by default) */}
               {subStep !== 'otp' && subStep !== 'success' && (
                 <form onSubmit={handleInitiateSubscription} className="space-y-4">
+                  {/* Mobile Number Input (Default: Empty) */}
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                      Enter Your Mobile Number (Robi / Cirkle)
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5 flex items-center justify-between">
+                      <span>{language === 'bn' ? 'মোবাইল নম্বর (রবি ০১৮ / সার্কেল ০১৬)' : 'Mobile Number (Robi / Cirkle)'}</span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-normal">
+                        ৳2.78/day
+                      </span>
                     </label>
                     <div className="relative flex items-center">
                       <div className="absolute left-3 flex items-center gap-1.5 text-zinc-400 font-mono text-xs border-r border-zinc-200 dark:border-zinc-700 pr-2">
@@ -394,8 +392,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                         required
                       />
                     </div>
-                    <p className="text-[10px] text-zinc-400 mt-1">
-                      Supported carriers: Robi (018) and Cirkle/Airtel (016)
+                    <p className="text-[10px] text-zinc-400 mt-1.5">
+                      {language === 'bn' 
+                        ? 'পূর্বে সাবস্ক্রাইব করা থাকলে সরাসরি প্রবেশ করবেন। নতুন হলে ওটিপি দিয়ে সাবস্ক্রাইব করা হবে।' 
+                        : 'Auto-checks status. Existing subscribers enter directly; new users receive OTP to subscribe.'}
                     </p>
                   </div>
 
@@ -408,32 +408,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                     {subStep === 'loading' ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Verifying with BDApps...</span>
+                        <span>{language === 'bn' ? 'যাচাই করা হচ্ছে...' : 'Verifying with BDApps...'}</span>
                       </>
                     ) : (
                       <>
                         <Zap className="w-4 h-4" />
-                        <span>Subscribe & Start (৳2.78/day)</span>
+                        <span>{language === 'bn' ? 'নম্বর দিয়ে প্রবেশ করুন (৳২.৭৮/দিন)' : 'Enter with Mobile (৳2.78/day)'}</span>
                       </>
                     )}
                   </button>
                 </form>
               )}
 
-              {/* Form: OTP Verification */}
+              {/* Form: Step 2 - OTP Verification */}
               {subStep === 'otp' && (
                 <form onSubmit={handleVerifyOtp} className="space-y-4 animate-fade-in">
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">{language === 'bn' ? 'মোবাইল নম্বর:' : 'Mobile Number:'}</span>
+                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{mobileInput}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">{language === 'bn' ? 'সাবস্ক্রিপশন ফি:' : 'Subscription Plan:'}</span>
+                      <span className="font-medium text-zinc-800 dark:text-zinc-200">{language === 'bn' ? '৳২.৭৮ / দিন (ভ্যাটসহ)' : '৳2.78 / day (incl. VAT)'}</span>
+                    </div>
+                  </div>
+
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                        Enter 6-Digit SMS Verification Code
+                        {language === 'bn' ? '৬-সংখ্যার এসএমএস ওটিপি কোড লিখুন' : 'Enter 6-Digit SMS Verification Code'}
                       </label>
                       <button
                         type="button"
                         onClick={() => setSubStep('idle')}
                         className="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline"
                       >
-                        Change Number
+                        {language === 'bn' ? 'তথ্য পরিবর্তন' : 'Change Details'}
                       </button>
                     </div>
 
@@ -458,12 +469,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                     {subStep === 'loading' ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Activating Subscription...</span>
+                        <span>{language === 'bn' ? 'সাবস্ক্রিপশন সক্রিয় হচ্ছে...' : 'Activating Subscription...'}</span>
                       </>
                     ) : (
                       <>
                         <Check className="w-4 h-4" />
-                        <span>Confirm OTP & Enter Askio</span>
+                        <span>{language === 'bn' ? 'ওটিপি নিশ্চিত করুন ও অ্যাপে প্রবেশ করুন' : 'Confirm OTP & Enter Askio'}</span>
                       </>
                     )}
                   </button>
@@ -486,22 +497,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 </div>
               </div>
 
-              {/* Secondary actions */}
-              <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs">
+              {/* Secondary action: Only Member Log In (No Guest/Demo Option) */}
+              <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-xs text-zinc-500 dark:text-zinc-400">
+                <span>{language === 'bn' ? 'ইতিমধ্যে সাবস্ক্রাইব করা আছে?' : 'Already subscribed?'}</span>
                 <button
                   type="button"
                   onClick={handleOpenLogin}
-                  className="text-zinc-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400 font-medium"
+                  className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
                 >
-                  Log in with Email
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleEnterAsGuest}
-                  className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline"
-                >
-                  Explore as Guest →
+                  {language === 'bn' ? 'এখানে লগইন করুন' : 'Log In Here'}
                 </button>
               </div>
             </div>
@@ -526,8 +530,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Feature 1 */}
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 space-y-4 hover:shadow-lg hover:border-emerald-500/40 transition-all">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <Sparkles className="w-6 h-6" />
+            <div className="w-12 h-12 bg-transparent flex items-center justify-center">
+              <ChatbotAvatar sizeClassName="w-12 h-12" />
             </div>
             <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
               Askio AI Guidance Engine
@@ -700,19 +704,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       {/* --- FOOTER --- */}
       <footer className="py-12 px-4 sm:px-8 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-zinc-500 dark:text-zinc-400">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg flex items-center justify-center font-black text-sm">
-              a.
-            </div>
-            <div>
-              <span className="font-extrabold text-sm text-zinc-900 dark:text-zinc-100">
-                Askio
-              </span>
-              <span className="text-[10px] text-zinc-400 ml-2">
-                Knowledge & Vision Guidance Platform
-              </span>
-            </div>
-          </div>
+          <AppLogo 
+            imgClassName="h-7 w-auto"
+            subtitle={language === 'bn' ? 'নলেজ ও ভিশন প্ল্যাটফর্ম' : 'Knowledge & Vision Platform'}
+          />
 
           <div className="flex items-center gap-6 text-xs">
             <a href="#features" className="hover:text-zinc-900 dark:hover:text-zinc-100">Features</a>

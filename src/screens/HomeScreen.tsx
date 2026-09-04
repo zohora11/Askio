@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { ResourceCard } from '../components/ResourceCard';
 import { MOCK_RESOURCES, WELLNESS_TIPS, CATEGORIES_DATA } from '../data/mockData';
+import { ChatbotAvatar } from '../components/ChatbotAvatar';
 
 export const HomeScreen: React.FC = () => {
   const { 
@@ -82,9 +83,18 @@ export const HomeScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Floating Stat Badge */}
-        <div className="relative z-10 sm:self-center shrink-0">
-          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center min-w-[140px] text-center">
+        {/* Floating Stat Badge & Chatbot Avatar */}
+        <div className="relative z-10 sm:self-center shrink-0 flex items-center gap-3">
+          <div 
+            onClick={() => setActiveTab('ai')}
+            className="cursor-pointer group flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
+            title="Chat with Askio AI"
+          >
+            <ChatbotAvatar sizeClassName="w-12 h-12 group-hover:scale-110 transition-transform" showOnlineBadge={true} />
+            <span className="text-[10px] text-emerald-400 font-semibold mt-1">Askio AI</span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center min-w-[130px] text-center">
             <div className="text-2xl font-bold text-emerald-400">
               {goals[0]?.streakDays || 7} Days
             </div>

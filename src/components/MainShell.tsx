@@ -28,6 +28,8 @@ import { NotificationScreen } from '../screens/NotificationScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { ResourceDetailModal } from './ResourceDetailModal';
 import { AuthModal } from './AuthModal';
+import { AppLogo } from './AppLogo';
+import { ChatbotAvatar } from './ChatbotAvatar';
 import { SubscriptionModal } from './SubscriptionModal';
 
 interface MainShellProps {
@@ -61,24 +63,13 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
       {/* --- TOP APPBAR --- */}
       <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-zinc-200/80 dark:border-zinc-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between transition-colors">
         <div className="flex items-center gap-3">
-          {/* Askio Logo */}
-          <div 
+          {/* Askio Logo with transparent background */}
+          <AppLogo 
             id="brand-logo"
             onClick={() => setActiveTab('home')}
-            className="flex items-center gap-2.5 cursor-pointer group"
-          >
-            <div className="w-9 h-9 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl flex items-center justify-center font-black text-lg tracking-tighter shadow-md group-hover:scale-105 transition-transform">
-              a.
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-xl tracking-tight text-zinc-900 dark:text-zinc-100">
-                Askio
-              </span>
-              <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 -mt-1">
-                AI Knowledge
-              </span>
-            </div>
-          </div>
+            subtitle="AI Knowledge"
+            imgClassName="h-9 w-auto"
+          />
         </div>
 
         {/* Global Quick Search (Desktop) */}
@@ -256,9 +247,9 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
           }}
           title="Open Askio AI Assistant"
         >
-          <div className="relative">
-            <Sparkles className="w-6 h-6 animate-pulse" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full border-2 border-emerald-600" />
+          <div className="relative bg-transparent flex items-center justify-center">
+            <ChatbotAvatar sizeClassName="w-7 h-7" showOnlineBadge={false} />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-emerald-700 animate-pulse" />
           </div>
           <span className="font-bold text-xs sm:text-sm tracking-wide pr-1">
             Ask AI

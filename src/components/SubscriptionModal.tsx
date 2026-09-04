@@ -37,14 +37,14 @@ export const SubscriptionModal: React.FC = () => {
 
         {/* Pricing Card */}
         <div className="bg-gradient-to-br from-amber-500/10 via-emerald-500/5 to-transparent border-2 border-amber-400/40 dark:border-amber-500/30 rounded-2xl p-5 mb-6 text-center relative overflow-hidden">
-          <span className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-amber-500 text-black text-[10px] font-extrabold uppercase tracking-wide">
-            Popular Micro-Plan
+          <span className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-extrabold uppercase tracking-wide">
+            BDApps Micro-Plan
           </span>
           <div className="text-4xl font-extrabold text-zinc-900 dark:text-zinc-100 tracking-tight">
-            ৳2 <span className="text-sm font-normal text-zinc-500 dark:text-zinc-400">/ day</span>
+            ৳2.78 <span className="text-sm font-normal text-zinc-500 dark:text-zinc-400">/ day</span>
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Billed daily or auto-renew via bKash, Nagad, or Mobile Balance
+            Billed daily via Robi (018) & Cirkle (016) direct mobile balance
           </p>
         </div>
 

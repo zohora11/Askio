@@ -16,6 +16,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { SUGGESTED_AI_PROMPTS } from '../data/mockData';
+import { ChatbotAvatar } from '../components/ChatbotAvatar';
 
 // Helper to render inline markdown styling
 const renderFormattedInline = (line: string): React.ReactNode => {
@@ -196,13 +197,7 @@ export const AiAssistantScreen: React.FC = () => {
       {/* Header with Live Guide Status Indicator */}
       <div className="p-4 sm:p-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/80 dark:bg-zinc-900/80 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-md">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            {/* Live Guide Status Indicator */}
-            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-zinc-900 rounded-full animate-pulse" />
-          </div>
+          <ChatbotAvatar sizeClassName="w-11 h-11" showOnlineBadge={true} />
 
           <div>
             <div className="flex items-center gap-2">
@@ -256,8 +251,8 @@ export const AiAssistantScreen: React.FC = () => {
               className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
             >
               {!isUser && (
-                <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
-                  <Bot className="w-4 h-4" />
+                <div className="shrink-0 bg-transparent flex items-center justify-center mt-0.5">
+                  <ChatbotAvatar sizeClassName="w-8 h-8" />
                 </div>
               )}
 
@@ -312,8 +307,8 @@ export const AiAssistantScreen: React.FC = () => {
 
         {isAiGenerating && (
           <div className="flex gap-3 justify-start">
-            <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-              <Bot className="w-4 h-4" />
+            <div className="shrink-0 bg-transparent flex items-center justify-center">
+              <ChatbotAvatar sizeClassName="w-8 h-8" />
             </div>
             <div className="bg-zinc-100 dark:bg-zinc-800 rounded-3xl rounded-tl-xs p-4 flex items-center gap-2 border border-zinc-200/60 dark:border-zinc-700/60 text-xs text-zinc-500">
               <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-600" />

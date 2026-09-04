@@ -23,7 +23,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { UnsubscribeModal } from '../components/UnsubscribeModal';
-import { unsubscribe, clearSubscriptionSession } from '../services/bdapps';
+import { unsubscribe, clearSubscriptionSession, unmarkLocalSubscriber } from '../services/bdapps';
 
 export const ProfileScreen: React.FC = () => {
   const { 
@@ -55,11 +55,16 @@ export const ProfileScreen: React.FC = () => {
     } catch (err) {
       console.warn('BDApps unsubscribe error handled:', err);
     }
-    cancelPremium();
+    unmarkLocalSubscriber(user.phone);
     clearSubscriptionSession();
+    cancelPremium();
     setIsUnsubscribeModalOpen(false);
-    setToastMessage('You have successfully unsubscribed from Askio Premium.');
-    setTimeout(() => setToastMessage(null), 4500);
+    // Directly redirect to landing page by ending the session
+    updateProfile({
+      isLoggedIn: false,
+      isPremium: false,
+      membershipPlan: 'Unsubscribed'
+    });
     return true;
   };
   const [saveSuccess, setSaveSuccess] = useState(false);
