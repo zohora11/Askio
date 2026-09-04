@@ -310,7 +310,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           isPremium: true,
           membershipPlan: 'Daily Micro (৳2.78/day)'
         });
-        setStatusMessage(isBn ? 'সাবস্ক্রিপশন সক্রিয় রয়েছে! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Active subscription verified! Logging you in...');
+        setStatusMessage(isBn ? 'আপনার সাবস্ক্রিপশন ইতিমধ্যে সক্রিয় আছে! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Active subscription verified! Logging you in...');
         setTimeout(() => {
           setIsSubmitting(false);
           if (onEnterApp) onEnterApp();

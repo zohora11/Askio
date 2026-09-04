@@ -127,7 +127,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       } catch (e) { /* ignore */ }
     }
-    // Default for new users: not logged in so they see the Landing Page first!
+    // Check if BDApps session exists for returning subscriber
+    const sessionRaw = localStorage.getItem('askio_bdapps_session');
+    if (sessionRaw) {
+      try {
+        const session = JSON.parse(sessionRaw);
+        if (session && session.subscribed && session.mobileNumber) {
+          return {
+            fullName: 'Subscriber User',
+            email: 'user@askio.ai',
+            phone: session.mobileNumber,
+            password: '',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+            isLoggedIn: true,
+            isPremium: true,
+            membershipPlan: 'Daily Micro (৳2.78/day)',
+            joinedDate: 'September 2026'
+          };
+        }
+      } catch (e) { /* ignore */ }
+    }
+    // Default for new users on a fresh device: not logged in so they see the Landing Page first!
     return {
       fullName: 'Fatema Tuz Zohora',
       email: 'fatematuzzohora004@gmail.com',

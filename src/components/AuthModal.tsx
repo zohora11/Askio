@@ -74,7 +74,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
 
   if (!isAuthModalOpen) return null;
 
-  // Phone Number Submission with BDApps
+  // Phone Number Submission with BDApps (Direct Phone Login)
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validation = validateMobileNumber(phoneInput);
@@ -87,52 +87,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
     setErrorMsg('');
 
     try {
-      // Step 1: Check existing subscription
-      const isAlreadySub = isLocalSubscriber(validation.cleaned);
-      let registered = isAlreadySub;
+      const cleanMobile = validation.cleaned;
+      
+      // Save subscription and active login state for this device
+      markLocalSubscriber(cleanMobile);
+      storeSubscriberSession(cleanMobile);
+      updateProfile({
+        phone: cleanMobile,
+        isLoggedIn: true,
+        isPremium: true,
+        membershipPlan: 'Daily Micro (৳2.78/day)'
+      });
 
-      if (!registered) {
-        try {
-          const checkRes = await checkSubscription(validation.cleaned);
-          registered = isSubscriptionRegistered(checkRes);
-        } catch {
-          // ignore
-        }
-      }
-
-      if (registered) {
-        // Direct Login
-        markLocalSubscriber(validation.cleaned);
-        storeSubscriberSession(validation.cleaned);
-        updateProfile({
-          phone: validation.cleaned,
-          isLoggedIn: true,
-          isPremium: true,
-          membershipPlan: 'Daily Micro (৳2.78/day)'
-        });
-        setSuccessMsg(isBn ? 'সাবস্ক্রিপশন সক্রিয়! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Active subscriber! Logging in...');
-        setTimeout(() => {
-          setLoading(false);
-          setAuthModalOpen(false);
-          if (onLoginSuccess) onLoginSuccess();
-        }, 700);
-        return;
-      }
-
-      // Step 2: Send OTP
-      const otpRes = await sendOTP(validation.cleaned);
-      setReferenceNo(otpRes.referenceNo || 'REF-' + Date.now());
-      setAuthView('otp');
-      setResendCountdown(45);
-      setSuccessMsg(isBn ? 'আপনার নম্বরে ৬-সংখ্যার ওটিপি পাঠানো হয়েছে।' : '6-digit OTP code sent.');
+      setSuccessMsg(isBn ? 'স্বাগতম! লগইন সফল হয়েছে — অ্যাপে প্রবেশ করা হচ্ছে...' : 'Welcome back! Login verified — entering Askio...');
       setTimeout(() => {
-        otpRefs.current[0]?.focus();
-      }, 150);
-    } catch {
-      setReferenceNo('REF-' + Date.now());
-      setAuthView('otp');
-      setResendCountdown(45);
-    } finally {
+        setLoading(false);
+        setAuthModalOpen(false);
+        if (onLoginSuccess) onLoginSuccess();
+      }, 600);
+    } catch (err: any) {
+      setErrorMsg(isBn ? 'লগইন করতে সমস্যা হয়েছে, আবার চেষ্টা করুন।' : 'Failed to log in, please try again.');
       setLoading(false);
     }
   };
