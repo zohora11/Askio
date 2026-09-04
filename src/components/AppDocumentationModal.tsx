@@ -396,7 +396,7 @@ export const AppDocumentationModal: React.FC<AppDocumentationModalProps> = ({
         <div className="p-4 sm:p-5 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
           <div className="text-xs text-zinc-500 dark:text-zinc-400 text-center sm:text-left">
             <span className="font-bold text-zinc-800 dark:text-zinc-200">
-              {isBn ? 'সাবস্ক্রিপশন ফি:' : 'Micro-Plan:'} ৳2.78 / {isBn ? 'দিন (ভ্যাটসহ)' : 'day (incl. VAT)'}
+              {isBn ? 'সাবস্ক্রিপশন ফি:' : 'BDApps Daily:'} ৳2.78 / {isBn ? 'দিন (ভ্যাটসহ)' : 'day (incl. VAT)'}
             </span>
             <span className="hidden sm:inline"> • {isBn ? 'যেকোনো সময় ১-ক্লিকে বাতিলযোগ্য' : 'Cancel anytime in 1-click'}</span>
           </div>

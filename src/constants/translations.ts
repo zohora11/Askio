@@ -95,7 +95,7 @@ export const UI_TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'search.clear': 'Clear',
 
     // AI Assistant
-    'ai.title': 'Askio Universal AI Assistant',
+    'ai.title': 'Askio AI Assistant',
     'ai.subtitle': 'Get instant answers, book summaries, code assistance, research synthesis, and PDF summaries.',
     'ai.input_placeholder': 'Ask AI anything: book summaries, PDF guides, coding, research...',
     'ai.disclaimer': 'Askio AI outputs are synthesized for educational & general knowledge reference.',
@@ -142,8 +142,8 @@ export const UI_TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'settings.english': 'English',
     'settings.bengali': 'বাংলা (Bengali)',
     'settings.account': 'Account & Membership',
-    'settings.subscription_title': 'BDApps Micro-Subscription',
-    'settings.plan_daily': 'Daily Plan: ৳2 / day',
+    'settings.subscription_title': 'BDApps Subscription',
+    'settings.plan_daily': 'Daily Plan: ৳2.78 / day',
     'settings.manage_subscription': 'Manage Subscription',
     'settings.privacy': 'Data & Privacy',
     'settings.tracking': 'Search Activity Tracking',
@@ -199,7 +199,7 @@ export const UI_TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'search.clear': 'ক্লিয়ার',
 
     // AI Assistant
-    'ai.title': 'আস্কিও ইউনিভার্সাল এআই অ্যাসিস্ট্যান্ট',
+    'ai.title': 'আস্কিও এআই অ্যাসিস্ট্যান্ট',
     'ai.subtitle': 'তাৎক্ষণিক উত্তর, বইয়ের সারসংক্ষেপ, কোডিং সাহায্য, গবেষণাপত্র বিশ্লেষণ ও সহজ ব্যাখ্যা পান।',
     'ai.input_placeholder': 'এআই-কে যা ইচ্ছা জিজ্ঞাসা করুন: বইয়ের সামারি, পিডিএফ, কোডিং, গবেষণা...',
     'ai.disclaimer': 'আস্কিও এআই উত্তরসমূহ সাধারণ জ্ঞান ও শিক্ষণীয় উদ্দেশ্যে তৈরি।',
@@ -246,8 +246,8 @@ export const UI_TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'settings.english': 'English',
     'settings.bengali': 'বাংলা (Bengali)',
     'settings.account': 'একাউন্ট ও মেম্বারশিপ',
-    'settings.subscription_title': 'BDApps মাইক্রো-সাবস্ক্রিপশন',
-    'settings.plan_daily': 'দৈনিক প্ল্যান: ৳২ / দিন',
+    'settings.subscription_title': 'BDApps সাবস্ক্রিপশন',
+    'settings.plan_daily': 'দৈনিক প্ল্যান: ৳২.৭৮ / দিন',
     'settings.manage_subscription': 'সাবস্ক্রিপশন ম্যানেজ করুন',
     'settings.privacy': 'ডাটা ও প্রাইভেসি',
     'settings.tracking': 'সার্চ অ্যাক্টিভিটি ট্র্যাকিং',

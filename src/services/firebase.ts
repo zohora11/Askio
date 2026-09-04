@@ -113,7 +113,7 @@ export async function registerFirebaseUser(params: {
     email: cleanEmail,
     phone: cleanPhone,
     isPremium: true,
-    membershipPlan: 'Daily Micro (৳2.78/day)',
+    membershipPlan: 'BDApps Daily (৳2.78/day)',
     passwordHash: simpleHash(password),
     avatar: defaultAvatar,
     createdAt: new Date().toISOString(),
@@ -173,7 +173,7 @@ export async function loginFirebaseUser(email: string, password: string): Promis
       email: firebaseUser.email || cleanEmail,
       phone: '',
       isPremium: true,
-      membershipPlan: 'Daily Micro (৳2.78/day)'
+      membershipPlan: 'BDApps Daily (৳2.78/day)'
     };
   } catch (authErr: any) {
     console.warn('Firebase Auth login notice:', authErr.code || authErr.message);
@@ -262,7 +262,7 @@ export async function loginWithGoogle(): Promise<FirestoreUserData> {
     email: user.email || '',
     phone: user.phoneNumber || '',
     isPremium: true,
-    membershipPlan: 'Daily Micro (৳2.78/day)',
+    membershipPlan: 'BDApps Daily (৳2.78/day)',
     avatar: user.photoURL || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80`,
     updatedAt: new Date().toISOString()
   };
@@ -527,7 +527,7 @@ export async function resetUserPassword(
     email: clean.includes('@') ? clean : '',
     phone: !clean.includes('@') ? clean : '',
     isPremium: true,
-    membershipPlan: 'Daily Micro (৳2.78/day)',
+    membershipPlan: 'BDApps Daily (৳2.78/day)',
     passwordHash: newHash,
     updatedAt: new Date().toISOString()
   };

@@ -25,7 +25,9 @@ import {
   validateMobileNumber, 
   storeSubscriberSession, 
   markLocalSubscriber,
-  isLocalSubscriber
+  isLocalSubscriber,
+  checkSubscription,
+  isSubscriptionRegistered
 } from '../services/bdapps';
 import { 
   registerFirebaseUser, 
@@ -38,7 +40,8 @@ import {
 } from '../services/firebase';
 import { 
   getTrustedDeviceUser, 
-  saveDeviceTrustForPhone 
+  saveDeviceTrustForPhone,
+  clearDeviceTrustForPhone
 } from '../services/deviceTrust';
 
 interface AuthModalProps {
@@ -49,6 +52,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
   const { 
     isAuthModalOpen, 
     setAuthModalOpen, 
+    setSubscriptionModalOpen,
     authView, 
     setAuthView, 
     pendingPhone,
@@ -123,6 +127,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       const cleanMobile = validation.cleaned;
       setPendingPhone(cleanMobile);
 
+      // Check subscription status (local cache or BDApps API)
+      let isSub = isLocalSubscriber(cleanMobile);
+      if (!isSub) {
+        try {
+          const subRes = await checkSubscription(cleanMobile);
+          isSub = isSubscriptionRegistered(subRes);
+        } catch (e) {
+          // If offline/error, default to false if not saved locally
+        }
+      }
+
+      // If phone number is NOT registered/subscribed or unsubscribed:
+      if (!isSub) {
+        clearDeviceTrustForPhone(cleanMobile);
+        setErrorMsg(
+          isBn
+            ? 'তোমার ফোন নাম্বার রেজিস্টার্ড না। অনুগ্রহ করে আবার সাবস্ক্রিপশন করুন।'
+            : 'Your phone number is not registered. Please subscribe again to continue.'
+        );
+        setLoading(false);
+        return;
+      }
+
       // 1. Check if THIS device is ALREADY TRUSTED for this phone number
       const trustedUser = getTrustedDeviceUser(cleanMobile);
       if (trustedUser) {
@@ -137,7 +164,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
           phone: cleanMobile,
           isLoggedIn: true,
           isPremium: true,
-          membershipPlan: trustedUser.membershipPlan || 'Daily Micro (৳2.78/day)'
+          membershipPlan: trustedUser.membershipPlan || 'BDApps Daily (৳2.78/day)'
         });
 
         setSuccessMsg(isBn ? 'এই ডিভাইসে আপনার পাসওয়ার্ড সেভ করা আছে! সরাসরি অ্যাপে প্রবেশ করা হচ্ছে...' : 'Device recognized! Logging in directly without password...');
@@ -158,17 +185,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         setAuthView('firebase_login');
         setSuccessMsg(isBn ? 'অন্য ডিভাইস সনাক্ত হয়েছে! পাসওয়ার্ড দিয়ে লগইন করুন।' : 'New device detected! Please enter your password to sign in.');
       } else {
-        // Check if subscriber exists in local cache or BDApps
-        const isSub = isLocalSubscriber(cleanMobile);
-        if (isSub) {
-          // Subscribed user -> Take to password login / register
-          setAuthView('firebase_login');
-          setSuccessMsg(isBn ? 'সাবস্ক্রিপশন সক্রিয়! ইমেইল ও পাসওয়ার্ড দিন।' : 'Subscription active! Enter email and password.');
-        } else {
-          // New subscriber -> prompt account creation or subscribe
-          setAuthView('firebase_register');
-          setSuccessMsg(isBn ? 'নতুন অ্যাকাউন্ট তৈরির জন্য তথ্য পূরণ করুন।' : 'Complete profile to create your Firebase account.');
-        }
+        setAuthView('firebase_register');
+        setSuccessMsg(isBn ? 'সাবস্ক্রিপশন নিশ্চিত করতে তথ্য পূরণ করে অ্যাকাউন্ট তৈরি করুন।' : 'Complete profile to set up your account.');
       }
     } catch {
       setAuthView('firebase_login');
@@ -223,7 +241,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         phone: activePhone,
         isLoggedIn: true,
         isPremium: true,
-        membershipPlan: 'Daily Micro (৳2.78/day)'
+        membershipPlan: 'BDApps Daily (৳2.78/day)'
       });
 
       setSuccessMsg(isBn ? 'ফায়ারবেস অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Firebase account created successfully! Entering Askio...');
@@ -284,7 +302,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         phone: userPhone,
         isLoggedIn: true,
         isPremium: true,
-        membershipPlan: loggedInUser.membershipPlan || 'Daily Micro (৳2.78/day)'
+        membershipPlan: loggedInUser.membershipPlan || 'BDApps Daily (৳2.78/day)'
       });
 
       setSuccessMsg(isBn ? 'লগইন সফল হয়েছে! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Login successful! Entering Askio...');
@@ -330,7 +348,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         phone: userPhone,
         isLoggedIn: true,
         isPremium: true,
-        membershipPlan: 'Daily Micro (৳2.78/day)',
+        membershipPlan: 'BDApps Daily (৳2.78/day)',
         avatar: googleUser.avatar
       });
 
@@ -577,9 +595,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
 
         {/* Status Alerts */}
         {errorMsg && (
-          <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
-            <span>{errorMsg}</span>
+          <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-600 dark:text-rose-400 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+              <span>{errorMsg}</span>
+            </div>
+            {(errorMsg.includes('রেজিস্টার্ড না') || errorMsg.includes('not registered')) && (
+              <button
+                type="button"
+                id="unsub-subscribe-now-btn"
+                onClick={() => {
+                  setAuthModalOpen(false);
+                  setSubscriptionModalOpen(true);
+                }}
+                className="mt-1 w-full py-2 px-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>{isBn ? 'এখনই সাবস্ক্রিপশন করুন (৳২.৭৮/দিন)' : 'Subscribe Now (৳2.78/day)'}</span>
+              </button>
+            )}
           </div>
         )}
 

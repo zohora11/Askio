@@ -307,7 +307,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           phone: cleanMobile,
           isLoggedIn: true,
           isPremium: true,
-          membershipPlan: trustedUser.membershipPlan || 'Daily Micro (৳2.78/day)'
+          membershipPlan: trustedUser.membershipPlan || 'BDApps Daily (৳2.78/day)'
         });
 
         setIsSubmitting(false);

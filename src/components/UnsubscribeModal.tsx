@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { AlertTriangle, X, Loader2, CheckCircle, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, X, Loader2, ShieldAlert } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 
 interface UnsubscribeModalProps {
   isOpen: boolean;
@@ -14,6 +15,9 @@ export const UnsubscribeModal: React.FC<UnsubscribeModalProps> = ({
   mobileNumber,
   onConfirmUnsubscribe,
 }) => {
+  const { language } = useApp();
+  const isBn = language === 'bn';
+
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -25,10 +29,19 @@ export const UnsubscribeModal: React.FC<UnsubscribeModalProps> = ({
     try {
       const success = await onConfirmUnsubscribe();
       if (!success) {
-        setErrorMessage('Unable to cancel the subscription. Please try again or contact support.');
+        setErrorMessage(
+          isBn
+            ? 'সাবস্ক্রিপশন বাতিল করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।'
+            : 'Unable to cancel the subscription. Please try again or contact support.'
+        );
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Unable to cancel the subscription. Please try again.');
+      setErrorMessage(
+        err?.message ||
+          (isBn
+            ? 'সাবস্ক্রিপশন বাতিল করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।'
+            : 'Unable to cancel the subscription. Please try again.')
+      );
     } finally {
       setLoading(false);
     }
@@ -41,7 +54,7 @@ export const UnsubscribeModal: React.FC<UnsubscribeModalProps> = ({
     >
       <div 
         id="unsubscribe-modal"
-        className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl border border-rose-200 dark:border-rose-900/40 p-6 sm:p-7 shadow-2xl transition-all"
+        className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl border border-rose-200 dark:border-rose-900/40 p-6 sm:p-7 shadow-2xl transition-all my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {!loading && (
@@ -59,24 +72,29 @@ export const UnsubscribeModal: React.FC<UnsubscribeModalProps> = ({
             <ShieldAlert className="w-7 h-7" />
           </div>
           <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-            Cancel Subscription?
+            {isBn ? 'সাবস্ক্রিপশন বাতিল করবেন?' : 'Cancel Subscription?'}
           </h3>
-          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-            Are you sure you want to unsubscribe from Askio Premium?
+          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-1 font-medium">
+            {isBn 
+              ? 'তুমি কি সত্যিই Askio থেকে আনসাবস্ক্রাইব করতে চাও?' 
+              : 'Are you sure you want to unsubscribe from Askio Premium?'}
           </p>
         </div>
 
         <div className="bg-zinc-50 dark:bg-zinc-800/60 rounded-2xl p-4 mb-5 text-xs text-zinc-600 dark:text-zinc-300 space-y-2 border border-zinc-200/80 dark:border-zinc-700/80">
           <div className="font-semibold text-zinc-800 dark:text-zinc-200">
-            Account to unsubscribe: <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{mobileNumber}</span>
+            {isBn ? 'আনসাবস্ক্রাইব করার নম্বর:' : 'Account to unsubscribe:'}{' '}
+            <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{mobileNumber}</span>
           </div>
-          <p>
-            By canceling your BDApps daily subscription (৳2.78/day):
+          <p className="font-medium text-zinc-700 dark:text-zinc-300">
+            {isBn 
+              ? 'BDApps দৈনিক সাবস্ক্রিপশন (৳২.৭৮/দিন) বাতিল করলে:' 
+              : 'By canceling your BDApps daily subscription (৳2.78/day):'}
           </p>
           <ul className="list-disc list-inside space-y-1 text-zinc-500 dark:text-zinc-400 pl-1">
-            <li>Unlimited Askio AI Guidance will be locked</li>
-            <li>Full access to 4,000+ clinical and study guides will be restricted</li>
-            <li>No daily charge of ৳2.78/day will be deducted from your Robi / Cirkle balance</li>
+            <li>{isBn ? 'আস্কিও এআই অ্যাসিস্ট্যান্টের আনলিমিটেড এক্সেস বন্ধ হবে' : 'Unlimited Askio AI Guidance will be locked'}</li>
+            <li>{isBn ? '৪,০০০+ লার্নিং গাইড ও পিডিএফ এক্সেস সীমিত হবে' : 'Full access to 4,000+ learning guides will be restricted'}</li>
+            <li>{isBn ? 'আপনার মোবাইল ব্যালেন্স থেকে প্রতিদিন ৳২.৭৮ কাটা বন্ধ হবে' : 'No daily charge of ৳2.78/day will be deducted from your balance'}</li>
           </ul>
         </div>
 
@@ -91,24 +109,24 @@ export const UnsubscribeModal: React.FC<UnsubscribeModalProps> = ({
             id="cancel-unsub-action-btn"
             disabled={loading}
             onClick={onClose}
-            className="w-full sm:w-1/2 py-3 px-4 rounded-xl border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 text-sm font-semibold transition-colors disabled:opacity-50"
+            className="w-full sm:w-1/2 py-3 px-4 rounded-xl border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 text-xs font-bold transition-colors disabled:opacity-50 cursor-pointer"
           >
-            Keep Subscription
+            {isBn ? 'না, সাবস্ক্রিপশন রাখুন' : 'Keep Subscription'}
           </button>
 
           <button
             id="confirm-unsub-action-btn"
             disabled={loading}
             onClick={handleConfirm}
-            className="w-full sm:w-1/2 py-3 px-4 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-600/20 disabled:opacity-50"
+            className="w-full sm:w-1/2 py-3 px-4 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-600/20 disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Cancelling...</span>
+                <span>{isBn ? 'বাতিল করা হচ্ছে...' : 'Cancelling...'}</span>
               </>
             ) : (
-              <span>Confirm Unsubscribe</span>
+              <span>{isBn ? 'হ্যাঁ, আনসাবস্ক্রাইব করুন' : 'Confirm Unsubscribe'}</span>
             )}
           </button>
         </div>

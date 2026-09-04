@@ -167,7 +167,7 @@ const FormattedMessage: React.FC<{ content: string; isUser: boolean }> = ({ cont
 };
 
 export const AiAssistantScreen: React.FC = () => {
-  const { chatMessages, sendChatMessage, clearChatHistory, isAiGenerating } = useApp();
+  const { chatMessages, sendChatMessage, clearChatHistory, isAiGenerating, language } = useApp();
   const [inputText, setInputText] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -198,20 +198,20 @@ export const AiAssistantScreen: React.FC = () => {
       {/* Header with Live Guide Status Indicator */}
       <div className="p-4 sm:p-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/80 dark:bg-zinc-900/80 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <ChatbotAvatar sizeClassName="w-11 h-11" showOnlineBadge={true} />
+          <ChatbotAvatar sizeClassName="w-10 h-10" showOnlineBadge={false} />
 
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-bold text-base text-zinc-900 dark:text-zinc-100">
-                Askio Universal AI Assistant
+              <h2 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100">
+                {t('ai.title', language)}
               </h2>
               <span className="hidden sm:inline px-2 py-0.5 text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 rounded-full">
-                Gemini 3.1 Live
+                Gemini Live
               </span>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>Online • Ask Anything in English or বাংলা</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span>{language === 'bn' ? 'অনলাইন • যেকোনো প্রশ্ন টাইপ করুন' : 'Online • Ask anything in English or বাংলা'}</span>
             </div>
           </div>
         </div>

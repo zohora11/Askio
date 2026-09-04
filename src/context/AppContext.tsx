@@ -146,7 +146,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
             isLoggedIn: true,
             isPremium: true,
-            membershipPlan: 'Daily Micro (৳2.78/day)',
+            membershipPlan: 'BDApps Daily (৳2.78/day)',
             joinedDate: 'September 2026'
           };
         }
@@ -161,7 +161,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
       isLoggedIn: false,
       isPremium: true,
-      membershipPlan: 'Daily Micro (৳2.78/day)',
+      membershipPlan: 'BDApps Daily (৳2.78/day)',
       joinedDate: 'August 2026'
     };
   });
@@ -654,10 +654,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUser(prev => ({
       ...prev,
       isPremium: true,
-      membershipPlan: 'Daily Micro (৳2/day)'
+      membershipPlan: 'BDApps Daily (৳2.78/day)'
     }));
     setSubscriptionModalOpen(false);
-    addActivity('bookmark', `Subscribed to Askio Premium Daily Micro plan (৳2/day)`);
+    addActivity('bookmark', `Subscribed to Askio Premium BDApps Daily plan (৳2.78/day)`);
   };
 
   const cancelPremium = () => {

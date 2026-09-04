@@ -34,14 +34,14 @@ export const SubscriptionModal: React.FC = () => {
             Askio Premium
           </h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-            Empower your knowledge and vision health with ultra-affordable micro-billing.
+            Empower your knowledge and vision health with ultra-affordable BDApps daily subscription.
           </p>
         </div>
 
         {/* Pricing Card */}
         <div className="bg-gradient-to-br from-amber-500/10 via-emerald-500/5 to-transparent border-2 border-amber-400/40 dark:border-amber-500/30 rounded-2xl p-5 mb-6 text-center relative overflow-hidden">
           <span className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-extrabold uppercase tracking-wide">
-            BDApps Micro-Plan
+            BDApps Daily
           </span>
           <div className="text-4xl font-extrabold text-zinc-900 dark:text-zinc-100 tracking-tight">
             ৳2.78 <span className="text-sm font-normal text-zinc-500 dark:text-zinc-400">/ day</span>
@@ -100,7 +100,7 @@ export const SubscriptionModal: React.FC = () => {
           className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.99]"
         >
           <Sparkles className="w-4 h-4 fill-black" />
-          <span>{user.isPremium ? 'Renew Daily Micro (৳2)' : 'Activate Micro-Plan (৳2 / Day)'}</span>
+          <span>{user.isPremium ? 'Renew BDApps Daily (৳2.78)' : 'Activate BDApps Daily (৳2.78 / Day)'}</span>
         </button>
 
         <p className="text-[11px] text-zinc-400 text-center mt-3">

@@ -44,7 +44,7 @@ async function startServer() {
   app.get("/api/health", (req, res) => {
     res.json({
       status: "ok",
-      model: "gemini-3.1-flash-lite",
+      model: "gemini-3.8-flash",
       apiKeyConfigured: Boolean(process.env.GEMINI_API_KEY),
     });
   });
@@ -180,8 +180,8 @@ Directly integrate relevant insights from this resource to answer the user's inq
         contents.push({ role: "user", parts: [{ text: message.trim() }] });
       }
 
-      // Prioritize ultra-fast and reliable models
-      const candidateModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-pro"];
+      // Prioritize modern, valid Gemini models as per @google/genai SDK guidelines
+      const candidateModels = ["gemini-3.8-flash", "gemini-flash-latest"];
       let replyText = "";
       let lastError: any = null;
 
@@ -192,13 +192,13 @@ Directly integrate relevant insights from this resource to answer the user's inq
             contents,
             config: {
               systemInstruction,
-              temperature: 0.65,
-              maxOutputTokens: 600,
+              temperature: 0.7,
+              maxOutputTokens: 1000,
             },
           });
 
           const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 20000)
+            setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 25000)
           );
 
           const response = await Promise.race([generatePromise, timeoutPromise]);
@@ -209,14 +209,13 @@ Directly integrate relevant insights from this resource to answer the user's inq
           }
         } catch (err: any) {
           lastError = err;
-          // Silently fail over to the next candidate model
+          console.error(`Gemini API error on model ${model}:`, err?.message || err);
+          // Fallback to next model
         }
       }
 
       if (!replyText) {
-        if (lastError) {
-          console.warn("AI generation fallback triggered:", lastError?.message || "Service unavailable");
-        }
+        console.error("All Gemini API models failed. Last error details:", lastError?.message || lastError);
         replyText = "আমি আপনার প্রশ্নটি পেয়েছি। এই মুহূর্তে সাময়িক সংযোগ বিলম্ব হচ্ছে, অনুগ্রহ করে আবার প্রশ্নটি পাঠান।";
       }
 
