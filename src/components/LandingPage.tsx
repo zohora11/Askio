@@ -117,8 +117,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       title: isBn ? 'প্রোগ্রামার ও কোডার' : 'Developers & Coders',
       tag: isBn ? 'কোডিং ও টেক গাইড' : 'Tech & Coding',
       desc: isBn
-        ? 'কোডিং সমস্যা সমাধান, টেকনিক্যাল ডকুমেন্টেশন, বাগ ফিক্সিং পরামর্শ ও প্রোগ্রামিং বই-পিডিএফ সহজে সার্চ।'
-        : 'Rapid code assistance, debugging tips, architecture documentation, and programming PDF books search.',
+        ? 'কোডিং সমস্যা সমাধান, টেকনিক্যাল ডকুমেন্টেশন, বাগ ফিক্সিং পরামর্শ, ড্রাইভ রিসোর্স ও প্রোগ্রামিং পিডিএফ সহজে সার্চ।'
+        : 'Rapid code assistance, debugging tips, architecture documentation, drive resources and programming PDF books search.',
       badge: isBn ? '২৪/৭ এআই ও কোড লাইব্রেরি' : '24/7 AI & Code Library'
     },
     {
@@ -129,9 +129,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       title: isBn ? 'শিক্ষার্থী ও বিসিএস পরীক্ষার্থী' : 'Students & BCS Aspirants',
       tag: isBn ? 'স্টাডি ও বিসিএস প্রিপারেশন' : 'Academics & Exams',
       desc: isBn
-        ? 'বিসিএস ও চাকরির জন্য হাজার হাজার বই, ভিডিও ও পিডিএফ গাইড, ডেইলি গোলস ট্র্যাকিং এবং সহজ এআই ব্যাখ্যা।'
-        : 'Access thousands of books, video summaries, PDFs, daily habit tracking, and crystal-clear AI explanations.',
-      badge: isBn ? 'বই, ভিডিও ও পিডিএফ' : 'Books, Videos & PDFs'
+        ? 'বিসিএস ও চাকরির জন্য হাজার হাজার পিডিএফ, ভিডিও, ড্রাইভ নোটস ও বই গাইড, ডেইলি গোলস ট্র্যাকিং এবং সহজ এআই ব্যাখ্যা।'
+        : 'Access thousands of PDFs, video summaries, shared Drive notes, books, daily habit tracking, and crystal-clear AI explanations.',
+      badge: isBn ? 'পিডিএফ, ড্রাইভ ও ভিডিও' : 'PDFs, Drive & Videos'
     },
     {
       id: 'executives',
@@ -153,8 +153,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       title: isBn ? 'রিমোট ওয়ার্কার ও ফ্রিল্যান্সার' : 'Freelancers & Remote Workers',
       tag: isBn ? 'কাজের ভারসাম্য' : 'Work-Life Balance',
       desc: isBn
-        ? 'যেকোনো প্রবলেমে সার্চ করে সমাধান, ক্লায়েন্ট কমিউনিকেশন পরামর্শ ও নতুন স্কিল শেখার দ্রুত ভিডিও ও বই গাইড।'
-        : 'Search any problem for rapid solutions, client communication tips, and multimedia skill tutorials.',
+        ? 'যেকোনো প্রবলেমে সার্চ করে সমাধান, ক্লায়েন্ট কমিউনিকেশন পরামর্শ ও নতুন স্কিল শেখার দ্রুত ভিডিও, ড্রাইভ লিঙ্ক ও রিসোর্স গাইড।'
+        : 'Search any problem for rapid solutions, client communication tips, and multimedia skill tutorials & drive links.',
       badge: isBn ? 'ফ্লেক্সিবল লার্নিং' : 'Skills & Search'
     },
     {
@@ -364,12 +364,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       a: 'না, ইতিমধ্যে সক্রিয় সাবস্ক্রিপশন থাকলে লগইন অপশনে গিয়ে আপনার মোবাইল নম্বরটি লিখলেই কোনো অতিরিক্ত চার্জ বা ওটিপি ছাড়াই সরাসরি অ্যাপে প্রবেশ করতে পারবেন।'
     },
     {
-      q: 'Askio তে কি ধরণের বই, ভিডিও এবং গাইড পাওয়া যাবে?',
-      a: 'Askio তে প্রযুক্তি, বিসিএস ও ক্যারিয়ার, সাধারণ জ্ঞান, স্বাস্থ্য ও লাইফস্টাইল সহ অসংখ্য বিষয়ের কিউরেটেড বই, সামারি ভিডিও, তথ্যবহুল পিডিএফ এবং এআই নির্দেশিকা রয়েছে। যেকোনো সমস্যা সার্চ করলেই প্রয়োজনীয় তথ্য নিমেষেই পাওয়া যায়।'
+      q: 'Askio তে কি ধরণের পিডিএফ, ভিডিও, ড্রাইভ লিংক এবং রিসোর্স পাওয়া যাবে?',
+      a: 'Askio তে প্রযুক্তি, বিসিএস ও ক্যারিয়ার, সাধারণ জ্ঞান, স্বাস্থ্য ও লাইফস্টাইল সহ অসংখ্য বিষয়ের কিউরেটেড পিডিএফ, ভিডিও লেকচার, গুগল ড্রাইভ রিসোর্স ফোল্ডার লিংক, ইবুক এবং এআই নির্দেশিকা রয়েছে। যেকোনো সমস্যা সার্চ করলেই প্রয়োজনীয় রিসোর্স ও তথ্য নিমেষেই পাওয়া যায়।'
     },
     {
       q: 'Askio AI অ্যাসিস্ট্যান্ট কি বাংলায় কথা বলতে পারে?',
-      a: 'হ্যাঁ, Askio AI বাংলা এবং ইংরেজি উভয় ভাষায় সাবলীলভাবে যেকোনো প্রশ্নের সংক্ষিপ্ত, প্রাসঙ্গিক ও কার্যকরী সমাধান এবং বই-ভিডিওর তথ্য দিতে পারে।'
+      a: 'হ্যাঁ, Askio AI বাংলা এবং ইংরেজি উভয় ভাষায় সাবলীলভাবে যেকোনো প্রশ্নের সংক্ষিপ্ত, প্রাসঙ্গিক ও কার্যকরী সমাধান, ড্রাইভ রিসোর্স এবং প্রয়োজনীয় তথ্যের সন্ধান দিতে পারে।'
     }
   ] : [
     {
@@ -385,8 +385,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       a: 'No. If your daily subscription is currently active, simply enter your phone number via "Log In" to access the app immediately with zero extra charges.'
     },
     {
-      q: 'What kinds of books, videos, and PDFs can I search in Askio?',
-      a: 'Askio hosts a vast collection of curated books, video summaries, and research PDFs across technology, career prep, science, academics, and personal growth. Simply search any query to discover tailored resources.'
+      q: 'What kinds of PDFs, videos, Google Drive links, and resources can I search in Askio?',
+      a: 'Askio hosts a vast collection of curated PDFs, video lectures, shared Google Drive resource packs, cheatsheets, and ebooks across technology, career prep, science, academics, and personal growth. Simply search any query to discover instant links and tailored materials.'
     },
     {
       q: 'Does Askio AI support Bengali language?',
@@ -586,16 +586,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-zinc-900 dark:text-zinc-100 leading-[1.15]">
               {isBn ? (
-                <>যেকোনো প্রয়োজনে <span className="text-emerald-600 dark:text-emerald-400">স্মার্ট সার্চ</span>, বই, ভিডিও ও এআই সমাধান</>
+                <>যেকোনো প্রয়োজনে <span className="text-emerald-600 dark:text-emerald-400">এআই সমাধান ও স্মার্ট রিসোর্স</span></>
               ) : (
-                <>Search Any Problem for <span className="text-emerald-600 dark:text-emerald-400">Instant AI Solutions</span>, Books & Videos</>
+                <>Search Any Problem for <span className="text-emerald-600 dark:text-emerald-400">AI Solutions & Smart Resources</span></>
               )}
             </h1>
 
             <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto lg:mx-0 leading-relaxed">
               {isBn 
-                ? 'যেকোনো সমস্যার সমাধানে সার্চ করুন আর পেয়ে যান সম্পর্কিত দরকারি বই, ভিডিও সামারি, পিডিএফ হ্যান্ডবুক ও ২৪/৭ এআই গাইডেন্স—কোনো ক্রেডিট কার্ড ছাড়াই প্রতিদিন মাত্র ৳২.৭৮ এ।' 
-                : 'Search any problem to discover curated books, video summaries, research PDFs, habit goals, and 24/7 bilingual AI guidance for only ৳2.78 / day.'}
+                ? 'যেকোনো প্রশ্নের তাৎক্ষণিক এআই সমাধান, নির্ভুল সার্চ এবং প্রয়োজনীয় যেকোনো স্মার্ট রিসোর্স—সবকিছু এক প্ল্যাটফর্মে প্রতিদিন মাত্র ৳২.৭৮ এ।' 
+                : 'Instant AI solutions, smart search, and curated resources in Bengali & English for only ৳2.78 / day.'}
             </p>
 
             {/* Micro Highlights */}
@@ -605,7 +605,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   14,000+
                 </div>
                 <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-                  {isBn ? 'বই, পিডিএফ ও ভিডিও' : 'Books, PDFs & Videos'}
+                  {isBn ? 'স্মার্ট রিসোর্স' : 'Smart Resources'}
                 </div>
               </div>
 
@@ -614,7 +614,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   Smart AI
                 </div>
                 <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-                  {isBn ? 'ইনস্ট্যান্ট সার্চ ইঞ্জিন' : 'Search Engine'}
+                  {isBn ? 'ইনস্ট্যান্ট সার্চ ও সমাধান' : 'Instant Search & AI'}
                 </div>
               </div>
 
@@ -881,7 +881,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                     </span>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center">
-                    {isBn ? 'বই, পিডিএফ, ভিডিও ও যেকোনো বিষয়ের সমাধান এক ক্লিকে খুঁজুন' : 'Lightning-fast search across 14,000+ books, study guides, video lessons & topics'}
+                    {isBn ? 'যেকোনো বিষয় সার্চ করে মুহূর্তেই সমাধান ও প্রয়োজনীয় রিসোর্স পান' : 'Search any topic to get instant AI solutions and curated resources'}
                   </p>
                 </div>
 
@@ -893,7 +893,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                       <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-2 border-indigo-500/40 dark:border-indigo-500/30 shadow-inner">
                         <Search className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                         <div className="flex-1 font-medium text-xs sm:text-sm text-zinc-800 dark:text-zinc-200 truncate">
-                          {isBn ? 'বিসিএস প্রিলিমিনারি পূর্ণাঙ্গ সিলেবাস ও বই...' : 'BCS Preliminary Complete Syllabus, Books & Video Lectures...'}
+                          {isBn ? 'বিসিএস প্রিলিমিনারি পূর্ণাঙ্গ প্রস্তুতি ও শর্টকাট টেকনিক...' : 'BCS Preliminary Preparation & Shortcut Techniques...'}
                         </div>
                         <span className="px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold">
                           {isBn ? '০.০৩ সেকেন্ড' : '0.03s'}
@@ -907,13 +907,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                         {isBn ? 'সব (All)' : 'All'}
                       </span>
                       <span className="px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-medium">
-                        {isBn ? 'বই ও পিডিএফ' : 'Books & PDFs'}
+                        {isBn ? 'স্মার্ট রিসোর্স' : 'Smart Resources'}
+                      </span>
+                      <span className="px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-medium">
+                        {isBn ? 'এআই সমাধান' : 'AI Solutions'}
                       </span>
                       <span className="px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-medium">
                         {isBn ? 'ভিডিও লেকচার' : 'Video Lectures'}
                       </span>
                       <span className="px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-medium">
-                        {isBn ? 'বিসিএস ও চাকরি' : 'BCS & Career'}
+                        {isBn ? 'বিসিএস ও ক্যারিয়ার' : 'BCS & Career'}
                       </span>
                       <span className="px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-medium">
                         {isBn ? 'প্রযুক্তি ও কোডিং' : 'Tech & Coding'}
@@ -926,14 +929,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                         <div className="space-y-1 pr-3">
                           <div className="flex items-center gap-2">
                             <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-[10px] font-bold">
-                              {isBn ? 'বিসিএস স্টাডি' : 'BCS Study'}
+                              {isBn ? 'বিসিএস প্রস্তুতি • Smart Guide' : 'BCS Study • Smart Guide'}
                             </span>
                             <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
-                              {isBn ? '৪৬তম ও ৪৭তম বিসিএস বিজ্ঞান পূর্ণাঙ্গ সিলেবাস গাইড' : 'BCS General Science Comprehensive Syllabus & Q/A'}
+                              {isBn ? '৪৭তম বিসিএস বিজ্ঞান ও গণিত পূর্ণাঙ্গ প্রস্তুতি ও বিগত ১০ বছরের প্রশ্ন' : 'BCS Science & Math Complete Preparation and 10-Year Question Bank'}
                             </h5>
                           </div>
                           <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
-                            {isBn ? 'বিগত ১০ বছরের প্রশ্ন সমাধান, শর্টকাট টেকনিক ও সম্পূর্ণ অধ্যায়ভিত্তিক সারসংক্ষেপ।' : '10-year question bank solutions, shortcut techniques and topic summaries.'}
+                            {isBn ? 'অধ্যায়ভিত্তিক সারসংক্ষেপ, শর্টকাট টেকনিক ও এআই সমাধান।' : 'Chapter-wise summary, shortcut techniques and AI solutions.'}
                           </p>
                         </div>
                         <ArrowRight className="w-4 h-4 text-indigo-500 shrink-0" />
@@ -943,14 +946,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                         <div className="space-y-1 pr-3">
                           <div className="flex items-center gap-2">
                             <span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 text-[10px] font-bold">
-                              {isBn ? 'প্রযুক্তি ও প্রোগ্রামিং' : 'Tech & Code'}
+                              {isBn ? 'প্রযুক্তি ও কোডিং • Resource Vault' : 'Tech & Code • Resource Vault'}
                             </span>
                             <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
-                              {isBn ? 'ফুল-স্ট্যাক ওয়েব ডেভেলপমেন্ট ও পাইথন হ্যান্ডবুক' : 'Full-Stack Web Development & Python Mastery Handbook'}
+                              {isBn ? 'ফুল-স্ট্যাক ওয়েব ডেভেলপমেন্ট, পাইথন ও প্রজেক্ট রিসোর্স' : 'Full-Stack Web Development, Python & Project Resources'}
                             </h5>
                           </div>
                           <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
-                            {isBn ? 'কোডিং কনসেপ্ট, প্রোজেক্ট আর্কিটেকচার ও টেকনিক্যাল ইন্টারভিউ প্রস্তুতি।' : 'Coding concepts, project architectures and technical interview blueprints.'}
+                            {isBn ? 'কোডিং কনসেপ্ট, প্রজেক্ট সোর্স কোড ও টেকনিক্যাল ইন্টারভিউ প্রস্তুতি।' : 'Coding concepts, project source code, and technical interview blueprints.'}
                           </p>
                         </div>
                         <ArrowRight className="w-4 h-4 text-indigo-500 shrink-0" />
@@ -960,19 +963,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 </div>
               </div>
 
-              {/* SLIDE 2: KNOWLEDGE & PDF LIBRARY */}
+              {/* SLIDE 2: SMART RESOURCES & VAULT */}
               <div className="w-full shrink-0 px-1 sm:px-3">
                 {/* Feature Name Button-shape (Centered Middle Highlight) */}
                 <div className="flex flex-col items-center justify-center mb-5">
                   <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-600/30 ring-4 ring-blue-500/20 font-black text-sm sm:text-base tracking-wide">
                     <BookOpen className="w-4 h-4 text-blue-200" />
-                    <span>{isBn ? 'Knowledge & PDF Library' : 'Knowledge & PDF Library'}</span>
+                    <span>{isBn ? 'Smart Resources & Knowledge Vault' : 'Smart Resources & Knowledge Vault'}</span>
                     <span className="text-[11px] bg-blue-700/80 text-blue-100 px-2 py-0.5 rounded-full font-bold ml-1">
-                      {isBn ? 'বই ও লাইব্রেরি' : 'Books & PDFs'}
+                      {isBn ? 'স্মার্ট রিসোর্স ভল্ট' : 'Resources & Vault'}
                     </span>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center">
-                    {isBn ? 'হাজারো বই, ইবুক, হ্যান্ডবুক ও গবেষণাপত্র সম্পূর্ণ অফলাইনে পড়ার সুবিধা' : 'Thousands of ebooks, curated handbooks, and topic guides at your fingertips'}
+                    {isBn ? 'হাজারো দরকারি গাইড ও প্রয়োজনীয় স্মার্ট রিসোর্স সহজে পাওয়ার সুবিধা' : 'Thousands of curated guides and essential smart resources at your fingertips'}
                   </p>
                 </div>
 
@@ -981,7 +984,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   {/* Sub Header */}
                   <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
                     <span className="text-xs font-bold text-zinc-600 dark:text-zinc-300">
-                      {isBn ? 'জনপ্রিয় বই ও হ্যান্ডবুকসমূহ' : 'Featured Handbooks & Curated PDFs'}
+                      {isBn ? 'জনপ্রিয় স্মার্ট রিসোর্স ও স্টাডি মেটেরিয়ালসমূহ' : 'Featured Smart Resources & Curated Materials'}
                     </span>
                     <span className="px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-bold">
                       10+ Categories
@@ -992,25 +995,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3">
                     <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-2">
                       <span className="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-[10px] font-bold">
-                        Academic • PDF Guide
+                        Academic • Smart Resource
                       </span>
                       <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
                         {isBn ? 'স্মার্ট স্টাডি মেথড ও ডিপ ফোকাস ফ্রেমওয়ার্ক' : 'Deep Work & Smart Study Workflow Framework'}
                       </h5>
                       <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                        {isBn ? 'পড়ার স্মৃতিশক্তি বৃদ্ধি, দীর্ঘসময় ফোকাস ও পরীক্ষা প্রস্তুতির বৈজ্ঞানিক নিয়ম।' : 'Cognitive retention models and structured focus protocols.'}
+                        {isBn ? 'পড়ার স্মৃতিশক্তি বৃদ্ধি, দীর্ঘসময় ফোকাস ও পরীক্ষা প্রস্তুতির বৈজ্ঞানিক নিয়ম।' : 'Cognitive retention models, structured focus protocols and revision methods.'}
                       </p>
                     </div>
 
                     <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-2">
                       <span className="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 text-[10px] font-bold">
-                        Career • Handbook
+                        Career • Handbook & Resources
                       </span>
                       <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
                         {isBn ? 'ক্যারিয়ার প্ল্যানিং ও প্রফেশনাল স্কিল ডেভেলপমেন্ট' : 'Professional Career Blueprint & Leadership Guide'}
                       </h5>
                       <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                        {isBn ? 'সিভি তৈরি, কমিউনিকেশন স্কিল ও কর্পোরেট জব ক্র্যাকিং গাইড।' : 'Resume mastery, workplace communication and leadership principles.'}
+                        {isBn ? 'সিভি তৈরির নিয়ম, কমিউনিকেশন স্কিল ও কর্পোরেট ইন্টারভিউ প্রস্তুতি।' : 'Resume principles, workplace communication and interview preparation.'}
                       </p>
                     </div>
                   </div>
@@ -1450,7 +1453,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 </tr>
                 <tr className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
                   <td className="py-4 px-5 font-semibold text-zinc-900 dark:text-zinc-100">
-                    {isBn ? 'বই, ভিডিও ও অল-ইন-ওয়ান নলেজ' : 'Books, Videos & Knowledge'}
+                    {isBn ? 'স্মার্ট রিসোর্স ও নলেজ হাব' : 'Smart Resources & Knowledge Vault'}
                   </td>
                   <td className="py-4 px-5 text-zinc-500 dark:text-zinc-400">
                     {isBn ? 'আলাদা আলাদা টুলস ও সাইট' : 'Fragmented separate apps'}
@@ -1571,8 +1574,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               />
               <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-sm">
                 {isBn
-                  ? 'Askio — আপনার বিশ্বস্ত এআই অ্যাসিস্ট্যান্ট, বই, ভিডিও লেকচার ও স্মার্ট নলেজ প্ল্যাটফর্ম। রবি ও সার্কেল বিডিঅ্যাপস ভেরিফাইড।'
-                  : 'Askio — Your trusted bilingual AI study assistant, books, video lectures, and curated knowledge platform powered by BDApps.'}
+                  ? 'Askio — আপনার বিশ্বস্ত এআই অ্যাসিস্ট্যান্ট, তাৎক্ষণিক সার্চ ও স্মার্ট রিসোর্স হাব। রবি ও সার্কেল বিডিঅ্যাপস ভেরিফাইড।'
+                  : 'Askio — Your trusted AI assistant, instant search, and smart resource hub powered by BDApps.'}
               </p>
 
               <div className="pt-2 flex items-center gap-2">
@@ -1607,13 +1610,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 <li>
                   <button onClick={() => setIsDocModalOpen(true)} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5 cursor-pointer">
                     <BookOpen className="w-3 h-3 text-blue-500" />
-                    <span>{isBn ? 'বই, ইবুক ও পিডিএফ লাইব্রেরি' : 'Books & PDF Library'}</span>
+                    <span>{isBn ? 'স্মার্ট রিসোর্স ও নলেজ ভল্ট' : 'Smart Resources & Knowledge Vault'}</span>
                   </button>
                 </li>
                 <li>
                   <button onClick={() => setIsDocModalOpen(true)} className="hover:text-red-600 dark:hover:text-red-400 transition-colors flex items-center gap-1.5 cursor-pointer">
                     <Video className="w-3 h-3 text-red-500" />
-                    <span>{isBn ? 'ভিডিও লেকচার ও সামারি' : 'Video Lectures & Summaries'}</span>
+                    <span>{isBn ? 'ভিডিও লেকচার ও এআই সামারি' : 'Video Lectures & AI Summaries'}</span>
                   </button>
                 </li>
                 <li>

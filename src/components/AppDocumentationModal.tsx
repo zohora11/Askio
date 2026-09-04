@@ -73,16 +73,16 @@ export const AppDocumentationModal: React.FC<AppDocumentationModalProps> = ({
       title: isBn ? '২. গ্লোবাল সার্চ ইঞ্জিন ও ইনস্ট্যান্ট ফিল্টারিং' : '2. Global Search Engine & Instant Filter',
       category: isBn ? 'সার্চ ইঞ্জিন' : 'Search Engine',
       summary: isBn 
-        ? 'হাজার হাজার বই, পিডিএফ ও ভিডিও রিসোর্স নিমেষেই কিওয়ার্ড দিয়ে খুঁজে বের করার সুবিধা।' 
-        : 'Fast keyword search and format filtering across books, PDFs, and videos.',
+        ? 'হাজার হাজার পিডিএফ, ড্রাইভ লিঙ্ক, ভিডিও লেকচার ও বই নিমেষেই কিওয়ার্ড দিয়ে খুঁজে বের করার সুবিধা।' 
+        : 'Fast keyword search and format filtering across PDFs, Drive links, video lectures, and curated books.',
       capabilities: isBn ? [
-        'যেকোনো বাংলা বা ইংরেজি শব্দ লিখে ইনস্ট্যান্ট বই, গাইড ও ভিডিও সার্চ করা',
-        'মিডিয়া ফরম্যাট ফিল্টার (বই, পিডিএফ, ভিডিও সামারি, রিসার্চ পেপার)',
+        'যেকোনো বাংলা বা ইংরেজি শব্দ লিখে ইনস্ট্যান্ট পিডিএফ, ড্রাইভ লিঙ্ক ও ভিডিও সার্চ করা',
+        'মিডিয়া ফরম্যাট ফিল্টার (পিডিএফ, ড্রাইভ লিঙ্ক, ভিডিও লেকচার, বই ও রিসার্চ পেপার)',
         'ক্যাটাগরি ভিত্তিক (Technology, Health, Career, Education, Lifestyle) বাছাই',
         'জনপ্রিয় ও ট্রেন্ডিং টপিকগুলোর তাৎক্ষণিক সাজেশন পাওয়া'
       ] : [
-        'Instant real-time search across thousands of books, PDFs, and video guides',
-        'Sort by content formats (PDFs, Books, Video Summaries, Handbooks)',
+        'Instant real-time search across thousands of PDFs, Drive links, videos, and study guides',
+        'Sort by content formats (PDFs, Shared Drive Links, Video Lectures, Handbooks)',
         'Filter by topical categories (Health, Tech, Career, Productivity, Education)',
         'Trending tags and quick search keyword suggestions'
       ]
@@ -91,19 +91,19 @@ export const AppDocumentationModal: React.FC<AppDocumentationModalProps> = ({
       id: 'library',
       icon: BookOpen,
       color: 'blue',
-      title: isBn ? '৩. কিউরেটেড নলেজ লাইব্রেরি ও বুকমার্কিং' : '3. Curated Knowledge Library & Bookmarks',
+      title: isBn ? '৩. কিউরেটেড নলেজ হাব ও রিসোর্স লাইব্রেরি' : '3. Curated Resource Hub & Knowledge Vault',
       category: isBn ? 'জ্ঞানভাণ্ডার' : 'Knowledge Vault',
       summary: isBn 
-        ? '১৪,০০০+ তথ্যবহুল হ্যান্ডবুক, গাইড, পিডিএফ সামারি ও ভিডিও রিসোর্স লাইব্রেরি।' 
-        : 'Access thousands of structured guides, books, PDFs, and video summaries.',
+        ? '১৪,০০০+ তথ্যবহুল পিডিএফ, ক্লাউড ড্রাইভ লিঙ্ক, হ্যান্ডবুক ও ভিডিও রিসোর্স লাইব্রেরি।' 
+        : 'Access thousands of structured PDFs, shared Drive links, books, and video summaries.',
       capabilities: isBn ? [
-        'স্বাস্থ্য, প্রযুক্তি, ক্যারিয়ার, মানসিক প্রশান্তি সহ ১০+ বিষয়ের গাইড ব্রাউজিং',
-        'বুকস, ভিডিও সামারি, পিডিএফ ও রিসার্চ পেপারের ফরম্যাট অনুসারে দেখা',
+        'স্বাস্থ্য, প্রযুক্তি, ক্যারিয়ার, বিসিএস প্রস্তুতি সহ ১০+ বিষয়ের গাইড ব্রাউজিং',
+        'পিডিএফ, ক্লাউড ড্রাইভ লিঙ্ক, ভিডিও লেকচার ও রিসার্চ পেপারের ফরম্যাট অনুসারে দেখা',
         'পছন্দের যেকোনো রিসোর্স ১-ক্লিকে বুকমার্ক করে অফলাইনে পড়ার সুযোগ',
         'সম্প্রতি পঠিত হ্যান্ডবুকের হিস্ট্রি পর্যবেক্ষণ ও প্রগ্রেস ট্র্যাকিং'
       ] : [
-        'Browse 10+ core domains including Health, Tech, Career & Productivity',
-        'Filter by media types: Books, Video Summaries, PDFs & Research Guides',
+        'Browse 10+ core domains including Health, Tech, Career & BCS Preparation',
+        'Filter by media types: PDFs, Shared Drive Links, Video Summaries & Research Guides',
         '1-click bookmarking to personal reading list for offline access',
         'Track recently read articles and reading progression'
       ]
