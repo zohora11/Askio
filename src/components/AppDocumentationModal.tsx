@@ -219,10 +219,13 @@ export const AppDocumentationModal: React.FC<AppDocumentationModalProps> = ({
     : features.filter(f => f.id === activeTab);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in overflow-y-auto cursor-pointer"
+      onClick={onClose}
+    >
       <div 
         id="app-documentation-modal"
-        className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden my-auto"
+        className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden my-auto cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Top Bar */}

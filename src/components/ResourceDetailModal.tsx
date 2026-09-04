@@ -38,10 +38,13 @@ export const ResourceDetailModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto cursor-pointer"
+      onClick={() => setSelectedResource(null)}
+    >
       <div 
         id="resource-detail-modal"
-        className="relative w-full max-w-3xl my-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-2xl transition-all"
+        className="relative w-full max-w-3xl my-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-2xl transition-all cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}

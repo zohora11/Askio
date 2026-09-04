@@ -204,10 +204,13 @@ export const NotificationScreen: React.FC = () => {
 
       {/* Modal Bottom Sheet showing full notification details */}
       {activeModalNotif && (
-        <div className="fixed inset-0 z-50 flex items-center sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div 
+          className="fixed inset-0 z-50 flex items-center sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in cursor-pointer"
+          onClick={() => setActiveModalNotif(null)}
+        >
           <div 
             id="notification-detail-sheet"
-            className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl"
+            className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
