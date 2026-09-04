@@ -1,0 +1,6 @@
+{
+  "name": "Askio",
+  "description": "A modern question-and-answer platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
