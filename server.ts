@@ -24,20 +24,19 @@ async function startServer() {
   app.use(express.json());
 
   // Lazy initialize GoogleGenAI client
-  let aiClient: GoogleGenAI | null = null;
   function getAiClient(): GoogleGenAI {
-    if (!aiClient) {
-      const apiKey = process.env.GEMINI_API_KEY;
-      aiClient = new GoogleGenAI({
-        apiKey: apiKey || "",
-        httpOptions: {
-          headers: {
-            "User-Agent": "aistudio-build",
-          },
-        },
-      });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY environment variable is missing.");
     }
-    return aiClient;
+    return new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          "User-Agent": "aistudio-build",
+        },
+      },
+    });
   }
 
   // --- API ROUTES FIRST ---
@@ -181,7 +180,12 @@ Directly integrate relevant insights from this resource to answer the user's inq
       }
 
       // Prioritize modern, valid Gemini models as per @google/genai SDK guidelines
-      const candidateModels = ["gemini-3.8-flash", "gemini-flash-latest"];
+      const candidateModels = [
+        "gemini-3.6-flash",
+        "gemini-3.1-flash-lite",
+        "gemini-3.8-flash",
+        "gemini-flash-latest",
+      ];
       let replyText = "";
       let lastError: any = null;
 
@@ -198,7 +202,7 @@ Directly integrate relevant insights from this resource to answer the user's inq
           });
 
           const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 25000)
+            setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 20000)
           );
 
           const response = await Promise.race([generatePromise, timeoutPromise]);
@@ -210,20 +214,26 @@ Directly integrate relevant insights from this resource to answer the user's inq
         } catch (err: any) {
           lastError = err;
           console.error(`Gemini API error on model ${model}:`, err?.message || err);
-          // Fallback to next model
+          // Fallback to next model in candidateModels
         }
       }
 
       if (!replyText) {
         console.error("All Gemini API models failed. Last error details:", lastError?.message || lastError);
-        replyText = "আমি আপনার প্রশ্নটি পেয়েছি। এই মুহূর্তে সাময়িক সংযোগ বিলম্ব হচ্ছে, অনুগ্রহ করে আবার প্রশ্নটি পাঠান।";
+        let errorMsg = lastError?.message || "All Gemini API models failed to generate a response.";
+        if (typeof errorMsg === "string" && (errorMsg.includes("429") || errorMsg.includes("Quota exceeded") || errorMsg.includes("RESOURCE_EXHAUSTED"))) {
+          errorMsg = "এআই রেট লিমিট পৌঁছানো হয়েছে (Quota Exceeded)। অনুগ্রহ করে ৩০ সেকেন্ড পর আবার চেষ্টা করুন। / Rate limit reached, please retry in 30 seconds.";
+        }
+        return res.status(502).json({
+          error: errorMsg
+        });
       }
 
       return res.json({ reply: replyText });
     } catch (err: any) {
       console.error("AI chat handler error:", err);
-      return res.status(200).json({
-        reply: "আমি আপনার সাথে যুক্ত হতে পারছি না। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।"
+      return res.status(500).json({
+        error: err?.message || "Unable to connect to the AI engine. Please check your server setup."
       });
     }
   };

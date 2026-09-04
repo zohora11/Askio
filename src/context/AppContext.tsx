@@ -510,6 +510,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const textErr = await response.text().catch(() => '');
           if (textErr && !textErr.includes('<!DOCTYPE') && !textErr.includes('<html')) {
             errorMsg = textErr.slice(0, 100);
+          } else {
+            errorMsg = language === 'bn'
+              ? 'সার্ভারে এআই এন্ডপয়েন্ট (/api/chat) পাওয়া যাচ্ছে না।'
+              : 'AI server endpoint (/api/chat) is not reachable on this domain.';
           }
         }
         throw new Error(errorMsg);
@@ -517,39 +521,52 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (contentType.includes('application/json')) {
         const data = await response.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
         reply = data.reply || '';
       } else {
         const rawText = await response.text();
         try {
           const parsed = JSON.parse(rawText);
+          if (parsed.error) throw new Error(parsed.error);
           reply = parsed.reply || '';
-        } catch {
+        } catch (parseErr: any) {
+          if (parseErr.message && !parseErr.message.includes('JSON')) {
+            throw parseErr;
+          }
           if (rawText && !rawText.includes('<!DOCTYPE') && !rawText.includes('<html')) {
             reply = rawText.trim();
           } else {
-            reply = language === 'bn'
-              ? 'আমি আপনার বার্তাটি পেয়েছি। অনুগ্রহ করে আপনার প্রশ্নটি আবার পাঠান।'
-              : 'I received your inquiry. Please try sending your message again.';
+            throw new Error(
+              language === 'bn'
+                ? 'সার্ভারে এআই এন্ডপয়েন্ট (/api/chat) পাওয়া যায়নি।'
+                : 'AI endpoint (/api/chat) returned HTML instead of JSON.'
+            );
           }
         }
       }
 
-      const aiReply = reply || (language === 'bn'
-        ? 'আমি আপনার বার্তাটি পেয়েছি। অনুগ্রহ করে প্রশ্নটি পুনরায় করুন।'
-        : 'I received your question. Please try asking again.');
+      if (!reply) {
+        throw new Error(
+          language === 'bn'
+            ? 'এআই থেকে উত্তর পাওয়া যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।'
+            : 'No response received from AI engine. Please try again.'
+        );
+      }
 
       const aiMsg: ChatMessage = {
         id: 'ai-' + Date.now(),
         sender: 'ai',
-        text: aiReply,
+        text: reply,
         timestamp: 'Just now'
       };
       setChatMessages(prev => [...prev, aiMsg]);
     } catch (err: any) {
       console.error("AI generation error:", err);
       let userFriendlyMessage = language === 'bn'
-        ? 'এআই সার্ভারের সাথে সংযোগে সাময়িক বিলম্ব হচ্ছে। অনুগ্রহ করে ইন্টারনেট কানেকশন চেক করে আবার পাঠান।'
-        : 'Unable to connect to the Askio AI engine right now. Please check your connection and try again.';
+        ? 'এআই সার্ভারের সাথে সংযোগে সাময়িক বিলম্ব হচ্ছে। অনুগ্রহ করে আবার চেষ্টা করুন।'
+        : 'Unable to connect to the Askio AI engine right now. Please try again.';
 
       if (err?.message && !err.message.includes('JSON.parse') && !err.message.includes('unexpected character')) {
         userFriendlyMessage = err.message;
