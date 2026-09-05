@@ -196,7 +196,7 @@ async function startServer() {
   // AI Assistant Chat Handler
   const handleChat = async (req: express.Request, res: express.Response) => {
     try {
-      const { message, history, contextResource } = req.body;
+      const { message, history, contextResource, userName } = req.body;
 
       if (!message || typeof message !== "string" || !message.trim()) {
         return res.status(400).json({ error: "Message is required" });
@@ -225,6 +225,12 @@ CRITICAL INSTRUCTIONS FOR FLUENT AND CONCISE RESPONSES:
      * Complex or how-to query: Provide structured, concise steps without repetitive fluff or filler.
 3. Universal Search & Assistance:
    - Help users find books, PDFs, videos, links, articles, learning resources, and solve problems on any topic (technology, science, education, business, literature, history, math, etc.).`;
+
+      if (userName && typeof userName === "string" && userName.trim()) {
+        systemInstruction += `\n\nUser Information:
+- Current User: ${userName.trim()}
+- Note: Address the user by their name (${userName.trim()}) when greeting them or when naturally appropriate.`;
+      }
 
       if (contextResource && typeof contextResource === "object") {
         systemInstruction += `\n\nContext Resource Inquiry:

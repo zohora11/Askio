@@ -117,6 +117,20 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+// Dynamic helper for AI welcome greeting with real user name
+export const getAiWelcomeGreeting = (fullName?: string, lang: AppLanguage = 'en') => {
+  const trimmed = (fullName || '').trim();
+  const firstName = trimmed ? trimmed.split(' ')[0] : '';
+  if (lang === 'bn') {
+    return firstName
+      ? `হ্যালো ${firstName}! 👋 আমি Askio AI, আপনার ব্যক্তিগত লার্নিং ও গাইডেন্স সহকারী। আজ আপনাকে কীভাবে সহায়তা করতে পারি?`
+      : `হ্যালো! 👋 আমি Askio AI, আপনার ব্যক্তিগত লার্নিং ও গাইডেন্স সহকারী। আজ আপনাকে কীভাবে সহায়তা করতে পারি?`;
+  }
+  return firstName
+    ? `Hello ${firstName}! 👋 I am Askio AI, your personal guidance engine. How can I support your eye care, learning, or career growth today?`
+    : `Hello! 👋 I am Askio AI, your personal guidance engine. How can I support your eye care, learning, or career growth today?`;
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Navigation
   const [activeTab, setActiveTab] = useState<string>('home');
@@ -126,11 +140,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const saved = localStorage.getItem('askio_user');
     if (saved) {
       try { 
-        const parsed = JSON.parse(saved); 
-        return {
-          ...parsed,
-          isLoggedIn: parsed.isLoggedIn ?? false
-        };
+        const parsed = JSON.parse(saved);
+        // If it was the legacy mock user 'Fatema Tuz Zohora', clear it so the real logged-in name is used
+        if (parsed.fullName === 'Fatema Tuz Zohora' || parsed.email === 'fatematuzzohora004@gmail.com') {
+          localStorage.removeItem('askio_user');
+        } else {
+          return {
+            ...parsed,
+            isLoggedIn: parsed.isLoggedIn ?? false
+          };
+        }
       } catch (e) { /* ignore */ }
     }
     // Check if BDApps session exists for returning subscriber
@@ -140,7 +159,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const session = JSON.parse(sessionRaw);
         if (session && session.subscribed && session.mobileNumber) {
           return {
-            fullName: 'Subscriber User',
+            fullName: '',
             email: 'user@askio.ai',
             phone: session.mobileNumber,
             password: '',
@@ -153,17 +172,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       } catch (e) { /* ignore */ }
     }
-    // Default for new users on a fresh device: not logged in so they see the Landing Page first!
+    // Default for new users on a fresh device: not logged in with clean state
     return {
-      fullName: 'Fatema Tuz Zohora',
-      email: 'fatematuzzohora004@gmail.com',
-      phone: '01812345678',
-      password: 'password123',
+      fullName: '',
+      email: '',
+      phone: '',
+      password: '',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
       isLoggedIn: false,
-      isPremium: true,
-      membershipPlan: 'BDApps Daily (৳2.78/day)',
-      joinedDate: 'August 2026'
+      isPremium: false,
+      membershipPlan: 'Free Tier',
+      joinedDate: 'September 2026'
     };
   });
 
@@ -224,14 +243,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
 
   // AI Guidance Chat
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: 'msg-init',
-      sender: 'ai',
-      text: 'Hello Fatema! 👋 I am Askio AI, your personal guidance engine. How can I support your eye care, learning, or career growth today?',
-      timestamp: 'Just now'
-    }
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
+    return [
+      {
+        id: 'msg-init',
+        sender: 'ai',
+        text: getAiWelcomeGreeting(user.fullName, 'en'),
+        timestamp: 'Just now'
+      }
+    ];
+  });
   const [isAiGenerating, setIsAiGenerating] = useState<boolean>(false);
 
   // Goals
@@ -264,6 +285,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
   const [activityTrackingEnabled, setActivityTrackingEnabled] = useState<boolean>(true);
   const [analyticsConsent, setAnalyticsConsent] = useState<boolean>(true);
+
+  // Dynamically update chatbot greeting message to match logged-in user name & language
+  useEffect(() => {
+    setChatMessages(prev => {
+      const initIdx = prev.findIndex(m => m.id === 'msg-init' || m.id === 'msg-init-reset');
+      if (initIdx !== -1) {
+        const next = [...prev];
+        next[initIdx] = {
+          ...next[initIdx],
+          text: getAiWelcomeGreeting(user.fullName, language)
+        };
+        return next;
+      }
+      return prev;
+    });
+  }, [user.fullName, language]);
 
   // Subscription Modal
   const [isSubscriptionModalOpen, setSubscriptionModalOpen] = useState<boolean>(false);
@@ -416,11 +453,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logout = () => {
-    setUser(prev => {
-      const updated = { ...prev, isLoggedIn: false };
-      localStorage.setItem('askio_user', JSON.stringify(updated));
-      return updated;
+    setUser({
+      fullName: '',
+      email: '',
+      phone: '',
+      password: '',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+      isLoggedIn: false,
+      isPremium: false,
+      membershipPlan: 'Free Tier',
+      joinedDate: 'September 2026'
     });
+    localStorage.removeItem('askio_user');
     setActiveTab('home');
     addActivity('bookmark', 'Logged out of Askio');
   };
@@ -516,6 +560,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const payload = {
         message: text.trim(),
         history,
+        userName: user.fullName?.trim() || undefined,
         contextResource: contextResource ? {
           id: contextResource.id,
           title: contextResource.title,
@@ -674,7 +719,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       {
         id: 'msg-init-reset',
         sender: 'ai',
-        text: 'Chat history cleared. How can I assist your learning today?',
+        text: getAiWelcomeGreeting(user.fullName, language),
         timestamp: 'Just now'
       }
     ]);

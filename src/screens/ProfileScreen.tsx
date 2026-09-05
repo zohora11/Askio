@@ -92,12 +92,21 @@ export const ProfileScreen: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [nameInput, setNameInput] = useState(user.fullName);
-  const [emailInput, setEmailInput] = useState(user.email);
-  const [phoneInput, setPhoneInput] = useState(user.phone);
+  const [nameInput, setNameInput] = useState(user.fullName || '');
+  const [emailInput, setEmailInput] = useState(user.email || '');
+  const [phoneInput, setPhoneInput] = useState(user.phone || '');
   const [passwordInput, setPasswordInput] = useState(user.password || '');
-  const [avatarInput, setAvatarInput] = useState(user.avatar);
+  const [avatarInput, setAvatarInput] = useState(user.avatar || '');
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Keep form inputs synchronized when logged-in user profile updates
+  useEffect(() => {
+    setNameInput(user.fullName || '');
+    setEmailInput(user.email || '');
+    setPhoneInput(user.phone || '');
+    setPasswordInput(user.password || '');
+    setAvatarInput(user.avatar || '');
+  }, [user.fullName, user.email, user.phone, user.password, user.avatar]);
 
   // Real user stats
   const totalSearches = recentSearches.length;
@@ -304,7 +313,7 @@ export const ProfileScreen: React.FC = () => {
           <div className="space-y-2 flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <h1 className="text-2xl sm:text-3xl font-black text-white tracking-wide leading-tight drop-shadow-md">
-                {user.fullName}
+                {user.fullName || (isBn ? 'ব্যবহারকারী' : 'Askio User')}
               </h1>
               <span className="inline-flex items-center justify-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[11px] font-bold self-center sm:self-auto">
                 <Crown className="w-3.5 h-3.5" />
@@ -751,7 +760,7 @@ export const ProfileScreen: React.FC = () => {
                 {isBn ? 'অ্যাকাউন্ট ও সেশন' : 'Account & Session'}
               </h3>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                {isBn ? `${user.fullName} এর সক্রিয় অ্যাকাউন্ট` : `Current session active for ${user.fullName}`}
+                {isBn ? `${user.fullName || 'ব্যবহারকারী'} এর সক্রিয় অ্যাকাউন্ট` : `Current session active for ${user.fullName || 'User'}`}
               </p>
             </div>
           </div>

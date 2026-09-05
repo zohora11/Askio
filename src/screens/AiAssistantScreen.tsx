@@ -167,7 +167,7 @@ const FormattedMessage: React.FC<{ content: string; isUser: boolean }> = ({ cont
 };
 
 export const AiAssistantScreen: React.FC = () => {
-  const { chatMessages, sendChatMessage, clearChatHistory, isAiGenerating, language } = useApp();
+  const { chatMessages, sendChatMessage, clearChatHistory, isAiGenerating, language, user } = useApp();
   const [inputText, setInputText] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -300,8 +300,15 @@ export const AiAssistantScreen: React.FC = () => {
               </div>
 
               {isUser && (
-                <div className="w-8 h-8 rounded-xl bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 flex items-center justify-center shrink-0 shadow-sm mt-0.5">
-                  <User className="w-4 h-4" />
+                <div 
+                  className="w-8 h-8 rounded-full overflow-hidden shrink-0 shadow-sm mt-0.5 border border-zinc-200 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-700 dark:text-zinc-200"
+                  title={user.fullName || 'User'}
+                >
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.fullName || 'User'} className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-4 h-4" />
+                  )}
                 </div>
               )}
             </div>

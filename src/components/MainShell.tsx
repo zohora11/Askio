@@ -172,7 +172,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
           >
             <img
               src={user.avatar}
-              alt={user.fullName}
+              alt={user.fullName || 'User'}
               className="w-8 h-8 rounded-full object-cover border border-zinc-300 dark:border-zinc-700 shadow-2xs"
             />
           </div>
@@ -235,12 +235,12 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
               <div className="flex items-center gap-3">
                 <img 
                   src={user.avatar} 
-                  alt={user.fullName} 
+                  alt={user.fullName || 'User'} 
                   className="w-10 h-10 rounded-full object-cover border-2 border-emerald-500 shrink-0" 
                 />
                 <div className="min-w-0">
                   <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 truncate">
-                    {user.fullName}
+                    {user.fullName || (language === 'bn' ? 'ব্যবহারকারী' : 'Askio User')}
                   </h4>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
                     {user.phone || user.email || (language === 'bn' ? 'প্রোফাইল দেখতে ট্যাপ করুন' : 'Tap to view profile')}

@@ -63,7 +63,7 @@ export const HomeScreen: React.FC = () => {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-            {t('home.welcome', language)}, {user.fullName.split(' ')[0]} 👋
+            {t('home.welcome', language)}, {user.fullName?.trim() ? user.fullName.trim().split(' ')[0] : (language === 'bn' ? 'বন্ধু' : 'Explorer')} 👋
           </h1>
 
           <p className="text-sm sm:text-base text-zinc-300 leading-relaxed font-medium max-w-xl">

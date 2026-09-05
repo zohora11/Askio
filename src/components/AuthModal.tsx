@@ -730,7 +730,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
                   id="reg-fullname-input"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder={isBn ? 'যেমন: ফাতিমা তুজ জোহরা' : 'e.g. Fatema Tuz Zohora'}
+                  placeholder={isBn ? 'যেমন: তানভীর আহমেদ' : 'e.g. Tanvir Ahmed'}
                   className="w-full pl-10 pr-3.5 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   required
                 />
