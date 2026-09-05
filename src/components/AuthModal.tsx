@@ -58,7 +58,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
     pendingPhone,
     setPendingPhone,
     language,
-    updateProfile 
+    updateProfile,
+    setActiveTab
   } = useApp();
 
   const isBn = language === 'bn';
@@ -171,6 +172,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         setTimeout(() => {
           setLoading(false);
           setAuthModalOpen(false);
+          setActiveTab('home');
           if (onLoginSuccess) onLoginSuccess();
         }, 600);
         return;
@@ -249,6 +251,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       setTimeout(() => {
         setLoading(false);
         setAuthModalOpen(false);
+        setActiveTab('home');
         if (onLoginSuccess) onLoginSuccess();
       }, 750);
     } catch (err: any) {
@@ -314,6 +317,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       setTimeout(() => {
         setLoading(false);
         setAuthModalOpen(false);
+        setActiveTab('home');
         if (onLoginSuccess) onLoginSuccess();
       }, 700);
     } catch (err: any) {
@@ -360,6 +364,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       setTimeout(() => {
         setLoading(false);
         setAuthModalOpen(false);
+        setActiveTab('home');
         if (onLoginSuccess) onLoginSuccess();
       }, 600);
     } catch (err: any) {

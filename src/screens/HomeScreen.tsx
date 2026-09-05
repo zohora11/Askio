@@ -38,6 +38,10 @@ export const HomeScreen: React.FC = () => {
   const spotlight = FEATURED_SPOTLIGHTS[0];
   const featuredResources = MOCK_RESOURCES.slice(0, 4);
 
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
   const handleQuickSearch = (query: string) => {
     setSearchQuery(query);
     setActiveTab('search');
@@ -51,7 +55,7 @@ export const HomeScreen: React.FC = () => {
   return (
     <div className="space-y-8 pb-12 animate-fade-in">
       {/* Top Welcome Hero Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white rounded-3xl px-6 sm:px-10 py-10 sm:py-16 shadow-2xl relative overflow-hidden border border-zinc-800/80 min-h-[260px] sm:min-h-[320px]">
+      <div id="home-greeting-section" className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white rounded-3xl px-6 sm:px-10 py-10 sm:py-16 shadow-2xl relative overflow-hidden border border-zinc-800/80 min-h-[260px] sm:min-h-[320px]">
         {/* Ambient Decorative Lighting Aura */}
         <div className="absolute -top-24 -right-24 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
@@ -62,8 +66,8 @@ export const HomeScreen: React.FC = () => {
             <span>{t('home.badge', language)}</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-            {t('home.welcome', language)}, {user.fullName?.trim() ? user.fullName.trim().split(' ')[0] : (language === 'bn' ? 'বন্ধু' : 'Explorer')} 👋
+          <h1 id="home-greeting-heading" className="text-3xl sm:text-5xl font-black tracking-tight leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+            {language === 'bn' ? 'হ্যালো' : 'Hello'} {user.fullName?.trim() ? user.fullName.trim().split(' ')[0] : (language === 'bn' ? 'ইউজার' : 'User')} 👋
           </h1>
 
           <p className="text-sm sm:text-base text-zinc-300 leading-relaxed font-medium max-w-xl">

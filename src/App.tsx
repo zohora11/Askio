@@ -10,7 +10,7 @@ import { LandingPage } from './components/LandingPage';
 import { APP_LOGO_URL } from './constants/branding';
 
 function AppContent() {
-  const { user } = useApp();
+  const { user, setActiveTab } = useApp();
   const [previewLandingPage, setPreviewLandingPage] = useState(false);
 
   useEffect(() => {
@@ -25,12 +25,27 @@ function AppContent() {
     link.href = APP_LOGO_URL;
   }, []);
 
+  // When user logs in, strictly redirect directly to the Home screen greeting section
+  useEffect(() => {
+    if (user.isLoggedIn) {
+      setActiveTab('home');
+      setPreviewLandingPage(false);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [user.isLoggedIn, setActiveTab]);
+
+  const handleEnterApp = () => {
+    setActiveTab('home');
+    setPreviewLandingPage(false);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
   // When user is not logged in, or when someone explicitly opens the landing page:
   // Show LandingPage first!
   if (!user.isLoggedIn || previewLandingPage) {
     return (
       <LandingPage
-        onEnterApp={() => setPreviewLandingPage(false)}
+        onEnterApp={handleEnterApp}
       />
     );
   }

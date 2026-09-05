@@ -388,6 +388,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // User Profile
   const updateProfile = (updated: Partial<UserProfile>) => {
+    if (updated.isLoggedIn) {
+      setActiveTab('home');
+    }
     setUser(prev => {
       const next = { ...prev, ...updated };
       // Save to Firestore asynchronously
@@ -417,6 +420,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isLoggedIn: true,
         phone: pendingPhone
       }));
+      setActiveTab('home');
       setAuthModalOpen(false);
       addActivity('search', `Signed in via Phone verification (${pendingPhone})`);
       return true;
@@ -430,6 +434,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       email,
       isLoggedIn: true
     }));
+    setActiveTab('home');
     setAuthModalOpen(false);
     addActivity('search', `Signed in with Email: ${email}`);
     return true;
@@ -447,6 +452,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       membershipPlan: 'Free Tier',
       joinedDate: 'September 2026'
     });
+    setActiveTab('home');
     setAuthModalOpen(false);
     addActivity('search', `Registered new account: ${name}`);
     return true;

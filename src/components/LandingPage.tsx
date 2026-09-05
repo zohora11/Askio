@@ -84,7 +84,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     setAuthModalOpen, 
     setAuthView,
     setPendingPhone,
-    updateProfile
+    updateProfile,
+    setActiveTab
   } = useApp();
 
   const isBn = language === 'bn';
@@ -314,6 +315,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         setStatusMessage(isBn ? 'এই ডিভাইসে আপনার পাসওয়ার্ড সেভ করা আছে! সরাসরি অ্যাপে প্রবেশ করা হচ্ছে...' : 'Device recognized! Accessing app directly without password...');
         setTimeout(() => {
           setStatusMessage('');
+          setActiveTab('home');
           if (onEnterApp) onEnterApp();
         }, 600);
         return;
@@ -1758,6 +1760,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         onClose={() => setIsOtpModalOpen(false)}
         onSuccess={() => {
           setIsOtpModalOpen(false);
+          setActiveTab('home');
           if (onEnterApp) onEnterApp();
         }}
         onChangePhone={() => {
@@ -1771,6 +1774,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       {/* Dedicated Global Phone Log In Modal */}
       <AuthModal 
         onLoginSuccess={() => {
+          setActiveTab('home');
           if (onEnterApp) onEnterApp();
         }}
       />
