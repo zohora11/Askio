@@ -100,7 +100,7 @@ async function startServer() {
     const key = resolveGeminiApiKey();
     res.json({
       status: "ok",
-      model: "gemini-2.5-flash",
+      model: "gemini-flash-latest",
       apiKeyConfigured: Boolean(key),
       keyDetectedFrom: key ? "Environment Variables" : "None",
       maskedKey: key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : null,
@@ -126,13 +126,13 @@ async function startServer() {
       try {
         const ai = getAiClient(key);
         const response = await ai.models.generateContent({
-          model: "gemini-3.6-flash",
+          model: "gemini-flash-latest",
           contents: "Respond with the single phrase: 'Askio AI connection test successful!'",
         });
         return res.json({
           ok: true,
           message: response.text || "Connection verified successfully!",
-          model: "gemini-3.6-flash",
+          model: "gemini-flash-latest",
           apiKeyMasked: `${key.substring(0, 4)}...${key.substring(key.length - 4)}`,
         });
       } catch (err: any) {
@@ -280,9 +280,9 @@ Directly integrate relevant insights from this resource to answer the user's inq
 
       // Prioritize modern, high-speed, valid Gemini models based on user architecture
       const candidateModels = [
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
         "gemini-3.6-flash",
-        "gemini-3.8-flash",
-        "gemini-3.1-flash-lite",
       ];
       let replyText = "";
       let lastError: any = null;
@@ -309,7 +309,7 @@ Directly integrate relevant insights from this resource to answer the user's inq
             });
 
             const timeoutPromise = new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 14000)
+              setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 25000)
             );
 
             const response = await Promise.race([generatePromise, timeoutPromise]);
