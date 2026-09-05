@@ -100,7 +100,7 @@ async function startServer() {
     const key = resolveGeminiApiKey();
     res.json({
       status: "ok",
-      model: "gemini-3.8-flash",
+      model: "gemini-2.5-flash",
       apiKeyConfigured: Boolean(key),
       keyDetectedFrom: key ? "Environment Variables" : "None",
       maskedKey: key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : null,
@@ -126,13 +126,13 @@ async function startServer() {
       try {
         const ai = getAiClient(key);
         const response = await ai.models.generateContent({
-          model: "gemini-3.8-flash",
+          model: "gemini-3.6-flash",
           contents: "Respond with the single phrase: 'Askio AI connection test successful!'",
         });
         return res.json({
           ok: true,
           message: response.text || "Connection verified successfully!",
-          model: "gemini-3.8-flash",
+          model: "gemini-3.6-flash",
           apiKeyMasked: `${key.substring(0, 4)}...${key.substring(key.length - 4)}`,
         });
       } catch (err: any) {
@@ -278,10 +278,10 @@ Directly integrate relevant insights from this resource to answer the user's inq
         contents.push({ role: "user", parts: [{ text: message.trim() }] });
       }
 
-      // Prioritize modern, high-speed, valid Gemini models
+      // Prioritize modern, high-speed, valid Gemini models based on user architecture
       const candidateModels = [
-        "gemini-3.8-flash",
         "gemini-3.6-flash",
+        "gemini-3.8-flash",
         "gemini-3.1-flash-lite",
       ];
       let replyText = "";

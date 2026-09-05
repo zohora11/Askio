@@ -511,8 +511,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           text: m.text
         }));
 
-      const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
-      const endpoint = `${apiBase}/api/chat`;
+      const endpoint = `/api/chat`;
 
       const payload = {
         message: text.trim(),
@@ -619,8 +618,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           } else {
             throw new Error(
               language === 'bn'
-                ? 'সার্ভার থেকে সঠিক তথ্য পাওয়া যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।'
-                : 'Invalid response received from server. Please retry.'
+                ? 'সার্ভার থেকে এপিআইয়ের বদলে ওয়েবপেজ (HTML) পাওয়া গেছে। আপনি যদি Render বা Vercel-এ হোস্ট করে থাকেন, তবে নিশ্চিত করুন এটি "Web Service" হিসেবে চলছে, "Static Site" হিসেবে নয়।'
+                : 'API returned an HTML webpage instead of JSON. If deployed on Render/Vercel, ensure it is configured as a "Web Service" (Node.js) and not a "Static Site".'
             );
           }
         }
