@@ -378,7 +378,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   };
 
   const handleOpenLogin = () => {
-    setAuthView('phone');
+    setAuthView('firebase_login');
     setAuthModalOpen(true);
   };
 

@@ -40,6 +40,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { UnsubscribeModal } from '../components/UnsubscribeModal';
+import { LogoutModal } from '../components/LogoutModal';
 import { unsubscribe, clearSubscriptionSession, unmarkLocalSubscriber } from '../services/bdapps';
 import { logoutFirebaseUser } from '../services/firebase';
 import { clearDeviceTrustForPhone } from '../services/deviceTrust';
@@ -68,6 +69,7 @@ export const ProfileScreen: React.FC = () => {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isUnsubscribeModalOpen, setIsUnsubscribeModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeActivityTab, setActiveActivityTab] = useState<'all' | 'ai' | 'search' | 'bookmark'>('all');
@@ -771,13 +773,10 @@ export const ProfileScreen: React.FC = () => {
             {/* Logout Option */}
             <button
               id="profile-main-logout-btn"
-              onClick={async () => {
-                await logoutFirebaseUser();
-                logout();
-              }}
+              onClick={() => setIsLogoutModalOpen(true)}
               className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4 text-rose-500" />
               <span>{isBn ? 'লগ আউট ফ্রম আস্কিও' : 'Log Out from Askio'}</span>
             </button>
 
@@ -793,6 +792,16 @@ export const ProfileScreen: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={async () => {
+          await logoutFirebaseUser();
+          logout();
+        }}
+      />
 
       {/* Unsubscribe Confirmation Modal */}
       <UnsubscribeModal

@@ -23,7 +23,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { saveDeviceTrustForPhone } from './deviceTrust';
+import { saveDeviceTrustForPhone, getTrustedDeviceUser } from './deviceTrust';
 
 // Initialize Firebase App
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -33,6 +33,8 @@ export const db = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestore
   ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
   : getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
+
+export const DEFAULT_AVATAR = `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80`;
 
 export interface FirestoreUserData {
   uid: string;
@@ -144,108 +146,115 @@ export async function registerFirebaseUser(params: {
 /**
  * Sign in user with Email & Password via Firebase Auth or Firestore credential verification
  */
-export async function loginFirebaseUser(email: string, password: string): Promise<FirestoreUserData> {
-  const cleanEmail = email.trim().toLowerCase();
+export async function loginFirebaseUser(identifier: string, password: string): Promise<FirestoreUserData> {
+  const cleanInput = identifier.trim();
   const inputHash = simpleHash(password);
 
-  try {
+  if (!cleanInput) {
+    const err: any = new Error('Please enter your email or mobile number.');
+    err.code = 'auth/invalid-email';
+    throw err;
+  }
+
+  const isEmail = cleanInput.includes('@');
+
+  if (isEmail) {
+    const cleanEmail = cleanInput.toLowerCase();
+
     // 1. Try Firebase Auth sign in
-    const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
-    const firebaseUser = userCredential.user;
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
+      const firebaseUser = userCredential.user;
 
-    const userDocRef = doc(db, 'users', firebaseUser.uid);
-    const userSnap = await getDoc(userDocRef);
+      const userDocRef = doc(db, 'users', firebaseUser.uid);
+      const userSnap = await getDoc(userDocRef);
 
-    if (userSnap.exists()) {
-      const uData = userSnap.data() as FirestoreUserData;
-      // If Firestore profile has passwordHash, double check for consistency
-      if (uData.passwordHash && uData.passwordHash !== inputHash) {
-        const wrongPassError: any = new Error('Wrong password');
-        wrongPassError.code = 'auth/wrong-password';
-        throw wrongPassError;
-      }
-      return uData;
-    }
-
-    return {
-      uid: firebaseUser.uid,
-      fullName: firebaseUser.displayName || 'Subscribed Member',
-      email: firebaseUser.email || cleanEmail,
-      phone: '',
-      isPremium: true,
-      membershipPlan: 'BDApps Daily (৳2.78/day)'
-    };
-  } catch (authErr: any) {
-    console.warn('Firebase Auth login notice:', authErr.code || authErr.message);
-
-    // If Firebase Auth threw wrong-password, directly fail with wrong password
-    if (authErr.code === 'auth/wrong-password') {
-      throw authErr;
-    }
-
-    // If Email/Password provider in Firebase threw invalid-credential, user-not-found, or operation-not-allowed:
-    if (
-      authErr.code === 'auth/operation-not-allowed' || 
-      authErr.code === 'auth/user-not-found' ||
-      authErr.code === 'auth/invalid-credential' ||
-      authErr.code === 'auth/invalid-login-credentials' ||
-      authErr.message?.includes('operation-not-allowed')
-    ) {
-      // Check Firestore directly for user with this email
-      try {
-        const usersRef = collection(db, 'users');
-        const q = query(usersRef, where('email', '==', cleanEmail));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-          const docData = querySnapshot.docs[0].data() as FirestoreUserData;
-          if (docData.passwordHash) {
-            if (docData.passwordHash === inputHash) {
-              return docData;
-            } else {
-              const wrongPassError: any = new Error('Wrong password');
-              wrongPassError.code = 'auth/wrong-password';
-              throw wrongPassError;
-            }
-          } else {
-            // User exists in Firestore but has no password (e.g. Google-only account)
-            const wrongPassError: any = new Error('Wrong password');
-            wrongPassError.code = 'auth/wrong-password';
-            throw wrongPassError;
-          }
+      if (userSnap.exists()) {
+        const uData = userSnap.data() as FirestoreUserData;
+        if (uData.passwordHash && uData.passwordHash !== inputHash) {
+          const wrongPassError: any = new Error('Wrong password');
+          wrongPassError.code = 'auth/wrong-password';
+          throw wrongPassError;
         }
-      } catch (fsErr: any) {
-        if (fsErr.code === 'auth/wrong-password') throw fsErr;
+        return uData;
       }
 
-      // Check localStorage cache
+      return {
+        uid: firebaseUser.uid,
+        fullName: firebaseUser.displayName || 'Askio Member',
+        email: firebaseUser.email || cleanEmail,
+        phone: '',
+        isPremium: true,
+        membershipPlan: 'BDApps Daily (৳2.78/day)',
+        avatar: firebaseUser.photoURL || DEFAULT_AVATAR
+      };
+    } catch (authErr: any) {
+      console.warn('Firebase Auth email login notice:', authErr.code || authErr.message);
+
+      if (authErr.code === 'auth/wrong-password') {
+        throw authErr;
+      }
+
+      // Check Firestore directly by email
+      const userByEmail = await findUserByEmail(cleanEmail);
+      if (userByEmail) {
+        if (userByEmail.passwordHash && userByEmail.passwordHash !== inputHash) {
+          const wrongPassError: any = new Error('Wrong password');
+          wrongPassError.code = 'auth/wrong-password';
+          throw wrongPassError;
+        }
+        return userByEmail;
+      }
+
+      // Fallback check device trust
       const cached = localStorage.getItem(`askio_user_by_email_${cleanEmail}`);
       if (cached) {
         try {
           const parsed = JSON.parse(cached) as FirestoreUserData;
-          if (parsed.passwordHash) {
-            if (parsed.passwordHash === inputHash) {
-              return parsed;
-            } else {
-              const wrongPassError: any = new Error('Wrong password');
-              wrongPassError.code = 'auth/wrong-password';
-              throw wrongPassError;
-            }
+          if (parsed.passwordHash && parsed.passwordHash === inputHash) {
+            return parsed;
           }
-        } catch (storageErr: any) {
-          if (storageErr.code === 'auth/wrong-password') throw storageErr;
+        } catch {
+          // ignore
         }
       }
 
-      // If invalid-credential was thrown, it means wrong password for an existing account in Firebase Auth
       if (authErr.code === 'auth/invalid-credential' || authErr.code === 'auth/invalid-login-credentials') {
         const wrongPassError: any = new Error('Wrong password');
         wrongPassError.code = 'auth/wrong-password';
         throw wrongPassError;
       }
+
+      throw authErr;
+    }
+  } else {
+    // Phone number login flow!
+    const cleanPhone = cleanInput;
+    const userByPhone = await findUserByPhone(cleanPhone);
+
+    if (userByPhone) {
+      if (userByPhone.passwordHash && userByPhone.passwordHash !== inputHash) {
+        const wrongPassError: any = new Error('Wrong password');
+        wrongPassError.code = 'auth/wrong-password';
+        throw wrongPassError;
+      }
+      return userByPhone;
     }
 
-    throw authErr;
+    // Check device trust for this phone
+    const trusted = getTrustedDeviceUser(cleanPhone);
+    if (trusted) {
+      if (trusted.passwordHash && trusted.passwordHash !== inputHash) {
+        const wrongPassError: any = new Error('Wrong password');
+        wrongPassError.code = 'auth/wrong-password';
+        throw wrongPassError;
+      }
+      return trusted as FirestoreUserData;
+    }
+
+    const notFoundError: any = new Error('No user found with this mobile number.');
+    notFoundError.code = 'auth/user-not-found';
+    throw notFoundError;
   }
 }
 
@@ -283,10 +292,22 @@ export async function findUserByPhone(phone: string): Promise<FirestoreUserData 
   const cleanPhone = phone.trim();
   if (!cleanPhone) return null;
 
+  // Extract digits only for Bangladeshi mobile numbers (e.g., 018XXXXXXXX)
+  const digitsOnly = cleanPhone.replace(/\D/g, '');
+  let bdClean = cleanPhone;
+  if (digitsOnly.length >= 11) {
+    bdClean = '0' + digitsOnly.slice(-10); // e.g. 01812345678
+  }
+
   try {
     const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('phone', '==', cleanPhone));
-    const querySnapshot = await getDocs(q);
+    let q = query(usersRef, where('phone', '==', cleanPhone));
+    let querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty && bdClean !== cleanPhone) {
+      q = query(usersRef, where('phone', '==', bdClean));
+      querySnapshot = await getDocs(q);
+    }
 
     if (!querySnapshot.empty) {
       const docData = querySnapshot.docs[0].data();
@@ -297,13 +318,18 @@ export async function findUserByPhone(phone: string): Promise<FirestoreUserData 
   }
 
   // Fallback to local cache
-  const cached = localStorage.getItem(`askio_user_by_phone_${cleanPhone}`);
-  if (cached) {
+  const cachedBD = localStorage.getItem(`askio_user_by_phone_${bdClean}`);
+  if (cachedBD) {
     try {
-      return JSON.parse(cached) as FirestoreUserData;
-    } catch (e) {
-      // ignore
-    }
+      return JSON.parse(cachedBD) as FirestoreUserData;
+    } catch { /* ignore */ }
+  }
+
+  const cachedExact = localStorage.getItem(`askio_user_by_phone_${cleanPhone}`);
+  if (cachedExact) {
+    try {
+      return JSON.parse(cachedExact) as FirestoreUserData;
+    } catch { /* ignore */ }
   }
 
   return null;

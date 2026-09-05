@@ -36,6 +36,8 @@ import { AppLogo } from './AppLogo';
 import { ChatbotAvatar } from './ChatbotAvatar';
 import { SubscriptionModal } from './SubscriptionModal';
 import { DailyWellnessModal } from './DailyWellnessModal';
+import { LogoutModal } from './LogoutModal';
+import { logoutFirebaseUser } from '../services/firebase';
 import { t } from '../constants/translations';
 
 interface MainShellProps {
@@ -53,10 +55,12 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
     theme,
     setTheme,
     setSubscriptionModalOpen,
-    setAuthModalOpen 
+    setAuthModalOpen,
+    logout
   } = useApp();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const toggleTheme = () => {
     if (theme === 'dark') {
@@ -164,6 +168,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
             id="appbar-avatar-btn"
             onClick={() => setActiveTab('profile')}
             className="flex items-center gap-2 cursor-pointer p-1 rounded-full hover:ring-2 hover:ring-emerald-500 transition-all"
+            title={language === 'bn' ? 'মাই প্রোফাইল' : 'My Profile'}
           >
             <img
               src={user.avatar}
@@ -171,6 +176,17 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
               className="w-8 h-8 rounded-full object-cover border border-zinc-300 dark:border-zinc-700 shadow-2xs"
             />
           </div>
+
+          {/* Header Logout Button */}
+          <button
+            id="appbar-logout-btn"
+            onClick={() => setIsLogoutModalOpen(true)}
+            className="p-2 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 text-xs font-semibold hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 text-zinc-600 dark:text-zinc-400 transition-colors flex items-center justify-center cursor-pointer ml-0.5"
+            title={language === 'bn' ? 'লগআউট করুন' : 'Log Out'}
+            aria-label="Log Out"
+          >
+            <LogOut className="w-4 h-4 text-rose-500" />
+          </button>
         </div>
 
         {/* Mobile Three-Lines Hamburger Menu Button (visible on mobile only) */}
@@ -320,6 +336,24 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
                   <ChevronRight className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 </button>
               )}
+
+              {/* 6. Mobile Logout Option */}
+              <button
+                id="mobile-menu-logout"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsLogoutModalOpen(true);
+                }}
+                className="w-full p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 flex items-center justify-between text-left text-rose-700 dark:text-rose-300 font-bold text-sm hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-all cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0">
+                    <LogOut className="w-4 h-4" />
+                  </div>
+                  <span>{language === 'bn' ? 'লগআউট করুন' : 'Log Out'}</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-rose-500" />
+              </button>
             </div>
           </div>
         </div>
@@ -460,6 +494,14 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
       <AuthModal />
       <SubscriptionModal />
       <DailyWellnessModal />
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={async () => {
+          await logoutFirebaseUser();
+          logout();
+        }}
+      />
     </div>
   );
 };

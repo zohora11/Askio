@@ -266,40 +266,44 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  // STEP 3: Firebase Account Login (for returning users on new device / after logout)
+  // STEP 3: Firebase Account Login (for returning users via Email or Mobile Number)
   const handleFirebaseLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (!email.trim() || !email.includes('@')) {
-      setErrorMsg(isBn ? 'সঠিক ইমেইল ঠিকানা দিন।' : 'Please enter a valid email.');
+    const loginInput = email.trim();
+    if (!loginInput) {
+      setErrorMsg(isBn ? 'ইমেইল অথবা মোবাইল নম্বর প্রবেশ করান।' : 'Please enter your email or mobile number.');
       return;
     }
 
     if (!password) {
-      setErrorMsg(isBn ? 'পাসওয়ার্ড দিন।' : 'Please enter your password.');
+      setErrorMsg(isBn ? 'পাসওয়ার্ড প্রদান করুন।' : 'Please enter your password.');
       return;
     }
 
     setLoading(true);
     try {
-      // 1. Sign in via Firebase Auth & fetch profile from Firestore
-      const loggedInUser = await loginFirebaseUser(email.trim().toLowerCase(), password);
+      // 1. Sign in via Firebase Auth / Firestore lookup with Email or Phone Number
+      const loggedInUser = await loginFirebaseUser(loginInput, password);
 
-      const userPhone = loggedInUser.phone || phoneInput.trim() || pendingPhone.trim() || '018XXXXXXXX';
+      const userPhone = loggedInUser.phone || (loginInput.startsWith('01') ? loginInput : (phoneInput.trim() || pendingPhone.trim()));
 
       // 2. Mark subscriber active locally & save device trust
-      markLocalSubscriber(userPhone);
-      storeSubscriberSession(userPhone);
-      saveDeviceTrustForPhone(userPhone, loggedInUser);
+      if (userPhone) {
+        markLocalSubscriber(userPhone);
+        storeSubscriberSession(userPhone);
+        saveDeviceTrustForPhone(userPhone, loggedInUser);
+      }
 
-      // 3. Update global App Context
+      // 3. Update global App Context (including avatar!)
       updateProfile({
         uid: loggedInUser.uid,
         fullName: loggedInUser.fullName || 'Askio Member',
-        email: loggedInUser.email,
+        email: loggedInUser.email || (loginInput.includes('@') ? loginInput : ''),
         phone: userPhone,
+        avatar: loggedInUser.avatar || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80`,
         isLoggedIn: true,
         isPremium: true,
         membershipPlan: loggedInUser.membershipPlan || 'BDApps Daily (৳2.78/day)'
@@ -314,16 +318,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       }, 700);
     } catch (err: any) {
       console.error('Firebase login error:', err);
-      let msg = isBn ? 'ইমেইল বা পাসওয়ার্ড সঠিক নয়।' : 'Invalid email or password.';
+      let msg = isBn ? 'ইমেইল/ফোন নম্বর বা পাসওয়ার্ড সঠিক নয়।' : 'Invalid credentials. Please check your details.';
       if (err.code === 'auth/user-not-found') {
-        msg = isBn ? 'এই ইমেইলে কোনো অ্যাকাউন্ট পাওয়া যায়নি।' : 'No account found with this email.';
+        msg = isBn ? 'এই তথ্য দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি। অনুগ্রহ করে রেজিস্ট্রেশন বা সাবস্ক্রাইব করুন।' : 'No account found with these details. Please register or subscribe.';
       } else if (
         err.code === 'auth/wrong-password' || 
         err.code === 'auth/invalid-credential' || 
         err.code === 'auth/invalid-login-credentials' ||
         err.message?.toLowerCase().includes('password')
       ) {
-        msg = isBn ? 'ভুল পাসওয়ার্ড! সঠিক পাসওয়ার্ড দিন।' : 'Incorrect password. Please enter the correct password.';
+        msg = isBn ? 'ভুল পাসওয়ার্ড! সঠিক পাসওয়ার্ড লিখুন।' : 'Incorrect password. Please try again.';
       }
       setErrorMsg(msg);
       setLoading(false);
@@ -840,22 +844,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
               </div>
             )}
 
-            {/* Email */}
+            {/* Email or Phone Number */}
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                {isBn ? 'ইমেইল ঠিকানা (Email Address)' : 'Email Address'}
+                {isBn ? 'ইমেইল অথবা মোবাইল নম্বর' : 'Email Address or Mobile Number'}
               </label>
               <div className="relative flex items-center">
                 <div className="absolute left-3 text-zinc-400">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
-                  type="email"
+                  type="text"
                   id="login-email-input"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="yourname@gmail.com"
-                  className="w-full pl-10 pr-3.5 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  placeholder={isBn ? "ইমেইল (e.g. user@gmail.com) বা মোবাইল (e.g. 018XXXXXXXX)" : "yourname@gmail.com or 018XXXXXXXX"}
+                  className="w-full pl-10 pr-3.5 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-mono text-xs sm:text-sm"
                   required
                 />
               </div>
