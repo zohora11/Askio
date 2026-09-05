@@ -82,6 +82,7 @@ export interface ChatMessage {
   sender: 'user' | 'ai';
   text: string;
   timestamp: string;
+  isError?: boolean;
   contextResource?: {
     id: string;
     title: string;

@@ -6,9 +6,65 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+/**
+ * Universal Gemini API Key Resolver
+ * Detects GEMINI_API_KEY, GEMINI_API_KEY_1, and other case variations on Render
+ */
+function resolveAllGeminiApiKeys(): string[] {
+  const keys: Set<string> = new Set();
+  
+  const directMatches = [
+    process.env.GEMINI_API_KEY,
+    process.env.GEMINI_API_KEY_1,
+    process.env.GEMINI_API_KEY_2,
+    process.env.Gemini_API_key,
+    process.env.gemini_api_key,
+    process.env.GEMINI_APIKEY,
+    process.env.GEMINI_KEY,
+    process.env.GOOGLE_API_KEY,
+    process.env.GOOGLE_GENAI_API_KEY,
+    process.env.VITE_GEMINI_API_KEY,
+    process.env.VITE_API_KEY,
+  ];
+
+  for (const val of directMatches) {
+    if (val && typeof val === "string" && val.trim().length > 0) {
+      keys.add(val.trim().replace(/^['"]|['"]$/g, ""));
+    }
+  }
+
+  for (const [key, val] of Object.entries(process.env)) {
+    if (!val || typeof val !== "string" || !val.trim()) continue;
+    const lower = key.toLowerCase();
+    if (
+      lower.startsWith("gemini_api_key") ||
+      lower === "geminiapikey" ||
+      lower === "gemini_key" ||
+      lower === "google_api_key" ||
+      lower === "google_genai_api_key" ||
+      (lower.includes("gemini") && lower.includes("key"))
+    ) {
+      keys.add(val.trim().replace(/^['"]|['"]$/g, ""));
+    }
+  }
+
+  return Array.from(keys);
+}
+
+function resolveGeminiApiKey(): string | undefined {
+  const keys = resolveAllGeminiApiKeys();
+  return keys.length > 0 ? keys[0] : undefined;
+}
+
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+
+  // Google AI Studio uses an internal nginx reverse proxy routing strictly to port 3000.
+  // When hosted on Render or cloud hosts, Render sets RENDER=true and assigns a dynamic PORT (e.g., 10000).
+  const isAiStudioEnv = Boolean(process.env.APPLET_ID || process.env.CONTROL_PLANE_PORT || process.env.K_SERVICE);
+  const PORT = (!isAiStudioEnv && process.env.PORT)
+    ? parseInt(process.env.PORT, 10)
+    : 3000;
 
   // Global CORS and Header configuration to ensure smooth mobile and proxy communication
   app.use((req, res, next) => {
@@ -23,9 +79,9 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Lazy initialize GoogleGenAI client
-  function getAiClient(): GoogleGenAI {
-    const apiKey = process.env.GEMINI_API_KEY;
+  // Lazy initialize GoogleGenAI client with specific key
+  function getAiClient(keyToUse?: string): GoogleGenAI {
+    const apiKey = keyToUse || resolveGeminiApiKey();
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY environment variable is missing.");
     }
@@ -41,10 +97,53 @@ async function startServer() {
 
   // --- API ROUTES FIRST ---
   app.get("/api/health", (req, res) => {
+    const key = resolveGeminiApiKey();
     res.json({
       status: "ok",
       model: "gemini-3.8-flash",
-      apiKeyConfigured: Boolean(process.env.GEMINI_API_KEY),
+      apiKeyConfigured: Boolean(key),
+      keyDetectedFrom: key ? "Environment Variables" : "None",
+      maskedKey: key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : null,
+      environment: process.env.NODE_ENV || "development",
+      render: Boolean(process.env.RENDER),
+      port: PORT,
+    });
+  });
+
+  // Diagnostic endpoint to test Gemini API connection directly
+  app.get("/api/test-gemini", async (req, res) => {
+    const availableKeys = resolveAllGeminiApiKeys();
+    if (availableKeys.length === 0) {
+      return res.status(500).json({
+        ok: false,
+        error: "No GEMINI_API_KEY is configured. Please add GEMINI_API_KEY in Render dashboard environment variables.",
+      });
+    }
+
+    let lastError: any = null;
+    
+    for (const key of availableKeys) {
+      try {
+        const ai = getAiClient(key);
+        const response = await ai.models.generateContent({
+          model: "gemini-3.8-flash",
+          contents: "Respond with the single phrase: 'Askio AI connection test successful!'",
+        });
+        return res.json({
+          ok: true,
+          message: response.text || "Connection verified successfully!",
+          model: "gemini-3.8-flash",
+          apiKeyMasked: `${key.substring(0, 4)}...${key.substring(key.length - 4)}`,
+        });
+      } catch (err: any) {
+        lastError = err;
+        console.error("Diagnostic test-gemini error with key:", err?.message || err);
+      }
+    }
+    
+    return res.status(502).json({
+      ok: false,
+      error: lastError?.message || "Failed to contact Gemini API with any available keys.",
     });
   });
 
@@ -103,14 +202,14 @@ async function startServer() {
         return res.status(400).json({ error: "Message is required" });
       }
 
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
+      // Get all available API keys for fallback support
+      const availableApiKeys = resolveAllGeminiApiKeys();
+      if (availableApiKeys.length === 0) {
+        console.error("Gemini API Key missing on server! Checked: GEMINI_API_KEY, GEMINI_API_KEY_1, GOOGLE_API_KEY, etc.");
         return res.status(500).json({
-          error: "GEMINI_API_KEY is not configured on the server. Please ensure the API key is set in Settings > Secrets.",
+          error: "GEMINI_API_KEY is not configured on the server. On Render, please add 'GEMINI_API_KEY' in your Environment Variables dashboard.",
         });
       }
-
-      const ai = getAiClient();
 
       // Fluent, appropriate, concise, and natural answer directives
       let systemInstruction = `You are Askio AI, the universal search engine, discovery platform, and knowledge assistant. Askio empowers users to search for ANYTHING — Books, PDFs, Video Tutorials, Articles, Research Papers, Web Links, Code, and Tools — and ask AI for instant answers, summaries, learning roadmaps, analysis, and problem solving.
@@ -179,42 +278,59 @@ Directly integrate relevant insights from this resource to answer the user's inq
         contents.push({ role: "user", parts: [{ text: message.trim() }] });
       }
 
-      // Prioritize modern, valid Gemini models as per @google/genai SDK guidelines
+      // Prioritize modern, high-speed, valid Gemini models
       const candidateModels = [
+        "gemini-3.8-flash",
         "gemini-3.6-flash",
         "gemini-3.1-flash-lite",
-        "gemini-3.8-flash",
-        "gemini-flash-latest",
       ];
       let replyText = "";
       let lastError: any = null;
 
-      for (const model of candidateModels) {
-        try {
-          const generatePromise = ai.models.generateContent({
-            model,
-            contents,
-            config: {
-              systemInstruction,
-              temperature: 0.7,
-              maxOutputTokens: 1000,
-            },
-          });
+      // Outer loop: Try each API key (Fallback mechanism)
+      for (const apiKey of availableApiKeys) {
+        if (replyText) break; // Exit if we already got a successful reply
 
-          const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 20000)
-          );
+        const ai = getAiClient(apiKey);
+        const maskedKey = `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}`;
+        
+        // Inner loop: Try each model with the current API key
+        for (const model of candidateModels) {
+          try {
+            console.log(`Trying model ${model} with API key ${maskedKey}`);
+            const generatePromise = ai.models.generateContent({
+              model,
+              contents,
+              config: {
+                systemInstruction,
+                temperature: 0.7,
+                maxOutputTokens: 1000,
+              },
+            });
 
-          const response = await Promise.race([generatePromise, timeoutPromise]);
+            const timeoutPromise = new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 14000)
+            );
 
-          if (response && response.text) {
-            replyText = response.text;
-            break;
+            const response = await Promise.race([generatePromise, timeoutPromise]);
+
+            if (response && response.text) {
+              replyText = response.text;
+              break; // Success! Break out of the inner model loop
+            }
+          } catch (err: any) {
+            lastError = err;
+            console.error(`Gemini API error on model ${model} with key ${maskedKey}:`, err?.message || err);
+            
+            // If the error is related to quota (429) or authentication, it might be better to switch the API key immediately
+            // rather than trying other models with the same exhausted/invalid key.
+            const errMsg = (err?.message || "").toLowerCase();
+            if (errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("resource_exhausted") || errMsg.includes("api_key_invalid")) {
+              console.log(`API key ${maskedKey} appears exhausted or invalid. Switching to next key if available.`);
+              break; // Break out of inner model loop to try the next API key
+            }
+            // Otherwise, it might be a model-specific error (e.g. 503 Overloaded), so continue to next model
           }
-        } catch (err: any) {
-          lastError = err;
-          console.error(`Gemini API error on model ${model}:`, err?.message || err);
-          // Fallback to next model in candidateModels
         }
       }
 
@@ -238,12 +354,21 @@ Directly integrate relevant insights from this resource to answer the user's inq
     }
   };
 
+  // Support health/status check on chat endpoint
+  app.get(["/api/chat", "/api/chat/", "/api/ai/chat"], (req, res) => {
+    res.json({
+      status: "ok",
+      endpoint: "/api/chat",
+      method: "POST",
+      ready: Boolean(resolveGeminiApiKey()),
+    });
+  });
+
   // Support both /api/chat and /api/ai/chat endpoints
-  app.post("/api/chat", handleChat);
-  app.post("/api/ai/chat", handleChat);
+  app.post(["/api/chat", "/api/chat/", "/api/ai/chat", "/api/ai/chat/"], handleChat);
 
   // Ensure any unmatched /api route returns JSON, never the HTML SPA fallback
-  app.all("/api/*", (req, res) => {
+  app.all(["/api/*", "/api"], (req, res) => {
     res.status(404).json({ error: `API endpoint ${req.method} ${req.path} not found` });
   });
 

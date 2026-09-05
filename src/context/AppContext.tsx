@@ -511,25 +511,63 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           text: m.text
         }));
 
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          message: text.trim(),
-          history,
-          contextResource: contextResource ? {
-            id: contextResource.id,
-            title: contextResource.title,
-            category: contextResource.category,
-            format: contextResource.format,
-            description: contextResource.description,
-            author: contextResource.author
-          } : undefined
-        })
-      });
+      const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+      const endpoint = `${apiBase}/api/chat`;
+
+      const payload = {
+        message: text.trim(),
+        history,
+        contextResource: contextResource ? {
+          id: contextResource.id,
+          title: contextResource.title,
+          category: contextResource.category,
+          format: contextResource.format,
+          description: contextResource.description,
+          author: contextResource.author
+        } : undefined
+      };
+
+      // Resilient fetch with automatic single retry for server boot/cold starts
+      let response: Response | null = null;
+      let lastFetchErr: any = null;
+
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          // Break early if successful or normal client response
+          if (response.ok || (response.status >= 400 && response.status < 500)) {
+            break;
+          }
+
+          // If cold-starting on Render or temporary proxy delay (502/503/504), retry once after 1.5s
+          if (attempt === 0 && (response.status === 502 || response.status === 503 || response.status === 504)) {
+            await new Promise(r => setTimeout(r, 1500));
+            continue;
+          }
+        } catch (fetchErr: any) {
+          lastFetchErr = fetchErr;
+          if (attempt === 0) {
+            await new Promise(r => setTimeout(r, 1500));
+            continue;
+          }
+        }
+      }
+
+      if (!response) {
+        throw new Error(
+          language === 'bn'
+            ? 'সার্ভারে সংযোগ করা যায়নি। অনুগ্রহ করে ইন্টারনেট কানেকশন বা সার্ভার স্ট্যাটাস চেক করুন।'
+            : (lastFetchErr?.message || 'Unable to connect to the backend server. Please verify your connection.')
+        );
+      }
 
       const contentType = response.headers.get('content-type') || '';
       let reply = '';
@@ -538,21 +576,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         let errorMsg = language === 'bn' 
           ? `সার্ভার সংযোগে ত্রুটি (${response.status})` 
           : `Server error (${response.status})`;
+
         if (contentType.includes('application/json')) {
           try {
             const errData = await response.json();
             errorMsg = errData.error || errorMsg;
           } catch {
-            // ignore
+            // fallback
           }
         } else {
-          const textErr = await response.text().catch(() => '');
-          if (textErr && !textErr.includes('<!DOCTYPE') && !textErr.includes('<html')) {
-            errorMsg = textErr.slice(0, 100);
-          } else {
+          if (response.status === 502 || response.status === 503 || response.status === 504) {
             errorMsg = language === 'bn'
-              ? 'সার্ভারে এআই এন্ডপয়েন্ট (/api/chat) পাওয়া যাচ্ছে না।'
-              : 'AI server endpoint (/api/chat) is not reachable on this domain.';
+              ? 'সার্ভার বুট হচ্ছে বা সাময়িক বিলম্ব হচ্ছে (HTTP ' + response.status + ')। অনুগ্রহ করে কয়েক সেকেন্ড পর আবার চেষ্টা করুন।'
+              : `Server is warming up or temporarily busy (HTTP ${response.status}). Please retry in a few moments.`;
+          } else if (response.status === 404) {
+            errorMsg = language === 'bn'
+              ? 'এআই এন্ডপয়েন্ট পাওয়া যায়নি (HTTP 404)। Render-এ এটি Web Service হিসেবে ডিপ্লয় করা ও চালু রয়েছে কিনা চেক করুন।'
+              : 'AI server endpoint not found (HTTP 404). Please ensure the backend is deployed as a Web Service.';
           }
         }
         throw new Error(errorMsg);
@@ -579,8 +619,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           } else {
             throw new Error(
               language === 'bn'
-                ? 'সার্ভারে এআই এন্ডপয়েন্ট (/api/chat) পাওয়া যায়নি।'
-                : 'AI endpoint (/api/chat) returned HTML instead of JSON.'
+                ? 'সার্ভার থেকে সঠিক তথ্য পাওয়া যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।'
+                : 'Invalid response received from server. Please retry.'
             );
           }
         }
@@ -602,7 +642,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       setChatMessages(prev => [...prev, aiMsg]);
     } catch (err: any) {
-      console.error("AI generation error:", err);
+      console.warn("AI generation notice:", err?.message || err);
       let userFriendlyMessage = language === 'bn'
         ? 'এআই সার্ভারের সাথে সংযোগে সাময়িক বিলম্ব হচ্ছে। অনুগ্রহ করে আবার চেষ্টা করুন।'
         : 'Unable to connect to the Askio AI engine right now. Please try again.';
@@ -615,7 +655,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         id: 'ai-' + Date.now(),
         sender: 'ai',
         text: `⚠️ **Askio AI Notice**: ${userFriendlyMessage}`,
-        timestamp: 'Just now'
+        timestamp: 'Just now',
+        isError: true
       };
       setChatMessages(prev => [...prev, aiMsg]);
     } finally {

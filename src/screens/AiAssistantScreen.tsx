@@ -261,6 +261,8 @@ export const AiAssistantScreen: React.FC = () => {
                 className={`max-w-[85%] sm:max-w-[75%] rounded-3xl p-4 sm:p-5 shadow-xs transition-all ${
                   isUser
                     ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-tr-xs'
+                    : msg.isError
+                    ? 'bg-amber-50/90 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 rounded-tl-xs border border-amber-300/80 dark:border-amber-700/80'
                     : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-xs border border-zinc-200/60 dark:border-zinc-700/60'
                 }`}
               >
