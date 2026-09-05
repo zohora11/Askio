@@ -95,8 +95,8 @@ export const UI_TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'search.clear': 'Clear',
 
     // AI Assistant
-    'ai.title': 'Askio AI Assistant',
-    'ai.subtitle': 'Get instant answers, book summaries, code assistance, research synthesis, and PDF summaries.',
+    'ai.title': 'Askio Ai Assistant',
+    'ai.subtitle': 'Ask Anything You Want',
     'ai.input_placeholder': 'Ask AI anything: book summaries, PDF guides, coding, research...',
     'ai.disclaimer': 'Askio AI outputs are synthesized for educational & general knowledge reference.',
 
@@ -199,8 +199,8 @@ export const UI_TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'search.clear': 'ক্লিয়ার',
 
     // AI Assistant
-    'ai.title': 'আস্কিও এআই অ্যাসিস্ট্যান্ট',
-    'ai.subtitle': 'তাৎক্ষণিক উত্তর, বইয়ের সারসংক্ষেপ, কোডিং সাহায্য, গবেষণাপত্র বিশ্লেষণ ও সহজ ব্যাখ্যা পান।',
+    'ai.title': 'Askio Ai Assistant',
+    'ai.subtitle': 'Ask Anything You Want',
     'ai.input_placeholder': 'এআই-কে যা ইচ্ছা জিজ্ঞাসা করুন: বইয়ের সামারি, পিডিএফ, কোডিং, গবেষণা...',
     'ai.disclaimer': 'আস্কিও এআই উত্তরসমূহ সাধারণ জ্ঞান ও শিক্ষণীয় উদ্দেশ্যে তৈরি।',
 

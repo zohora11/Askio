@@ -201,17 +201,12 @@ export const AiAssistantScreen: React.FC = () => {
           <ChatbotAvatar sizeClassName="w-10 h-10" showOnlineBadge={false} />
 
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100">
-                {t('ai.title', language)}
-              </h2>
-              <span className="hidden sm:inline px-2 py-0.5 text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 rounded-full">
-                Gemini Live
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+            <h2 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100">
+              Askio Ai Assistant
+            </h2>
+            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span>{language === 'bn' ? 'অনলাইন • যেকোনো প্রশ্ন টাইপ করুন' : 'Online • Ask anything in English or বাংলা'}</span>
+              <span>Ask Anything You Want</span>
             </div>
           </div>
         </div>
