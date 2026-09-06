@@ -14,9 +14,126 @@
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#059669" />
+
+    <!-- Early Theme Detection to prevent theme flash during initial load -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('askio_theme');
+          var isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches) || (saved === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
+
+    <style>
+      /* Standalone initial splash screen styling rendered before JS execution */
+      #initial-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8fafc;
+        color: #0f172a;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        user-select: none;
+      }
+      .dark #initial-splash {
+        background-color: #09090b;
+        color: #f4f4f5;
+      }
+      .splash-logo-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+      }
+      .splash-logo-glow {
+        position: absolute;
+        inset: -8px;
+        border-radius: 9999px;
+        background-color: rgba(16, 185, 129, 0.18);
+        filter: blur(14px);
+        pointer-events: none;
+      }
+      .splash-logo-img {
+        position: relative;
+        width: 68px;
+        height: 68px;
+        object-fit: contain;
+      }
+      .splash-brand-title {
+        font-size: 28px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        margin: 0 0 4px 0;
+        color: #09090b;
+      }
+      .dark .splash-brand-title {
+        color: #fafafa;
+      }
+      .splash-brand-sub {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: #059669;
+        margin-bottom: 24px;
+      }
+      .dark .splash-brand-sub {
+        color: #34d399;
+      }
+      .splash-progress-track {
+        width: 160px;
+        height: 4px;
+        background-color: rgba(0, 0, 0, 0.08);
+        border-radius: 9999px;
+        overflow: hidden;
+        position: relative;
+      }
+      .dark .splash-progress-track {
+        background-color: rgba(255, 255, 255, 0.12);
+      }
+      .splash-progress-bar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 50%;
+        border-radius: 9999px;
+        background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.55);
+        animation: splash-bar-anim 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+      @keyframes splash-bar-anim {
+        0% { transform: translateX(-100%); }
+        50% { transform: translateX(40%); }
+        100% { transform: translateX(220%); }
+      }
+    </style>
   </head>
-  <body class="bg-slate-50 text-slate-900 antialiased selection:bg-emerald-500 selection:text-white">
-    <div id="root"></div>
+  <body class="bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 antialiased selection:bg-emerald-500 selection:text-white">
+    <div id="root">
+      <div id="initial-splash" aria-label="Loading Askio">
+        <div class="splash-logo-box">
+          <div class="splash-logo-glow"></div>
+          <img src="/app-logo.png" alt="Askio" class="splash-logo-img" onerror="if(this.src!=='https://i.imgur.com/u7GpoWr.png')this.src='https://i.imgur.com/u7GpoWr.png'" />
+        </div>
+        <h1 class="splash-brand-title">Askio</h1>
+        <span class="splash-brand-sub">Resource &amp; AI Hub</span>
+        <div class="splash-progress-track">
+          <div class="splash-progress-bar"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

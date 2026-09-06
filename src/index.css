@@ -2,6 +2,23 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Branded Initial Loading Progress Animation */
+@keyframes askioProgress {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(40%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+.animate-askio-progress {
+  animation: askioProgress 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 /* ==========================================================================
    UNIVERSAL CARD HOVER EFFECT & ELEVATED SHADOW SYSTEM
    Works automatically across Light & Dark screens in both App and Landing Page.

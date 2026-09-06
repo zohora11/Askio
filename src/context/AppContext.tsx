@@ -154,15 +154,11 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 // Dynamic helper for AI welcome greeting with real user name
 export const getAiWelcomeGreeting = (fullName?: string, lang: AppLanguage = 'en') => {
   const trimmed = (fullName || '').trim();
-  const firstName = trimmed ? trimmed.split(' ')[0] : '';
+  const userName = trimmed ? trimmed.split(' ')[0] : (lang === 'bn' ? 'ইউজার' : 'User');
   if (lang === 'bn') {
-    return firstName
-      ? `হ্যালো ${firstName}! 👋 আমি Askio জিনি, আপনার ব্যক্তিগত লার্নিং ও গাইডেন্স সহকারী। আজ আপনাকে কীভাবে সহায়তা করতে পারি?`
-      : `হ্যালো! 👋 আমি Askio জিনি, আপনার ব্যক্তিগত লার্নিং ও গাইডেন্স সহকারী। আজ আপনাকে কীভাবে সহায়তা করতে পারি?`;
+    return `হ্যালো ${userName}! 👋 আমি আপনার জিনি, আপনার ব্যক্তিগত গাইডেন্স সহকারী। আজ আপনি কী অন্বেষণ করতে চান?`;
   }
-  return firstName
-    ? `Hello ${firstName}! 👋 I am Askio Genie, your personal guidance engine. How can I support your eye care, learning, or career growth today?`
-    : `Hello! 👋 I am Askio Genie, your personal guidance engine. How can I support your eye care, learning, or career growth today?`;
+  return `Hello ${userName}! 👋 I am your Genie, your personal guidance assistant. What would you like to explore today?`;
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
