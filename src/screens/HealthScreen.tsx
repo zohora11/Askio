@@ -73,7 +73,7 @@ export const HealthScreen: React.FC = () => {
           </div>
           <div>
             <span className="px-3 py-0.5 rounded-full bg-black/20 text-white text-[10px] font-extrabold uppercase tracking-wide">
-              {isBn ? 'এআই সার্চ ইঞ্জিন' : 'AI Search Engine'}
+              {isBn ? 'স্মার্ট রিসোর্স ও নলেজ হাব' : 'Smart Resource & Knowledge Hub'}
             </span>
             <h3 className="text-xl sm:text-2xl font-black mt-1">
               {isBn ? 'যেকোনো বিষয় লিখে সার্চ করুন বা এআই-কে আস্ক করুন' : 'Search Millions of Verified Books, PDFs & Video Guides'}

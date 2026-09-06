@@ -36,6 +36,19 @@ const googleProvider = new GoogleAuthProvider();
 
 export const DEFAULT_AVATAR = `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80`;
 
+/**
+ * Checks whether an avatar string represents a user's customized upload
+ * rather than an unconfigured default placeholder.
+ */
+export function isCustomAvatar(avatarUrl?: string): boolean {
+  if (!avatarUrl || typeof avatarUrl !== 'string') return false;
+  const trimmed = avatarUrl.trim();
+  if (!trimmed) return false;
+  // If it matches the default Unsplash placeholder photo URL
+  if (trimmed.includes('photo-1534528741775-53994a69daeb')) return false;
+  return true;
+}
+
 export interface FirestoreUserData {
   uid: string;
   fullName: string;
@@ -169,25 +182,81 @@ export async function loginFirebaseUser(identifier: string, password: string): P
       const userDocRef = doc(db, 'users', firebaseUser.uid);
       const userSnap = await getDoc(userDocRef);
 
+      let uData: FirestoreUserData | null = null;
       if (userSnap.exists()) {
-        const uData = userSnap.data() as FirestoreUserData;
+        uData = userSnap.data() as FirestoreUserData;
         if (uData.passwordHash && uData.passwordHash !== inputHash) {
           const wrongPassError: any = new Error('Wrong password');
           wrongPassError.code = 'auth/wrong-password';
           throw wrongPassError;
         }
-        return uData;
       }
 
-      return {
+      // Check for user's custom avatar across all Firestore records (by UID, email, or Auth photoURL)
+      let resolvedAvatar = isCustomAvatar(uData?.avatar) ? uData!.avatar : '';
+
+      if (!resolvedAvatar) {
+        // Query users collection by email (e.g. if saved on another device or prior session)
+        const userByEmail = await findUserByEmail(cleanEmail);
+        if (userByEmail && isCustomAvatar(userByEmail.avatar)) {
+          resolvedAvatar = userByEmail.avatar;
+          if (!uData) uData = userByEmail;
+        }
+      }
+
+      // Also check direct doc by email
+      if (!resolvedAvatar) {
+        try {
+          const emailDocSnap = await getDoc(doc(db, 'users', cleanEmail));
+          if (emailDocSnap.exists()) {
+            const ed = emailDocSnap.data() as FirestoreUserData;
+            if (isCustomAvatar(ed.avatar)) {
+              resolvedAvatar = ed.avatar;
+              if (!uData) uData = ed;
+            }
+          }
+        } catch { /* ignore */ }
+      }
+
+      // Check Firebase Auth photoURL
+      if (!resolvedAvatar && isCustomAvatar(firebaseUser.photoURL || '')) {
+        resolvedAvatar = firebaseUser.photoURL!;
+      }
+
+      // Fallback: check device local cache for this email
+      if (!resolvedAvatar) {
+        const cachedAvatar = localStorage.getItem(`askio_avatar_email_${cleanEmail}`) || localStorage.getItem('askio_custom_avatar');
+        if (cachedAvatar && isCustomAvatar(cachedAvatar)) {
+          resolvedAvatar = cachedAvatar;
+        }
+      }
+
+      const finalAvatar = resolvedAvatar || uData?.avatar || DEFAULT_AVATAR;
+
+      const finalUserData: FirestoreUserData = {
         uid: firebaseUser.uid,
-        fullName: firebaseUser.displayName || 'Askio Member',
-        email: firebaseUser.email || cleanEmail,
-        phone: '',
-        isPremium: true,
-        membershipPlan: 'BDApps Daily (৳2.78/day)',
-        avatar: firebaseUser.photoURL || DEFAULT_AVATAR
+        fullName: uData?.fullName || firebaseUser.displayName || 'Askio Member',
+        email: uData?.email || firebaseUser.email || cleanEmail,
+        phone: uData?.phone || '',
+        isPremium: uData?.isPremium ?? true,
+        membershipPlan: uData?.membershipPlan || 'BDApps Daily (৳2.78/day)',
+        avatar: finalAvatar,
+        passwordHash: uData?.passwordHash || inputHash
       };
+
+      // Always sync users/{firebaseUser.uid} so the latest custom avatar is directly attached to the UID
+      if (finalAvatar && finalAvatar !== DEFAULT_AVATAR) {
+        setDoc(userDocRef, { avatar: finalAvatar, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
+        if (auth.currentUser) {
+          updateFirebaseAuthProfile(auth.currentUser, { photoURL: finalAvatar }).catch(() => {});
+        }
+        try {
+          localStorage.setItem('askio_custom_avatar', finalAvatar);
+          localStorage.setItem(`askio_avatar_email_${cleanEmail}`, finalAvatar);
+        } catch { /* ignore */ }
+      }
+
+      return finalUserData;
     } catch (authErr: any) {
       console.warn('Firebase Auth email login notice:', authErr.code || authErr.message);
 
@@ -265,6 +334,27 @@ export async function loginWithGoogle(): Promise<FirestoreUserData> {
   const result = await signInWithPopup(auth, googleProvider);
   const user = result.user;
 
+  // Check if existing user already has a custom avatar in Firestore
+  let existingAvatar = '';
+  try {
+    const userDocSnap = await getDoc(doc(db, 'users', user.uid));
+    if (userDocSnap.exists()) {
+      const uData = userDocSnap.data() as FirestoreUserData;
+      if (isCustomAvatar(uData.avatar)) {
+        existingAvatar = uData.avatar!;
+      }
+    }
+  } catch { /* ignore */ }
+
+  if (!existingAvatar && user.email) {
+    const byEmail = await findUserByEmail(user.email);
+    if (byEmail && isCustomAvatar(byEmail.avatar)) {
+      existingAvatar = byEmail.avatar!;
+    }
+  }
+
+  const finalAvatar = existingAvatar || user.photoURL || DEFAULT_AVATAR;
+
   const userData: FirestoreUserData = {
     uid: user.uid,
     fullName: user.displayName || 'Askio Member',
@@ -272,12 +362,18 @@ export async function loginWithGoogle(): Promise<FirestoreUserData> {
     phone: user.phoneNumber || '',
     isPremium: true,
     membershipPlan: 'BDApps Daily (৳2.78/day)',
-    avatar: user.photoURL || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80`,
+    avatar: finalAvatar,
     updatedAt: new Date().toISOString()
   };
 
   try {
     await setDoc(doc(db, 'users', user.uid), userData, { merge: true });
+    if (user.email) {
+      localStorage.setItem(`askio_avatar_email_${user.email.toLowerCase()}`, finalAvatar);
+    }
+    if (isCustomAvatar(finalAvatar)) {
+      localStorage.setItem('askio_custom_avatar', finalAvatar);
+    }
   } catch (err) {
     console.warn('Google user profile write notice:', err);
   }
@@ -310,12 +406,28 @@ export async function findUserByPhone(phone: string): Promise<FirestoreUserData 
     }
 
     if (!querySnapshot.empty) {
-      const docData = querySnapshot.docs[0].data();
-      return docData as FirestoreUserData;
+      // Prioritize document that has a custom avatar!
+      let bestDocData = querySnapshot.docs[0].data() as FirestoreUserData;
+      for (const d of querySnapshot.docs) {
+        const dData = d.data() as FirestoreUserData;
+        if (isCustomAvatar(dData.avatar)) {
+          bestDocData = dData;
+          break;
+        }
+      }
+      return bestDocData;
     }
   } catch (err) {
     console.warn('findUserByPhone query notice:', err);
   }
+
+  // Check direct doc IDs by user_phone
+  try {
+    const directDoc = await getDoc(doc(db, 'users', 'user_' + digitsOnly));
+    if (directDoc.exists()) {
+      return directDoc.data() as FirestoreUserData;
+    }
+  } catch { /* ignore */ }
 
   // Fallback to local cache
   const cachedBD = localStorage.getItem(`askio_user_by_phone_${bdClean}`);
@@ -348,12 +460,28 @@ export async function findUserByEmail(email: string): Promise<FirestoreUserData 
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      const docData = querySnapshot.docs[0].data();
-      return docData as FirestoreUserData;
+      // Prioritize doc that contains a custom uploaded avatar!
+      let bestDocData = querySnapshot.docs[0].data() as FirestoreUserData;
+      for (const d of querySnapshot.docs) {
+        const dData = d.data() as FirestoreUserData;
+        if (isCustomAvatar(dData.avatar)) {
+          bestDocData = dData;
+          break;
+        }
+      }
+      return bestDocData;
     }
   } catch (err) {
     console.warn('findUserByEmail query notice:', err);
   }
+
+  // Check direct doc ID = cleanEmail
+  try {
+    const emailSnap = await getDoc(doc(db, 'users', cleanEmail));
+    if (emailSnap.exists()) {
+      return emailSnap.data() as FirestoreUserData;
+    }
+  } catch { /* ignore */ }
 
   // Fallback to local cache
   const cached = localStorage.getItem(`askio_user_by_email_${cleanEmail}`);
@@ -580,37 +708,51 @@ export async function logoutFirebaseUser(): Promise<void> {
 }
 
 /**
- * Save / update user profile data in Firestore and local caches
+ * Save / update user profile data in Firestore and local caches.
+ * Ensures custom avatar and profile details are persistently written across
+ * document IDs (UID, email, phone) so they can be retrieved from any device upon login.
  */
 export async function saveUserProfileToFirestore(
   identifierOrUid: string,
-  updatedData: Partial<FirestoreUserData>
+  updatedData: Partial<FirestoreUserData>,
+  extraIdentifiers?: { uid?: string; email?: string; phone?: string }
 ): Promise<void> {
-  if (!identifierOrUid) return;
+  if (!identifierOrUid && !extraIdentifiers?.uid && !extraIdentifiers?.email && !extraIdentifiers?.phone) return;
 
-  const updatePayload = {
+  const updatePayload: Record<string, any> = {
     ...updatedData,
     updatedAt: new Date().toISOString()
   };
 
-  // 1. If it's a direct UID or phone/email identifier
-  try {
-    // Try updating directly by doc ID
-    const userRef = doc(db, 'users', identifierOrUid);
-    await setDoc(userRef, updatePayload, { merge: true });
-  } catch (err) {
-    console.warn('Direct Firestore setDoc notice:', err);
+  const cleanEmail = (extraIdentifiers?.email || updatedData.email || (identifierOrUid.includes('@') ? identifierOrUid : '')).trim().toLowerCase();
+  const cleanPhone = (extraIdentifiers?.phone || updatedData.phone || (!identifierOrUid.includes('@') && /^\d+$/.test(identifierOrUid.replace(/\D/g, '')) ? identifierOrUid : '')).trim();
+  const targetUid = extraIdentifiers?.uid || updatedData.uid || auth.currentUser?.uid || (!identifierOrUid.includes('@') && !/^\d+$/.test(identifierOrUid.replace(/\D/g, '')) ? identifierOrUid : '');
+
+  // 1. Direct write to target doc IDs in Firestore
+  const docIdsToUpdate = new Set<string>();
+  if (identifierOrUid) docIdsToUpdate.add(identifierOrUid);
+  if (targetUid) docIdsToUpdate.add(targetUid);
+  if (cleanEmail) docIdsToUpdate.add(cleanEmail);
+  if (cleanPhone) docIdsToUpdate.add(cleanPhone);
+  if (cleanPhone) {
+    const digitsOnly = cleanPhone.replace(/\D/g, '');
+    if (digitsOnly) docIdsToUpdate.add('user_' + digitsOnly);
   }
 
-  // 2. Also search by email or phone if identifierOrUid might be an email/phone
-  if (identifierOrUid.includes('@') || /^\d+$/.test(identifierOrUid.replace(/\D/g, ''))) {
+  for (const docId of docIdsToUpdate) {
+    try {
+      const userRef = doc(db, 'users', docId);
+      await setDoc(userRef, updatePayload, { merge: true });
+    } catch (err) {
+      console.warn(`Firestore setDoc notice for doc [${docId}]:`, err);
+    }
+  }
+
+  // 2. Query update across all documents in 'users' collection with matching email or phone
+  if (cleanEmail) {
     try {
       const usersRef = collection(db, 'users');
-      const isEmail = identifierOrUid.includes('@');
-      const field = isEmail ? 'email' : 'phone';
-      const cleanVal = isEmail ? identifierOrUid.trim().toLowerCase() : identifierOrUid.trim();
-
-      const q = query(usersRef, where(field, '==', cleanVal));
+      const q = query(usersRef, where('email', '==', cleanEmail));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
@@ -619,12 +761,69 @@ export async function saveUserProfileToFirestore(
         }
       }
     } catch (err) {
-      console.warn('Query update in Firestore notice:', err);
+      console.warn('Query update by email in Firestore notice:', err);
     }
   }
 
-  // 3. Update localStorage caches
+  if (cleanPhone) {
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('phone', '==', cleanPhone));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        for (const docSnap of querySnapshot.docs) {
+          await setDoc(doc(db, 'users', docSnap.id), updatePayload, { merge: true });
+        }
+      }
+    } catch (err) {
+      console.warn('Query update by phone in Firestore notice:', err);
+    }
+  }
+
+  // 3. Update active Firebase Auth user's profile photoURL if signed in
+  if (auth.currentUser && updatedData.avatar) {
+    try {
+      await updateFirebaseAuthProfile(auth.currentUser, {
+        photoURL: updatedData.avatar,
+        ...(updatedData.fullName ? { displayName: updatedData.fullName } : {})
+      });
+    } catch (err) {
+      console.warn('Update Firebase Auth profile notice:', err);
+    }
+  }
+
+  // 4. Update Device Trust if phone is available
+  if (cleanPhone) {
+    try {
+      saveDeviceTrustForPhone(cleanPhone, {
+        uid: targetUid || identifierOrUid,
+        fullName: updatedData.fullName || 'Askio Member',
+        email: cleanEmail,
+        phone: cleanPhone,
+        avatar: updatedData.avatar,
+        isPremium: true,
+        membershipPlan: updatedData.membershipPlan || 'BDApps Daily (৳2.78/day)'
+      });
+    } catch { /* ignore */ }
+  }
+
+  // 5. Update localStorage caches
   try {
+    if (updatedData.avatar) {
+      if (isCustomAvatar(updatedData.avatar)) {
+        localStorage.setItem('askio_custom_avatar', updatedData.avatar);
+        if (cleanEmail) localStorage.setItem(`askio_avatar_email_${cleanEmail}`, updatedData.avatar);
+        if (cleanPhone) localStorage.setItem(`askio_avatar_phone_${cleanPhone}`, updatedData.avatar);
+        if (targetUid) localStorage.setItem(`askio_avatar_uid_${targetUid}`, updatedData.avatar);
+      } else if (updatedData.avatar === DEFAULT_AVATAR) {
+        localStorage.removeItem('askio_custom_avatar');
+        if (cleanEmail) localStorage.removeItem(`askio_avatar_email_${cleanEmail}`);
+        if (cleanPhone) localStorage.removeItem(`askio_avatar_phone_${cleanPhone}`);
+        if (targetUid) localStorage.removeItem(`askio_avatar_uid_${targetUid}`);
+      }
+    }
+
     const askioUserStr = localStorage.getItem('askio_user');
     if (askioUserStr) {
       const current = JSON.parse(askioUserStr);

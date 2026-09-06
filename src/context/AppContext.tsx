@@ -17,7 +17,17 @@ import {
   INITIAL_ACTIVITIES, 
   TRENDING_SEARCHES 
 } from '../data/mockData';
-import { saveUserProfileToFirestore, findUserByPhoneOrEmail } from '../services/firebase';
+import { 
+  saveUserProfileToFirestore, 
+  findUserByPhoneOrEmail, 
+  isCustomAvatar, 
+  DEFAULT_AVATAR,
+  auth,
+  db,
+  FirestoreUserData
+} from '../services/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 
 interface UndoState {
   item: NotificationItem;
@@ -141,15 +151,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (saved) {
       try { 
         const parsed = JSON.parse(saved);
-        // If it was the legacy mock user 'Fatema Tuz Zohora', clear it so the real logged-in name is used
-        if (parsed.fullName === 'Fatema Tuz Zohora' || parsed.email === 'fatematuzzohora004@gmail.com') {
-          localStorage.removeItem('askio_user');
-        } else {
-          return {
-            ...parsed,
-            isLoggedIn: parsed.isLoggedIn ?? false
-          };
-        }
+        const cachedCustomAvatar = localStorage.getItem('askio_custom_avatar') ||
+          (parsed.email ? localStorage.getItem(`askio_avatar_email_${parsed.email.toLowerCase()}`) : null) ||
+          (parsed.phone ? localStorage.getItem(`askio_avatar_phone_${parsed.phone}`) : null);
+
+        const initialAvatar = isCustomAvatar(parsed.avatar)
+          ? parsed.avatar
+          : (isCustomAvatar(cachedCustomAvatar || '') ? cachedCustomAvatar! : (parsed.avatar || DEFAULT_AVATAR));
+
+        return {
+          ...parsed,
+          avatar: initialAvatar,
+          isLoggedIn: parsed.isLoggedIn ?? false
+        };
       } catch (e) { /* ignore */ }
     }
     // Check if BDApps session exists for returning subscriber
@@ -158,12 +172,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         const session = JSON.parse(sessionRaw);
         if (session && session.subscribed && session.mobileNumber) {
+          const cachedAvatar = localStorage.getItem(`askio_avatar_phone_${session.mobileNumber}`) || localStorage.getItem('askio_custom_avatar') || DEFAULT_AVATAR;
           return {
             fullName: '',
             email: 'user@askio.ai',
             phone: session.mobileNumber,
             password: '',
-            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+            avatar: cachedAvatar,
             isLoggedIn: true,
             isPremium: true,
             membershipPlan: 'BDApps Daily (৳2.78/day)',
@@ -178,7 +193,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       email: '',
       phone: '',
       password: '',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+      avatar: localStorage.getItem('askio_custom_avatar') || DEFAULT_AVATAR,
       isLoggedIn: false,
       isPremium: false,
       membershipPlan: 'Free Tier',
@@ -193,27 +208,106 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Sync user profile (including avatar) from Firestore whenever user logs in or on mount
   useEffect(() => {
     const syncUserProfile = async () => {
-      const identifier = user.email || user.phone;
+      if (!user.isLoggedIn) return;
+      const identifier = user.email || user.phone || user.uid;
       if (!identifier) return;
+
       try {
-        const fsUser = await findUserByPhoneOrEmail(identifier);
-        if (fsUser && fsUser.avatar && fsUser.avatar !== user.avatar) {
-          setUser(prev => ({
-            ...prev,
-            avatar: fsUser.avatar || prev.avatar,
-            fullName: fsUser.fullName || prev.fullName,
-            email: fsUser.email || prev.email,
-            phone: fsUser.phone || prev.phone
-          }));
+        let fsUser: FirestoreUserData | null = null;
+
+        // 1. Check direct UID in Firestore
+        if (user.uid) {
+          try {
+            const userSnap = await getDoc(doc(db, 'users', user.uid));
+            if (userSnap.exists()) {
+              fsUser = userSnap.data() as FirestoreUserData;
+            }
+          } catch { /* ignore */ }
+        }
+
+        // 2. Lookup by email or phone if needed
+        if (!fsUser || !isCustomAvatar(fsUser.avatar)) {
+          const byIdent = await findUserByPhoneOrEmail(identifier);
+          if (byIdent) {
+            fsUser = fsUser ? { ...fsUser, ...byIdent, avatar: isCustomAvatar(byIdent.avatar) ? byIdent.avatar : fsUser.avatar } : byIdent;
+          }
+        }
+
+        if (fsUser) {
+          setUser(prev => {
+            // NEVER replace a custom avatar with a default placeholder!
+            const finalAvatar = isCustomAvatar(fsUser?.avatar)
+              ? fsUser!.avatar!
+              : (isCustomAvatar(prev.avatar) ? prev.avatar : (fsUser?.avatar || prev.avatar));
+
+            return {
+              ...prev,
+              avatar: finalAvatar,
+              fullName: fsUser?.fullName || prev.fullName,
+              email: fsUser?.email || prev.email,
+              phone: fsUser?.phone || prev.phone
+            };
+          });
+
+          // If local state has a custom avatar but Firestore had a default, save it back to Firestore
+          if (isCustomAvatar(user.avatar) && (!fsUser.avatar || !isCustomAvatar(fsUser.avatar))) {
+            saveUserProfileToFirestore(
+              identifier,
+              { avatar: user.avatar },
+              { uid: user.uid, email: user.email, phone: user.phone }
+            ).catch(() => {});
+          }
         }
       } catch (err) {
         console.warn('Sync profile notice:', err);
       }
     };
-    if (user.isLoggedIn) {
-      syncUserProfile();
-    }
-  }, [user.isLoggedIn, user.email, user.phone]);
+
+    syncUserProfile();
+  }, [user.isLoggedIn, user.email, user.phone, user.uid]);
+
+  // Listen to Firebase Auth state changes for real-time authentication & avatar persistence
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const userSnap = await getDoc(userDocRef);
+
+          let resolvedAvatar = isCustomAvatar(firebaseUser.photoURL || '') ? firebaseUser.photoURL! : '';
+
+          if (userSnap.exists()) {
+            const uData = userSnap.data() as FirestoreUserData;
+            if (isCustomAvatar(uData.avatar)) {
+              resolvedAvatar = uData.avatar!;
+            }
+          }
+
+          if (!resolvedAvatar && firebaseUser.email) {
+            const byEmail = await findUserByPhoneOrEmail(firebaseUser.email);
+            if (byEmail && isCustomAvatar(byEmail.avatar)) {
+              resolvedAvatar = byEmail.avatar!;
+            }
+          }
+
+          if (resolvedAvatar) {
+            setUser(prev => ({
+              ...prev,
+              uid: firebaseUser.uid,
+              avatar: resolvedAvatar,
+              email: prev.email || firebaseUser.email || '',
+              fullName: prev.fullName || firebaseUser.displayName || prev.fullName,
+              isLoggedIn: true
+            }));
+          }
+        } catch (err) {
+          console.warn('Auth state change profile fetch notice:', err);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Auth modal state
   const [isAuthModalOpen, setAuthModalOpen] = useState<boolean>(false);
@@ -393,15 +487,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     setUser(prev => {
       const next = { ...prev, ...updated };
-      // Save to Firestore asynchronously
-      const identifier = next.email || next.phone;
+      // Save to Firestore asynchronously with full UID, email, and phone resolution
+      const identifier = next.email || next.phone || next.uid || auth.currentUser?.uid;
       if (identifier) {
-        saveUserProfileToFirestore(identifier, {
-          fullName: next.fullName,
-          email: next.email,
-          phone: next.phone,
-          avatar: next.avatar
-        }).catch(err => console.warn('Save to Firestore error:', err));
+        saveUserProfileToFirestore(
+          identifier,
+          {
+            uid: next.uid || auth.currentUser?.uid,
+            fullName: next.fullName,
+            email: next.email,
+            phone: next.phone,
+            avatar: next.avatar,
+            membershipPlan: next.membershipPlan,
+            isPremium: next.isPremium
+          },
+          { uid: next.uid || auth.currentUser?.uid, email: next.email, phone: next.phone }
+        ).catch(err => console.warn('Save to Firestore error:', err));
       }
       return next;
     });

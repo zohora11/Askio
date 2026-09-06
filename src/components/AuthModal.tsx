@@ -36,7 +36,9 @@ import {
   findUserByPhone,
   sendPasswordResetOtp,
   verifyPasswordResetOtp,
-  resetUserPassword
+  resetUserPassword,
+  DEFAULT_AVATAR,
+  isCustomAvatar
 } from '../services/firebase';
 import { 
   getTrustedDeviceUser, 
@@ -158,11 +160,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         markLocalSubscriber(cleanMobile);
         storeSubscriberSession(cleanMobile);
 
+        const trustedAvatar = isCustomAvatar(trustedUser.avatar) 
+          ? trustedUser.avatar 
+          : (localStorage.getItem(`askio_avatar_phone_${cleanMobile}`) || localStorage.getItem('askio_custom_avatar') || undefined);
+
         updateProfile({
           uid: trustedUser.uid || 'user_' + cleanMobile,
           fullName: trustedUser.fullName || 'Askio Member',
           email: trustedUser.email || '',
           phone: cleanMobile,
+          avatar: trustedAvatar,
           isLoggedIn: true,
           isPremium: true,
           membershipPlan: trustedUser.membershipPlan || 'BDApps Daily (৳2.78/day)'
@@ -241,6 +248,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         fullName: createdUser.fullName,
         email: createdUser.email,
         phone: activePhone,
+        avatar: isCustomAvatar(createdUser.avatar) ? createdUser.avatar : (localStorage.getItem('askio_custom_avatar') || DEFAULT_AVATAR),
         isLoggedIn: true,
         isPremium: true,
         membershipPlan: 'BDApps Daily (৳2.78/day)'
@@ -301,12 +309,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       }
 
       // 3. Update global App Context (including avatar!)
+      const resolvedAvatar = isCustomAvatar(loggedInUser.avatar)
+        ? loggedInUser.avatar!
+        : (localStorage.getItem(`askio_avatar_email_${(loggedInUser.email || loginInput).toLowerCase()}`) ||
+           (userPhone ? localStorage.getItem(`askio_avatar_phone_${userPhone}`) : null) ||
+           localStorage.getItem('askio_custom_avatar') ||
+           DEFAULT_AVATAR);
+
       updateProfile({
         uid: loggedInUser.uid,
         fullName: loggedInUser.fullName || 'Askio Member',
         email: loggedInUser.email || (loginInput.includes('@') ? loginInput : ''),
         phone: userPhone,
-        avatar: loggedInUser.avatar || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80`,
+        avatar: resolvedAvatar,
         isLoggedIn: true,
         isPremium: true,
         membershipPlan: loggedInUser.membershipPlan || 'BDApps Daily (৳2.78/day)'

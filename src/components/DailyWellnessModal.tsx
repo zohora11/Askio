@@ -196,16 +196,209 @@ export const DEFAULT_WELLNESS_TIPS: WellnessTip[] = [
       bn: 'পরামর্শ: প্রসেসড সুগার ও প্যাকেটজাত স্ন্যাকস ব্রেন ফগ তৈরি করে, প্রাকৃতিক পুষ্টিকর খাবার তা রোধ করে।',
       en: 'Advice: Cutting refined sugars prevents brain fog and stabilizes blood glucose throughout the day.'
     }
+  },
+  {
+    id: 'tip-8',
+    day: 'রোববারের টিপস',
+    category: { bn: 'মনোযোগ ও কার্যক্ষমতা', en: 'Deep Focus & Reset' },
+    title: { 
+      bn: 'পোমোডোরো ফোকাস ও মেটাল ডিটক্স বিরতি', 
+      en: 'Pomodoro Focus & 5-Minute Mindful Reset' 
+    },
+    description: { 
+      bn: 'টানা ১ ঘণ্টার বেশি কাজ করলে মস্তিষ্কের প্রাক-ফ্রন্টাল কর্টেক্স ক্লান্ত হয়ে পড়ে। প্রতি ২৫ মিনিট গভীর মনোযোগ দিয়ে কাজ করার পর ৫ মিনিটের সম্পূর্ণ স্ক্রিন-মুক্ত বিরতি নিন।', 
+      en: 'After 60+ minutes of continuous cognitive load, your prefrontal cortex fatigues. Work in 25-minute focused bursts followed by a 5-minute screen-free pause.' 
+    },
+    actionableSteps: [
+      { bn: '২৫ মিনিটের জন্য মোবাইলের নোটিফিকেশন সাইলেন্ট রাখুন।', en: 'Silence all non-essential phone and desktop notifications for 25 minutes.' },
+      { bn: '৫ মিনিটের বিরতিতে কোনো স্ক্রিনে তাকাবেন না, উঠে একটু পানি খান।', en: 'During the 5-minute break, refrain from any screen; drink water and stretch.' },
+      { bn: 'পরপর ৪টি সাইকেল শেষ হলে ১৫-২০ মিনিটের বড় বিরতি নিন।', en: 'Take a longer 15-20 minute break after completing 4 consecutive cycles.' },
+      { bn: 'দিনের শুরুতে সবচেয়ে কঠিন কাজটি প্রথম সাইকেলে রাখুন।', en: 'Schedule your most demanding task for your very first focus block.' }
+    ],
+    readTime: '২ মিনিট',
+    doctorNote: {
+      bn: 'পরামর্শ: ছোট বিরতি ব্রেনকে রিচার্জ করে ও সারাদিনের বার্নআউট শতকরা ৫০ ভাগ পর্যন্ত হ্রাস করে।',
+      en: 'Advice: Structured micro-pauses reduce neural burnout by up to 50% across long workdays.'
+    }
+  },
+  {
+    id: 'tip-9',
+    day: 'সোমবারের টিপস',
+    category: { bn: 'স্নায়ু প্রশান্তি', en: 'Nervous System Reset' },
+    title: { 
+      bn: 'ভ্যাগাস নার্ভ সক্রিয়করণ ও সকালের ঠাণ্ডা জলের স্পর্শ', 
+      en: 'Vagus Nerve Activation & Cold Water Splash' 
+    },
+    description: { 
+      bn: 'মুখে এবং চোখে ঠান্ডা পানির হালকা ঝাপটা দিলে আমাদের ভ্যাগাস নার্ভ উদ্দীপিত হয়। এটি সাথে সাথে হার্ট রেট স্বাভাবিক করে এবং উদ্বেগ দূর করে।', 
+      en: 'Splashing cool water on your face and eyes stimulates the vagus nerve via the mammalian dive reflex, immediately slowing heart rate and alleviating anxiety.' 
+    },
+    actionableSteps: [
+      { bn: 'কাজের মাঝে মানসিক অস্থিরতা লাগলে মুখে ৩-৪ বার ঠান্ডা পানির ঝাপটা দিন।', en: 'Splash cool water onto your face 3-4 times whenever feeling overwhelmed.' },
+      { bn: 'চোখ বন্ধ করে গভীর শ্বাস নিয়ে ধীরে ধীরে শ্বাস ছাড়ুন।', en: 'Close your eyes and exhale through your mouth longer than your inhale.' },
+      { bn: 'ঘাড়ের দুপাশে হালকা ম্যাসাজ করে রক্ত সঞ্চালন বাড়ান।', en: 'Gently massage the sides of your neck to ease vagal tension.' },
+      { bn: 'কিছুক্ষণ নিরব শান্ত স্থানে স্থিরভাবে বসুন।', en: 'Sit in a quiet space for 2 minutes to restore baseline calm.' }
+    ],
+    readTime: '২ মিনিট',
+    doctorNote: {
+      bn: 'পরামর্শ: ভ্যাগাস নার্ভ সক্রিয় থাকলে শরীরে কর্টিসল (চাপের হরমোন) দ্রুত কমে যায়।',
+      en: 'Advice: Vagal toning triggers the parasympathetic response, reducing cortisol levels rapidly.'
+    }
+  },
+  {
+    id: 'tip-10',
+    day: 'মঙ্গলবারের টিপস',
+    category: { bn: 'সার্কাডিয়ান ছন্দ ও শক্তি', en: 'Circadian Rhythm' },
+    title: { 
+      bn: 'সকালের প্রাকৃতিক রোদে ১০ মিনিট ও শক্তি সঞ্চয়', 
+      en: 'Morning Natural Sunlight & Energy Calibration' 
+    },
+    description: { 
+      bn: 'ঘুম থেকে ওঠার প্রথম ১ ঘণ্টার মধ্যে সকালের সূর্যের আলো চোখে পড়লে শরীরে সার্কাডিয়ান রিদম ঠিক হয়, দিনে সতেজতা বাড়ে এবং রাতে স্বাভাবিক ঘুম আসে।', 
+      en: 'Viewing natural morning sunlight within 60 minutes of waking triggers a healthy cortisol pulse, sharpens daytime alertness, and sets your night melatonin timer.' 
+    },
+    actionableSteps: [
+      { bn: 'সকালে ঘুম থেকে উঠে ব্যালকনি বা খোলা জায়গায় ৫-১০ মিনিট হাঁটুন।', en: 'Spend 5-10 minutes outdoors or by an open sunny window each morning.' },
+      { bn: 'সানগ্লাস ছাড়া সাধারণ চোখে প্রাকৃতিক আলোর দিকে তাকান (সরাসরি সূর্যের দিকে নয়)।', en: 'Absorb indirect ambient sunlight without sunglasses.' },
+      { bn: 'সকালের তাজা বাতাসে বুক ভরে ৩-৪ বার গভীর শ্বাস নিন।', en: 'Take several slow deep breaths in the crisp morning air.' },
+      { bn: 'দিনের শুরুতে ঘর বা অফিসের পর্দা খুলে পর্যাপ্ত প্রাকৃতিক আলো প্রবেশ করান।', en: 'Open workspace window blinds to let in abundant natural daylight.' }
+    ],
+    readTime: '২ মিনিট',
+    doctorNote: {
+      bn: 'নিউরোসায়েন্স পরামর্শ: প্রাকৃতিক সকালের আলো রাতের মেলাটোনিন হরমোনের টাইমার ১৪ ঘণ্টা পর অটোমেটিক চালু করে।',
+      en: 'Neuroscience Insight: Morning photons set an internal circadian timer that promotes natural sleepiness 14 hours later.'
+    }
+  },
+  {
+    id: 'tip-11',
+    day: 'বুধবারের টিপস',
+    category: { bn: 'পেশি ও জয়েন্ট কেয়ার', en: 'Joint Mobility' },
+    title: { 
+      bn: 'ডেস্ক স্ট্রেচিং ও কবজির কার্পাল টানেল প্রতিরোধ', 
+      en: 'Desk Stretches & Wrist Carpal Tunnel Relief' 
+    },
+    description: { 
+      bn: 'মাউস ও কিবোর্ডে একটানা আঙুল চালালে কবজির মিডিয়ান নার্ভে চাপ পড়ে। প্রতিদিন সহজ ৩টি স্ট্রেচিং আপনার কবজি, কাঁধ এবং আঙুলকে ব্যথামুক্ত রাখে।', 
+      en: 'Repetitive typing and mousing cause median nerve compression. Simple daily wrist extensions and shoulder shrugs safeguard against carpal tunnel syndrome.' 
+    },
+    actionableSteps: [
+      { bn: 'হাত সামনের দিকে সোজা করে আঙুলগুলো ওপরের দিকে টেনে ৫ সেকেন্ড ধরে রাখুন।', en: 'Extend your arm forward with palm out; gently pull fingers back for 5 seconds.' },
+      { bn: 'কবজি ঘড়ির কাটার দিকে ও বিপরীত দিকে ১০ বার করে ধীরে ধীরে ঘোরান।', en: 'Rotate both wrists slowly in clockwise and counter-clockwise circles 10 times.' },
+      { bn: 'কাঁধ ওপরের দিকে উঠিয়ে পেছনের দিকে ঘুরিয়ে শিথিল করুন।', en: 'Roll shoulders upward and backward to release upper trapezius stiffness.' },
+      { bn: 'প্রতি ১ ঘণ্টার কাজে হাত ও আঙুল কয়েকবার ঝেড়ে নিন।', en: 'Gently shake out your hands and fingers every hour of typing.' }
+    ],
+    readTime: '২ মিনিট',
+    doctorNote: {
+      bn: 'ফিজিওথেরাপি নির্দেশিকা: কাজের মাঝে নিয়মিত স্ট্রেচিং করলে রিপিটেটিভ স্ট্রেন ইনজুরি (RSI) ৭০% রোধ করা সম্ভব।',
+      en: 'Physiotherapy Advice: Micro-stretching reduces Repetitive Strain Injury (RSI) risks by over 70%.'
+    }
+  },
+  {
+    id: 'tip-12',
+    day: 'বৃহস্পতিবারের টিপস',
+    category: { bn: 'ইতিবাচক মানসিক স্বাস্থ্য', en: 'Mindfulness & Gratitude' },
+    title: { 
+      bn: 'রাতের ৩টি কৃতজ্ঞতা ও মানসিক প্রশান্তির অভ্যাস', 
+      en: 'Evening Gratitude Routine for Serene Mental Health' 
+    },
+    description: { 
+      bn: 'সারাদিনের কাজের ক্লান্তি ও নেতিবাচক চিন্তা দূর করতে ঘুমানোর আগে ৩টি ভালো বিষয়ের প্রতি কৃতজ্ঞতা প্রকাশ করুন। এটি ডোপামিন ও সেরোটোনিন বাড়িয়ে মনে গভীর প্রশান্তি আনে।', 
+      en: 'Reflecting on 3 specific positive moments before sleeping rewires cognitive bias away from anxiety toward serenity, naturally stimulating dopamine and serotonin.' 
+    },
+    actionableSteps: [
+      { bn: 'ঘুমানোর আগে ডায়রি বা ফোনে সারাদিনের ৩টি ভালো ঘটনার কথা স্মরণ করুন।', en: 'Jot down 3 positive things you felt grateful for today.' },
+      { bn: 'নিজের কোনো ছোট সাফল্য বা ভালো কাজের জন্য নিজেকে ধন্যবাদ জানান।', en: 'Acknowledge at least one personal micro-win or kind gesture.' },
+      { bn: 'যে বিষয়টি নিয়ন্ত্রণ করা আপনার সাধ্যে নেই, তা ছেড়ে দিয়ে মনকে হালকা করুন।', en: 'Consciously release worries over circumstances outside your control.' },
+      { bn: 'শান্ত মনে দুই মিনিট চোখ বন্ধ করে ইতিবাচক চিন্তায় সময় কাটান।', en: 'Spend 2 minutes with eyes closed centering on a peaceful memory.' }
+    ],
+    readTime: '২ মিনিট',
+    doctorNote: {
+      bn: 'মনোবিজ্ঞান পরামর্শ: কৃতজ্ঞতা প্রকাশের অভ্যাস ঘুম আসার সময়কে ২০ মিনিট এগিয়ে আনে এবং রাতের উৎকণ্ঠা কমায়।',
+      en: 'Psychology Insight: Daily gratitude practices shorten sleep latency by 20 minutes and reduce ruminative anxiety.'
+    }
+  },
+  {
+    id: 'tip-13',
+    day: 'শুক্রবার টিপস',
+    category: { bn: 'পুষ্টি ও স্লিপ সাইকেল', en: 'Sleep & Nutrition' },
+    title: { 
+      bn: 'বিকেলের ক্যাফেইন কাট-অফ ও নিরবচ্ছিন্ন গভীর ঘুম', 
+      en: 'Afternoon Caffeine Cut-Off for Deep Unbroken Sleep' 
+    },
+    description: { 
+      bn: 'কফির ক্যাফেইনের হাফ-লাইফ প্রায় ৫-৭ ঘণ্টা। বিকেল ৪টার পর চা বা কফি খেলে রাতে ঘুম গভীর হয় না এবং বারবার ঘুম ভেঙে যাওয়ার প্রবণতা তৈরি হয়।', 
+      en: 'Caffeine has a half-life of 5-7 hours. Consuming caffeine after 3-4 PM disrupts adenosine sleep pressure, fragmenting deep slow-wave restorative sleep.' 
+    },
+    actionableSteps: [
+      { bn: 'বিকেল ৩টা বা ৪টার পর ক্যাফেইনযুক্ত কফি বা তীব্র চা পরিহার করুন।', en: 'Set a personal caffeine curfew between 3:00 PM and 4:00 PM.' },
+      { bn: 'বিকেলে গরম ক্যামোমাইল চা, পুদিনা চা অথবা গরম দুধ বেছে নিন।', en: 'Switch to caffeine-free herbal chamomile, peppermint, or warm milk in the evening.' },
+      { bn: 'পর্যাপ্ত পানি পান করে শরীর থেকে টক্সিন বের করে দিন।', en: 'Stay hydrated with plain water to clear metabolites comfortably.' },
+      { bn: 'ঘুমানোর ঠিক আগে অতিরিক্ত মিষ্টি বা সোডা জাতীয় খাবার এড়িয়ে চলুন।', en: 'Avoid carbonated sodas and high-sugar desserts close to bedtime.' }
+    ],
+    readTime: '২ মিনিট',
+    doctorNote: {
+      bn: 'স্লিপ মেডিসিন পরামর্শ: বিকেলের ক্যাফেইন বর্জন করলে গভীর (Slow-Wave) ঘুমের পরিমাণ ৩০% বৃদ্ধি পায়।',
+      en: 'Sleep Medicine Advice: Eliminating late-day caffeine increases restorative slow-wave sleep by up to 30%.'
+    }
+  },
+  {
+    id: 'tip-14',
+    day: 'শনিবার টিপস',
+    category: { bn: 'ডিজিটাল ডিটক্স', en: 'Digital Detox' },
+    title: { 
+      bn: 'সাপ্তাহিক ১ ঘণ্টার ডিজিটাল ডিটক্স ও মনের সজীবতা', 
+      en: 'Weekly 1-Hour Digital Detox for Mental Clarity' 
+    },
+    description: { 
+      bn: 'সপ্তাহে অন্তত ১ ঘণ্টা সব স্ক্রিন, নোটিফিকেশন ও ফোন সম্পূর্ণ বন্ধ রেখে বই পড়া, প্রকৃতিতে থাকা অথবা পরিবারের সাথে সময় কাটালে মস্তিষ্কে নতুন সজীবতা আসে।', 
+      en: 'Unplugging from all screens and notifications for just 60 minutes weekly allows overstimulated dopamine pathways to reset, reviving natural creativity.' 
+    },
+    actionableSteps: [
+      { bn: 'ছুটির দিনে যেকোনো ১ ঘণ্টা ফোন সাইলেন্ট করে দূরে রেখে দিন।', en: 'Set phone on airplane mode and place it in another room for 1 hour.' },
+      { bn: 'মুদ্রিত বই পড়ুন, ছবি আঁকুন অথবা কোনো শখের কাজ করুন।', en: 'Read a physical paper book, sketch, or engage in a tactile hands-on hobby.' },
+      { bn: 'পরিবারের সদস্য বা বন্ধুদের সাথে স্ক্রিন ছাড়া সামনাসামনি কথা বলুন।', en: 'Have an uninterrupted face-to-face conversation with family or loved ones.' },
+      { bn: 'সবুজের কাছাকাছি পার্কে বা গাছপালার মাঝে একটু সময় কাটান।', en: 'Spend mindful time in a park, garden, or quiet green space.' }
+    ],
+    readTime: '২ মিনিট',
+    doctorNote: {
+      bn: 'পরামর্শ: ডিজিটাল বিরতি মানসিক চাপ কমিয়ে মনোযোগ ও সৃজনশীল চিন্তার শক্তি দ্বিগুণ করে।',
+      en: 'Advice: Screen-free intervals reset dopamine receptors and unlock divergent, creative problem solving.'
+    }
   }
 ];
 
+/**
+ * Automatically calculates today's wellness tip based on the local calendar day.
+ * Rotates strictly once every 24 hours at 12:00 AM (midnight) in the user's local timezone.
+ */
+export function getTodaysWellnessTip(tips: WellnessTip[] = DEFAULT_WELLNESS_TIPS): WellnessTip {
+  const now = new Date();
+  const localYear = now.getFullYear();
+  const localMonth = now.getMonth();
+  const localDate = now.getDate();
+  
+  // Local midnight timestamp converted to days since epoch
+  const localMidnightUtc = Date.UTC(localYear, localMonth, localDate);
+  const dayNumber = Math.floor(localMidnightUtc / (1000 * 60 * 60 * 24));
+  
+  const index = Math.abs(dayNumber) % tips.length;
+  return tips[index];
+}
+
 export const DailyWellnessModal: React.FC = () => {
   const { isWellnessModalOpen, setWellnessModalOpen, language, setActiveTab } = useApp();
-  const [selectedTipId, setSelectedTipId] = useState<string>(DEFAULT_WELLNESS_TIPS[0].id);
+  const [selectedTipId, setSelectedTipId] = useState<string>(() => getTodaysWellnessTip().id);
   const [completedTipIds, setCompletedTipIds] = useState<string[]>(['tip-1']);
   const [copiedShare, setCopiedShare] = useState(false);
   const [customAiTip, setCustomAiTip] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
+
+  // Sync selected tip to today's active tip whenever modal opens
+  React.useEffect(() => {
+    if (isWellnessModalOpen) {
+      setSelectedTipId(getTodaysWellnessTip().id);
+    }
+  }, [isWellnessModalOpen]);
 
   if (!isWellnessModalOpen) return null;
 

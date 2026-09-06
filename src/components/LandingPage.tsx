@@ -63,7 +63,7 @@ import {
   isLocalSubscriber,
   markLocalSubscriber
 } from '../services/bdapps';
-import { findUserByPhone } from '../services/firebase';
+import { findUserByPhone, isCustomAvatar, DEFAULT_AVATAR } from '../services/firebase';
 import { getTrustedDeviceUser } from '../services/deviceTrust';
 import { AppLogo } from './AppLogo';
 import { ChatbotAvatar } from './ChatbotAvatar';
@@ -301,11 +301,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         markLocalSubscriber(cleanMobile);
         storeSubscriberSession(cleanMobile);
 
+        const trustedAvatar = isCustomAvatar(trustedUser.avatar)
+          ? trustedUser.avatar
+          : (localStorage.getItem(`askio_avatar_phone_${cleanMobile}`) || localStorage.getItem('askio_custom_avatar') || undefined);
+
         updateProfile({
           uid: trustedUser.uid || 'user_' + cleanMobile,
           fullName: trustedUser.fullName || 'Askio Member',
           email: trustedUser.email || '',
           phone: cleanMobile,
+          avatar: trustedAvatar,
           isLoggedIn: true,
           isPremium: true,
           membershipPlan: trustedUser.membershipPlan || 'BDApps Daily (৳2.78/day)'
@@ -705,7 +710,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   </div>
                   <div>
                     <h3 className="font-extrabold text-sm text-zinc-900 dark:text-zinc-100">
-                      {isBn ? 'Askio সার্চ ও এআই পোর্টাল' : 'Askio AI Search Engine'}
+                      {isBn ? 'Askio রিসোর্স ও এআই পোর্টাল' : 'Askio Resource & AI Hub'}
                     </h3>
                     <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                       {isBn ? 'মোবাইল নম্বর দিয়ে সরাসরি প্রবেশ করুন' : 'Enter mobile number to sign in'}

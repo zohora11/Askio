@@ -13,10 +13,10 @@ interface AppLogoProps {
 
 export const AppLogo: React.FC<AppLogoProps> = ({
   className = '',
-  imgClassName = 'h-8 sm:h-9 w-auto',
+  imgClassName = 'h-10 sm:h-12 w-auto',
   showText = true,
-  subtitle = 'AI Knowledge',
-  subtitleClassName = 'hidden sm:inline text-[9px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400',
+  subtitle = 'Smart Resource & AI Hub',
+  subtitleClassName = 'hidden sm:inline text-xs sm:text-[13px] font-bold tracking-wide text-emerald-600 dark:text-emerald-400 mt-0.5',
   onClick,
   id = 'app-brand-logo'
 }) => {
@@ -24,7 +24,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
     <div 
       id={id}
       onClick={onClick}
-      className={`flex items-center gap-2 sm:gap-2.5 bg-transparent select-none shrink-0 ${onClick ? 'cursor-pointer group' : ''} ${className}`}
+      className={`flex items-center gap-3 sm:gap-3.5 bg-transparent select-none shrink-0 ${onClick ? 'cursor-pointer group' : ''} ${className}`}
     >
       {/* Logo image with transparent background */}
       <div className="bg-transparent flex items-center justify-center shrink-0">
@@ -36,14 +36,14 @@ export const AppLogo: React.FC<AppLogoProps> = ({
             }
           }}
           alt="Askio"
-          className={`${imgClassName} object-contain bg-transparent transition-transform duration-200 group-hover:scale-105`}
+          className={`${imgClassName} object-contain bg-transparent transition-transform duration-200 group-hover:scale-105 drop-shadow-xs`}
           loading="eager"
         />
       </div>
 
       {showText && (
-        <div className="flex flex-col bg-transparent">
-          <span className="font-extrabold text-lg sm:text-xl tracking-tight text-zinc-900 dark:text-zinc-100 leading-tight">
+        <div className="flex flex-col bg-transparent justify-center">
+          <span className="font-black text-2xl sm:text-3xl tracking-tight text-zinc-900 dark:text-zinc-100 leading-none">
             Askio
           </span>
           {subtitle && (

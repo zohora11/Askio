@@ -92,8 +92,8 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
               setActiveTab('home');
               setIsMobileMenuOpen(false);
             }}
-            subtitle={language === 'bn' ? 'সার্চ ও এআই ইঞ্জিন' : 'AI Search Engine'}
-            imgClassName="h-9 w-auto"
+            subtitle={language === 'bn' ? 'স্মার্ট রিসোর্স ও এআই হাব' : 'Smart Resource & AI Hub'}
+            imgClassName="h-10 sm:h-12 w-auto"
           />
         </div>
 
@@ -363,9 +363,6 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
       <div className="flex-1 flex max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 gap-8">
         {/* Desktop Navigation Rail (Hidden on mobile) */}
         <aside className="hidden lg:flex flex-col w-56 shrink-0 space-y-1.5 sticky top-24 self-start">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-3 mb-1">
-            {language === 'bn' ? 'মেনু নেভিগেশন' : 'Menu Navigation'}
-          </span>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;

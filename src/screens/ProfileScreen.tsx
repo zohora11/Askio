@@ -37,14 +37,16 @@ import {
   ChevronRight,
   BarChart3,
   History,
-  CheckCircle
+  CheckCircle,
+  Trash2
 } from 'lucide-react';
 import { UnsubscribeModal } from '../components/UnsubscribeModal';
 import { LogoutModal } from '../components/LogoutModal';
 import { unsubscribe, clearSubscriptionSession, unmarkLocalSubscriber } from '../services/bdapps';
-import { logoutFirebaseUser } from '../services/firebase';
+import { logoutFirebaseUser, isCustomAvatar, DEFAULT_AVATAR } from '../services/firebase';
 import { clearDeviceTrustForPhone } from '../services/deviceTrust';
 import { t } from '../constants/translations';
+import { optimizeAvatarImage } from '../utils/imageOptimizer';
 
 export const ProfileScreen: React.FC = () => {
   const { 
@@ -211,21 +213,33 @@ export const ProfileScreen: React.FC = () => {
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        if (result) {
-          updateProfile({ avatar: result });
-          setAvatarInput(result);
-          setToastMessage(isBn ? 'প্রোফাইল ছবি সফলভাবে আপডেট করা হয়েছে!' : 'Profile picture updated successfully!');
-          setTimeout(() => setToastMessage(null), 3000);
+      try {
+        setToastMessage(isBn ? 'ছবি প্রসেস ও ক্লাউডে সেভ করা হচ্ছে...' : 'Optimizing and syncing photo...');
+        const optimized = await optimizeAvatarImage(file, 320, 0.85);
+        if (optimized) {
+          updateProfile({ avatar: optimized });
+          setAvatarInput(optimized);
+          setToastMessage(isBn ? 'প্রোফাইল ছবি সফলভাবে ক্লাউডে সেভ হয়েছে!' : 'Profile picture saved across devices!');
+          setTimeout(() => setToastMessage(null), 3500);
         }
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Avatar upload optimization error:', err);
+        setToastMessage(isBn ? 'ছবি আপডেট করা সম্ভব হয়নি। অন্য ছবি দিন।' : 'Could not process photo. Please try another image.');
+        setTimeout(() => setToastMessage(null), 3500);
+      }
     }
+    if (e.target) e.target.value = '';
+  };
+
+  const handleRemoveAvatar = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    updateProfile({ avatar: DEFAULT_AVATAR });
+    setAvatarInput(DEFAULT_AVATAR);
+    setToastMessage(isBn ? 'প্রোফাইল ছবি মুছে ফেলে ডিফল্ট ছবি সেট করা হয়েছে।' : 'Profile picture reset to default.');
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
   const handleShareProfile = () => {
@@ -286,27 +300,53 @@ export const ProfileScreen: React.FC = () => {
         {/* Main Profile Details */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 text-center sm:text-left z-20">
           {/* Profile Avatar */}
-          <div 
-            className="relative group cursor-pointer shrink-0"
-            onClick={handleTriggerImageUpload}
-            title={isBn ? 'ছবি পরিবর্তন করুন' : 'Change Profile Photo'}
-          >
-            <img
-              src={user.avatar}
-              alt={user.fullName}
-              className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-emerald-400/80 shadow-2xl group-hover:scale-105 transition-all duration-300"
-            />
-            <button
-              id="avatar-camera-btn"
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleTriggerImageUpload();
-              }}
-              className="absolute bottom-0 right-0 p-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white shadow-xl border-2 border-white/80 transition-all cursor-pointer"
+          <div className="flex flex-col items-center sm:items-start gap-1.5 shrink-0">
+            <div 
+              className="relative group cursor-pointer"
+              onClick={handleTriggerImageUpload}
+              title={isBn ? 'ছবি পরিবর্তন করুন' : 'Change Profile Photo'}
             >
-              <Camera className="w-3.5 h-3.5" />
-            </button>
+              <img
+                src={user.avatar}
+                alt={user.fullName}
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-emerald-400/80 shadow-2xl group-hover:scale-105 transition-all duration-300"
+              />
+              <button
+                id="avatar-camera-btn"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleTriggerImageUpload();
+                }}
+                title={isBn ? 'ছবি আপলোড করুন' : 'Upload photo'}
+                className="absolute bottom-0 right-0 p-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white shadow-xl border-2 border-white/80 transition-all cursor-pointer hover:scale-110"
+              >
+                <Camera className="w-3.5 h-3.5" />
+              </button>
+
+              {isCustomAvatar(user.avatar) && (
+                <button
+                  id="avatar-remove-btn"
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  title={isBn ? 'ছবি মুছে ফেলুন' : 'Remove profile photo'}
+                  className="absolute top-0 right-0 p-1.5 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white shadow-xl border-2 border-white/80 transition-all cursor-pointer hover:scale-110"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {isCustomAvatar(user.avatar) && (
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                className="text-[11px] text-zinc-300 hover:text-rose-300 underline underline-offset-2 flex items-center gap-1 transition-colors cursor-pointer pt-0.5"
+              >
+                <Trash2 className="w-3 h-3 text-rose-400" />
+                <span>{isBn ? 'ছবি মুছুন' : 'Remove photo'}</span>
+              </button>
+            )}
           </div>
 
           {/* User Meta */}

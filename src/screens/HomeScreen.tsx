@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   Sparkles, 
@@ -22,6 +22,7 @@ import { ResourceCard } from '../components/ResourceCard';
 import { MOCK_RESOURCES, FEATURED_SPOTLIGHTS, CATEGORIES_DATA } from '../data/mockData';
 import { ChatbotAvatar } from '../components/ChatbotAvatar';
 import { t, CATEGORY_TRANSLATIONS } from '../constants/translations';
+import { getTodaysWellnessTip } from '../components/DailyWellnessModal';
 
 export const HomeScreen: React.FC = () => {
   const { 
@@ -38,8 +39,26 @@ export const HomeScreen: React.FC = () => {
   const spotlight = FEATURED_SPOTLIGHTS[0];
   const featuredResources = MOCK_RESOURCES.slice(0, 4);
 
+  // Daily Wellness Tip that rotates strictly once every 24 hours (at midnight 12:00 AM)
+  const [todaysTip, setTodaysTip] = useState(() => getTodaysWellnessTip());
+
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
+  React.useEffect(() => {
+    // Automatically recalculate when crossing midnight (checked every 30s) or on window focus
+    const refreshDailyTip = () => {
+      setTodaysTip(getTodaysWellnessTip());
+    };
+
+    const interval = setInterval(refreshDailyTip, 30000);
+    window.addEventListener('focus', refreshDailyTip);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', refreshDailyTip);
+    };
   }, []);
 
   const handleQuickSearch = (query: string) => {
@@ -162,19 +181,22 @@ export const HomeScreen: React.FC = () => {
             </div>
 
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-extrabold text-[11px] uppercase tracking-wider mb-2">
-                <Sparkles className="w-3 h-3 text-amber-300" />
-                <span>{isBn ? 'আজকের ডেইলি ওয়েলনেস টিপস' : "Today's Daily Wellness Tip"}</span>
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-extrabold text-[11px] uppercase tracking-wider">
+                  <Sparkles className="w-3 h-3 text-amber-300" />
+                  <span>{isBn ? 'আজকের ডেইলি ওয়েলনেস টিপস' : "Today's Daily Wellness Tip"} • {todaysTip.category[isBn ? 'bn' : 'en']}</span>
+                </div>
+                <span className="text-[10px] font-semibold text-emerald-300/80 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full">
+                  {isBn ? 'প্রতি ২৪ ঘণ্টায় স্বয়ংক্রিয়ভাবে পরিবর্তিত' : 'Changes Every 24h at 12:00 AM'}
+                </span>
               </div>
 
               <h3 className="text-xl sm:text-2xl font-black text-white group-hover:text-emerald-200 transition-colors leading-tight">
-                {isBn ? '২০-২০-২০ আই কেয়ার রুল ও কম্পিউটার ভিশন রিলিফ' : '20-20-20 Eye Care Rule & Screen Fatigue Relief'}
+                {todaysTip.title[isBn ? 'bn' : 'en']}
               </h3>
 
               <p className="text-xs sm:text-sm text-zinc-300 mt-1.5 line-clamp-2 max-w-2xl leading-relaxed">
-                {isBn 
-                  ? 'দীর্ঘক্ষণ স্ক্রিনে তাকিয়ে কাজ করলে চোখের শুষ্কতা তৈরি হয়। প্রতি ২০ মিনিট পর ২০ ফুট দূরের যেকোনো বস্তুর দিকে অন্তত ২০ সেকেন্ড তাকিয়ে থাকুন।' 
-                  : 'Continuous screen time causes digital eye strain. Look at an object 20 feet away for 20 seconds every 20 minutes to relax your eyes.'}
+                {todaysTip.description[isBn ? 'bn' : 'en']}
               </p>
             </div>
           </div>
