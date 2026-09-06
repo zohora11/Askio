@@ -22,10 +22,21 @@ import {
   findUserByPhoneOrEmail, 
   isCustomAvatar, 
   DEFAULT_AVATAR,
+  logoutFirebaseUser,
   auth,
   db,
   FirestoreUserData
 } from '../services/firebase';
+import { 
+  validateMobileNumber,
+  checkSubscription,
+  isSubscriptionRegistered,
+  isSubscriptionUnregistered,
+  isInitialChargingPending,
+  unmarkLocalSubscriber,
+  clearSubscriptionSession
+} from '../services/bdapps';
+import { clearDeviceTrustForPhone } from '../services/deviceTrust';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -265,6 +276,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     syncUserProfile();
   }, [user.isLoggedIn, user.email, user.phone, user.uid]);
+
+  // Active BDApps Subscription Guard:
+  // If user is logged in, verify their subscription. If unsubscribed, immediately log them out!
+  useEffect(() => {
+    if (!user.isLoggedIn || !user.phone) return;
+
+    const checkActiveSubscription = async () => {
+      try {
+        const cleanMobile = validateMobileNumber(user.phone).cleaned || user.phone;
+        const res = await checkSubscription(cleanMobile);
+        if (isSubscriptionUnregistered(res)) {
+          // Immediately kick out unsubscribed user
+          console.warn('Subscription is no longer active. Revoking access.');
+          unmarkLocalSubscriber(cleanMobile);
+          clearSubscriptionSession();
+          clearDeviceTrustForPhone(cleanMobile);
+          await logoutFirebaseUser();
+          setUser({
+            fullName: '',
+            email: '',
+            phone: '',
+            password: '',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+            isLoggedIn: false,
+            isPremium: false,
+            membershipPlan: 'Free Tier',
+            joinedDate: 'September 2026'
+          });
+          localStorage.removeItem('askio_user');
+          setActiveTab('home');
+        }
+      } catch (err) {
+        // Transient network error
+      }
+    };
+
+    // Check after brief delay to avoid race on initial mount
+    const timeout = setTimeout(checkActiveSubscription, 1500);
+    const interval = setInterval(checkActiveSubscription, 45000);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [user.isLoggedIn, user.phone]);
 
   // Listen to Firebase Auth state changes for real-time authentication & avatar persistence
   useEffect(() => {
@@ -560,6 +615,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logout = () => {
+    if (user.phone) {
+      unmarkLocalSubscriber(user.phone);
+      clearDeviceTrustForPhone(user.phone);
+    }
+    clearSubscriptionSession();
     setUser({
       fullName: '',
       email: '',

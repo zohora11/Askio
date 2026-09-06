@@ -25,15 +25,19 @@ import {
   validateMobileNumber, 
   storeSubscriberSession, 
   markLocalSubscriber,
+  unmarkLocalSubscriber,
+  clearSubscriptionSession,
   isLocalSubscriber,
   checkSubscription,
-  isSubscriptionRegistered
+  isSubscriptionRegistered,
+  sendOTP
 } from '../services/bdapps';
 import { 
   registerFirebaseUser, 
   loginFirebaseUser, 
   loginWithGoogle,
   findUserByPhone,
+  logoutFirebaseUser,
   sendPasswordResetOtp,
   verifyPasswordResetOtp,
   resetUserPassword,
@@ -45,6 +49,7 @@ import {
   saveDeviceTrustForPhone,
   clearDeviceTrustForPhone
 } from '../services/deviceTrust';
+import { OtpVerificationModal } from './OtpVerificationModal';
 
 interface AuthModalProps {
   onLoginSuccess?: () => void;
@@ -74,6 +79,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [otpRefNo, setOtpRefNo] = useState('');
 
   // Password Reset states
   const [resetMethod, setResetMethod] = useState<'email' | 'phone'>('email');
@@ -113,7 +120,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
 
   if (!isAuthModalOpen) return null;
 
-  // STEP 1: Phone check / Lookup
+  // STEP 1: Phone check / BDApps Subscription Check
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validation = validateMobileNumber(phoneInput);
@@ -130,36 +137,49 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       const cleanMobile = validation.cleaned;
       setPendingPhone(cleanMobile);
 
-      // Check subscription status (local cache or BDApps API)
-      let isSub = isLocalSubscriber(cleanMobile);
-      if (!isSub) {
-        try {
-          const subRes = await checkSubscription(cleanMobile);
-          isSub = isSubscriptionRegistered(subRes);
-        } catch (e) {
-          // If offline/error, default to false if not saved locally
-        }
+      // STEP 1A: ALWAYS call BDApps checkSubscription API FIRST
+      let isSub = false;
+      try {
+        const subRes = await checkSubscription(cleanMobile);
+        isSub = isSubscriptionRegistered(subRes);
+      } catch (checkErr) {
+        console.warn('Subscription check API notice:', checkErr);
+        isSub = false;
       }
 
-      // If phone number is NOT registered/subscribed or unsubscribed:
+      // STEP 1B: If NOT subscribed / NOT registered:
+      // STRICT CONSTRAINT: "যদি সে সাবস্ক্রাইব না হয় সেক্ষেত্রে তাকে কোনোভাবে নেক্সট ধাপে নিয়ে যাওয়া যাবে না ।"
+      // "আর যদি চেক সাবস্ক্রিপশন কল করে দেখে যে না সে রেজিস্টার্ড না তাহলে তখন সেন্ড ওটিপি কল হবে ।"
       if (!isSub) {
+        unmarkLocalSubscriber(cleanMobile);
+        clearSubscriptionSession();
         clearDeviceTrustForPhone(cleanMobile);
-        setErrorMsg(
-          isBn
-            ? 'তোমার ফোন নাম্বার রেজিস্টার্ড না। অনুগ্রহ করে আবার সাবস্ক্রিপশন করুন।'
-            : 'Your phone number is not registered. Please subscribe again to continue.'
-        );
-        setLoading(false);
+
+        setSuccessMsg(isBn ? 'সাবস্ক্রিপশন সক্রিয় নেই। এসএমএস ওটিপি পাঠানো হচ্ছে...' : 'Subscription not active. Sending OTP via SMS...');
+        try {
+          const otpRes = await sendOTP(cleanMobile);
+          const ref = otpRes.referenceNo || otpRes.subscriberId || 'REF-' + Date.now();
+          setOtpRefNo(ref);
+          setLoading(false);
+          setSuccessMsg('');
+          setIsOtpModalOpen(true);
+        } catch (otpErr: any) {
+          setLoading(false);
+          setSuccessMsg('');
+          setErrorMsg(otpErr?.message || (isBn ? 'ওটিপি পাঠানো সম্ভব হয়নি। মোবাইল নম্বরটি পরীক্ষা করুন।' : 'Failed to send OTP. Please check mobile number.'));
+        }
         return;
       }
+
+      // STEP 1C: USER IS SUBSCRIBED!
+      // Only now, permit next step:
+      markLocalSubscriber(cleanMobile);
+      storeSubscriberSession(cleanMobile);
 
       // 1. Check if THIS device is ALREADY TRUSTED for this phone number
       const trustedUser = getTrustedDeviceUser(cleanMobile);
       if (trustedUser) {
         // Same device where password was saved previously -> Direct Login!
-        markLocalSubscriber(cleanMobile);
-        storeSubscriberSession(cleanMobile);
-
         const trustedAvatar = isCustomAvatar(trustedUser.avatar) 
           ? trustedUser.avatar 
           : (localStorage.getItem(`askio_avatar_phone_${cleanMobile}`) || localStorage.getItem('askio_custom_avatar') || undefined);
@@ -192,13 +212,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         // User already has an account on another device -> Take to Firebase Password Login
         setEmail(existingUser.email);
         setAuthView('firebase_login');
-        setSuccessMsg(isBn ? 'অন্য ডিভাইস সনাক্ত হয়েছে! পাসওয়ার্ড দিয়ে লগইন করুন।' : 'New device detected! Please enter your password to sign in.');
+        setSuccessMsg(isBn ? 'সাবস্ক্রিপশন সক্রিয়! পাসওয়ার্ড দিয়ে লগইন করুন।' : 'Subscription active! Please enter password to sign in.');
       } else {
         setAuthView('firebase_register');
-        setSuccessMsg(isBn ? 'সাবস্ক্রিপশন নিশ্চিত করতে তথ্য পূরণ করে অ্যাকাউন্ট তৈরি করুন।' : 'Complete profile to set up your account.');
+        setSuccessMsg(isBn ? 'সাবস্ক্রিপশন নিশ্চিত হয়েছে! তথ্য পূরণ করে অ্যাকাউন্ট তৈরি করুন।' : 'Subscription confirmed! Complete profile to set up account.');
       }
-    } catch {
-      setAuthView('firebase_login');
+    } catch (err: any) {
+      setErrorMsg(err?.message || (isBn ? 'যাচাই করতে সমস্যা হয়েছে।' : 'Error verifying phone.'));
     } finally {
       setLoading(false);
     }
@@ -301,11 +321,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
 
       const userPhone = loggedInUser.phone || (loginInput.startsWith('01') ? loginInput : (phoneInput.trim() || pendingPhone.trim()));
 
-      // 2. Mark subscriber active locally & save device trust
+      // 2. STRICT SUBSCRIPTION CHECK: Ensure active BDApps subscription
       if (userPhone) {
+        const cleanPhone = validateMobileNumber(userPhone).cleaned || userPhone;
+        let isSub = false;
+        try {
+          const subRes = await checkSubscription(cleanPhone);
+          isSub = isSubscriptionRegistered(subRes);
+        } catch (e) {
+          isSub = false;
+        }
+
+        if (!isSub) {
+          await logoutFirebaseUser();
+          unmarkLocalSubscriber(cleanPhone);
+          clearSubscriptionSession();
+          clearDeviceTrustForPhone(cleanPhone);
+          setLoading(false);
+          setErrorMsg(
+            isBn
+              ? `আপনার অ্যাকাউন্টের নম্বরে (+880 ${cleanPhone}) কোনো সক্রিয় সাবস্ক্রিপশন নেই। অ্যাপে প্রবেশের জন্য সাবস্ক্রাইব করা আবশ্যক।`
+              : `Account number (+880 ${cleanPhone}) is not subscribed. Active BDApps subscription is required to access Askio.`
+          );
+          return;
+        }
+
         markLocalSubscriber(userPhone);
         storeSubscriberSession(userPhone);
         saveDeviceTrustForPhone(userPhone, loggedInUser);
+      } else {
+        await logoutFirebaseUser();
+        setLoading(false);
+        setErrorMsg(
+          isBn
+            ? 'আপনার অ্যাকাউন্টে কোনো মোবাইল নম্বর পাওয়া যায়নি। অনুগ্রহ করে মোবাইল নম্বর দিয়ে সাবস্ক্রাইব করুন।'
+            : 'No phone number associated with this account. Please subscribe with your mobile number.'
+        );
+        return;
       }
 
       // 3. Update global App Context (including avatar!)
@@ -1278,6 +1330,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
           </form>
         )}
       </div>
+
+      {/* Dedicated SMS OTP Verification Modal */}
+      <OtpVerificationModal
+        isOpen={isOtpModalOpen}
+        phoneNumber={pendingPhone || phoneInput}
+        referenceNo={otpRefNo}
+        onClose={() => setIsOtpModalOpen(false)}
+        onSuccess={() => {
+          setIsOtpModalOpen(false);
+          setAuthModalOpen(false);
+          setActiveTab('home');
+          if (onLoginSuccess) onLoginSuccess();
+        }}
+        onChangePhone={() => {
+          setIsOtpModalOpen(false);
+          setAuthView('phone');
+        }}
+      />
     </div>
   );
 };

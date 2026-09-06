@@ -61,10 +61,12 @@ import {
   isSubscriptionRegistered,
   storeSubscriberSession,
   isLocalSubscriber,
-  markLocalSubscriber
+  markLocalSubscriber,
+  unmarkLocalSubscriber,
+  clearSubscriptionSession
 } from '../services/bdapps';
 import { findUserByPhone, isCustomAvatar, DEFAULT_AVATAR } from '../services/firebase';
-import { getTrustedDeviceUser } from '../services/deviceTrust';
+import { getTrustedDeviceUser, clearDeviceTrustForPhone } from '../services/deviceTrust';
 import { AppLogo } from './AppLogo';
 import { ChatbotAvatar } from './ChatbotAvatar';
 import { AppDocumentationModal } from './AppDocumentationModal';
@@ -83,6 +85,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     setLanguage, 
     setAuthModalOpen, 
     setAuthView,
+    pendingPhone,
     setPendingPhone,
     updateProfile,
     setActiveTab
@@ -288,19 +291,55 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     }
 
     setIsSubmitting(true);
-    setStatusMessage(isBn ? 'সাবস্ক্রিপশন ও অ্যাকাউন্ট যাচাই করা হচ্ছে...' : 'Checking subscription status...');
+    setStatusMessage(isBn ? 'বিডিঅ্যাপস সাবস্ক্রিপশন যাচাই করা হচ্ছে...' : 'Checking BDApps subscription status...');
 
     try {
       const cleanMobile = validation.cleaned;
       setPendingPhone(cleanMobile);
 
-      // 1. Check if THIS device is ALREADY TRUSTED for this phone number
+      // STEP 1: Always call BDApps checkSubscription FIRST
+      let isRegistered = false;
+      try {
+        const checkRes = await checkSubscription(cleanMobile);
+        isRegistered = isSubscriptionRegistered(checkRes);
+      } catch (checkErr) {
+        console.warn('BDApps checkSubscription API error:', checkErr);
+        isRegistered = false;
+      }
+
+      // STEP 2: If NOT subscribed / NOT registered:
+      // STRICT CONSTRAINT: "যদি সে সাবস্ক্রাইব না হয় সেক্ষেত্রে তাকে কোনোভাবে নেক্সট ধাপে নিয়ে যাওয়া যাবে না ।"
+      if (!isRegistered) {
+        // Clear any stale local subscriber or device trust
+        unmarkLocalSubscriber(cleanMobile);
+        clearSubscriptionSession();
+        clearDeviceTrustForPhone(cleanMobile);
+
+        // Send OTP to initiate subscription
+        setStatusMessage(isBn ? 'সাবস্ক্রিপশন পাওয়া যায়নি। এসএমএস ওটিপি পাঠানো হচ্ছে...' : 'Subscription not active. Sending verification OTP via SMS...');
+        try {
+          const otpRes = await sendOTP(cleanMobile);
+          const ref = otpRes.referenceNo || otpRes.subscriberId || 'REF-' + Date.now();
+          setReferenceNo(ref);
+          setIsSubmitting(false);
+          setStatusMessage('');
+          setIsOtpModalOpen(true);
+        } catch (otpErr: any) {
+          setIsSubmitting(false);
+          setStatusMessage('');
+          setErrorMessage(otpErr?.message || (isBn ? 'ওটিপি পাঠানো সম্ভব হয়নি। মোবাইল নম্বরটি পরীক্ষা করুন।' : 'Failed to send OTP. Please check your mobile number.'));
+        }
+        return;
+      }
+
+      // STEP 3: USER IS SUBSCRIBED!
+      // Only now, proceed to next step:
+      markLocalSubscriber(cleanMobile);
+      storeSubscriberSession(cleanMobile);
+
+      // 3A: Check if device is trusted for this phone number
       const trustedUser = getTrustedDeviceUser(cleanMobile);
       if (trustedUser) {
-        // Same device where password was saved previously -> Direct Login! No email/password needed!
-        markLocalSubscriber(cleanMobile);
-        storeSubscriberSession(cleanMobile);
-
         const trustedAvatar = isCustomAvatar(trustedUser.avatar)
           ? trustedUser.avatar
           : (localStorage.getItem(`askio_avatar_phone_${cleanMobile}`) || localStorage.getItem('askio_custom_avatar') || undefined);
@@ -317,7 +356,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         });
 
         setIsSubmitting(false);
-        setStatusMessage(isBn ? 'এই ডিভাইসে আপনার পাসওয়ার্ড সেভ করা আছে! সরাসরি অ্যাপে প্রবেশ করা হচ্ছে...' : 'Device recognized! Accessing app directly without password...');
+        setStatusMessage(isBn ? 'ডিভাইস সনাক্ত হয়েছে! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Device recognized! Accessing Askio...');
         setTimeout(() => {
           setStatusMessage('');
           setActiveTab('home');
@@ -326,66 +365,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         return;
       }
 
-      // 2. Check if user has an existing account in Firebase Firestore
+      // 3B: Check if user has an existing account in Firebase Firestore
       const existingFirebaseUser = await findUserByPhone(cleanMobile);
-
       if (existingFirebaseUser && existingFirebaseUser.email) {
-        // Registered subscriber with account on another device -> Require Password & Email on this new device
         setIsSubmitting(false);
-        setStatusMessage(isBn ? 'অন্য ডিভাইস সনাক্ত হয়েছে! অনুগ্রহ করে আপনার ইমেইল ও পাসওয়ার্ড দিয়ে ঢুকুন।' : 'New device detected! Please enter your email and password to sign in.');
+        setStatusMessage(isBn ? 'সাবস্ক্রিপশন সক্রিয়! পাসওয়ার্ড দিয়ে সাইন ইন করুন।' : 'Subscription active! Please enter password to sign in.');
         setTimeout(() => {
           setAuthView('firebase_login');
           setAuthModalOpen(true);
           setStatusMessage('');
-        }, 500);
+        }, 400);
         return;
       }
 
-      // Check if already subscribed locally
-      const isAlreadySub = isLocalSubscriber(cleanMobile);
-      let registered = isAlreadySub;
-
-      if (!registered) {
-        try {
-          const checkRes = await checkSubscription(cleanMobile);
-          registered = isSubscriptionRegistered(checkRes);
-        } catch (apiErr) {
-          console.warn('BDApps check API notice:', apiErr);
-        }
-      }
-
-      if (registered) {
-        // Subscribed without Firebase account yet -> open Firebase Register screen
-        setIsSubmitting(false);
-        setStatusMessage(isBn ? 'সাবস্ক্রিপশন সক্রিয়! অ্যাকাউন্ট তৈরির জন্য তথ্য দিন।' : 'Subscription active! Set up your account details.');
-        setTimeout(() => {
-          setAuthView('firebase_register');
-          setAuthModalOpen(true);
-          setStatusMessage('');
-        }, 500);
-        return;
-      }
-
-      // New user! Send SMS OTP and open dedicated OTP modal
-      setStatusMessage(isBn ? 'এসএমএস ওটিপি পাঠানো হচ্ছে...' : 'Sending BDApps verification OTP...');
-      const otpRes = await sendOTP(cleanMobile);
-      const ref = otpRes.referenceNo || otpRes.subscriberId || 'REF-' + Date.now();
-      setReferenceNo(ref);
+      // 3C: Brand new user with active subscription -> open Firebase Register
+      setIsSubmitting(false);
+      setStatusMessage(isBn ? 'সাবস্ক্রিপশন সক্রিয়! অ্যাকাউন্ট তৈরির তথ্য দিন।' : 'Subscription active! Set up your account.');
+      setTimeout(() => {
+        setAuthView('firebase_register');
+        setAuthModalOpen(true);
+        setStatusMessage('');
+      }, 400);
+    } catch (err: any) {
       setIsSubmitting(false);
       setStatusMessage('');
-      // Open the dedicated OTP Verification Modal
-      setIsOtpModalOpen(true);
-    } catch {
-      // Fallback: Open OTP modal with generated reference
-      setReferenceNo('REF-' + Date.now());
-      setIsSubmitting(false);
-      setStatusMessage('');
-      setIsOtpModalOpen(true);
+      setErrorMessage(err?.message || (isBn ? 'যাচাই করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।' : 'Error during subscription verification. Please try again.'));
     }
   };
 
   const handleOpenLogin = () => {
-    setAuthView('firebase_login');
+    setAuthView('phone');
     setAuthModalOpen(true);
   };
 
@@ -1760,7 +1769,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       {/* Dedicated SMS OTP Verification Modal */}
       <OtpVerificationModal
         isOpen={isOtpModalOpen}
-        phoneNumber={mobileInput}
+        phoneNumber={pendingPhone || mobileInput}
         referenceNo={referenceNo}
         onClose={() => setIsOtpModalOpen(false)}
         onSuccess={() => {

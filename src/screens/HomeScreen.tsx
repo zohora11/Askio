@@ -74,22 +74,25 @@ export const HomeScreen: React.FC = () => {
   return (
     <div className="space-y-8 pb-12 animate-fade-in">
       {/* Top Welcome Hero Section */}
-      <div id="home-greeting-section" className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white rounded-3xl px-6 sm:px-10 py-10 sm:py-16 shadow-2xl relative overflow-hidden border border-zinc-800/80 min-h-[260px] sm:min-h-[320px]">
+      <div 
+        id="home-greeting-section" 
+        className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-white dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 text-zinc-900 dark:text-white rounded-3xl px-6 sm:px-10 py-10 sm:py-16 shadow-[0_12px_36px_rgba(16,185,129,0.08)] dark:shadow-2xl relative overflow-hidden border border-emerald-200/80 dark:border-zinc-800/80 min-h-[260px] sm:min-h-[320px] transition-colors"
+      >
         {/* Ambient Decorative Lighting Aura */}
-        <div className="absolute -top-24 -right-24 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-emerald-400/15 dark:bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-400/15 dark:bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-2xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold tracking-wide shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100/90 dark:bg-emerald-500/20 border border-emerald-300/80 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-bold tracking-wide shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span>{t('home.badge', language)}</span>
           </div>
 
-          <h1 id="home-greeting-heading" className="text-3xl sm:text-5xl font-black tracking-tight leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+          <h1 id="home-greeting-heading" className="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-zinc-900 dark:text-white drop-shadow-none dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
             {language === 'bn' ? 'হ্যালো' : 'Hello'} {user.fullName?.trim() ? user.fullName.trim().split(' ')[0] : (language === 'bn' ? 'ইউজার' : 'User')} 👋
           </h1>
 
-          <p className="text-sm sm:text-base text-zinc-300 leading-relaxed font-medium max-w-xl">
+          <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 leading-relaxed font-medium max-w-xl">
             {t('home.subtitle', language)}
           </p>
 
@@ -97,23 +100,23 @@ export const HomeScreen: React.FC = () => {
           <div className="flex flex-wrap gap-2.5 pt-2">
             <button
               onClick={() => handleQuickSearch('PDF books')}
-              className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-2 border border-white/10 hover:scale-105 active:scale-95 cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-white/90 hover:bg-emerald-50 text-zinc-700 hover:text-zinc-950 border border-emerald-200/70 shadow-xs dark:bg-white/10 dark:hover:bg-white/20 dark:text-white dark:border-white/10 text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer"
             >
-              <FileText className="w-4 h-4 text-blue-400" />
+              <FileText className="w-4 h-4 text-blue-500 dark:text-blue-400" />
               <span>{t('home.quick_eye', language)}</span>
             </button>
             <button
               onClick={() => handleQuickSearch('Video Tutorials')}
-              className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-2 border border-white/10 hover:scale-105 active:scale-95 cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-white/90 hover:bg-emerald-50 text-zinc-700 hover:text-zinc-950 border border-emerald-200/70 shadow-xs dark:bg-white/10 dark:hover:bg-white/20 dark:text-white dark:border-white/10 text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer"
             >
-              <Video className="w-4 h-4 text-rose-400" />
+              <Video className="w-4 h-4 text-rose-500 dark:text-rose-400" />
               <span>{t('home.quick_specialist', language)}</span>
             </button>
             <button
               onClick={() => handleQuickAiPrompt(isBn ? 'যেকোনো বিষয় সম্পর্কে আমাকে সংক্ষেপে সহজ বাংলায় গাইড দাও।' : 'Summarize the most important concepts on Machine Learning and React.')}
-              className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-2 border border-white/10 hover:scale-105 active:scale-95 cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-white/90 hover:bg-emerald-50 text-zinc-700 hover:text-zinc-950 border border-emerald-200/70 shadow-xs dark:bg-white/10 dark:hover:bg-white/20 dark:text-white dark:border-white/10 text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer"
             >
-              <Sparkles className="w-4 h-4 text-amber-400" />
+              <Sparkles className="w-4 h-4 text-amber-500 dark:text-amber-400" />
               <span>{t('home.quick_guide', language)}</span>
             </button>
           </div>
@@ -128,35 +131,35 @@ export const HomeScreen: React.FC = () => {
             title={isBn ? 'Askio এআই সহকারীর সাথে কথা বলুন' : 'Chat with Askio AI'}
           >
             {/* Ambient Radial Pulsing Aura */}
-            <span className="absolute -inset-3 bg-gradient-to-tr from-emerald-500/40 via-teal-400/30 to-emerald-400/50 rounded-full blur-lg group-hover:blur-xl opacity-80 group-hover:opacity-100 transition-all duration-500 animate-pulse pointer-events-none" />
+            <span className="absolute -inset-3 bg-gradient-to-tr from-emerald-500/30 via-teal-400/25 to-emerald-400/40 dark:from-emerald-500/40 dark:via-teal-400/30 dark:to-emerald-400/50 rounded-full blur-lg group-hover:blur-xl opacity-80 group-hover:opacity-100 transition-all duration-500 animate-pulse pointer-events-none" />
 
             {/* Circular Holographic Glass Orb Frame */}
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-emerald-950/80 via-zinc-900/90 to-teal-950/80 p-0.5 border-2 border-emerald-400/60 flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.35)] group-hover:border-emerald-300 group-hover:scale-105 transition-all duration-300">
+            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-emerald-100 via-white to-teal-100 dark:from-emerald-950/80 dark:via-zinc-900/90 dark:to-teal-950/80 p-0.5 border-2 border-emerald-500/50 dark:border-emerald-400/60 flex items-center justify-center shadow-[0_4px_20px_rgba(16,185,129,0.25)] dark:shadow-[0_0_30px_rgba(16,185,129,0.35)] group-hover:border-emerald-600 dark:group-hover:border-emerald-300 group-hover:scale-105 transition-all duration-300">
               <ChatbotAvatar sizeClassName="w-12 h-12 sm:w-14 sm:h-14 group-hover:scale-110 transition-transform" showOnlineBadge={true} />
             </div>
 
             {/* Floating Soft Pill Badge */}
-            <div className="mt-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 backdrop-blur-md flex items-center gap-1.5 shadow-sm group-hover:bg-emerald-500/30 transition-colors">
-              <Sparkles className="w-3 h-3 text-emerald-400" />
-              <span className="text-xs text-emerald-300 font-bold tracking-wide">
+            <div className="mt-2 px-3 py-1 rounded-full bg-emerald-100/90 dark:bg-emerald-500/20 border border-emerald-300/80 dark:border-emerald-400/40 backdrop-blur-md flex items-center gap-1.5 shadow-xs group-hover:bg-emerald-200/80 dark:group-hover:bg-emerald-500/30 transition-colors">
+              <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+              <span className="text-xs text-emerald-800 dark:text-emerald-300 font-bold tracking-wide">
                 {isBn ? 'আস্ক এআই' : 'Askio AI'}
               </span>
             </div>
           </div>
 
           {/* Frosted Glass Streak Capsule */}
-          <div className="p-4 sm:p-5 rounded-3xl bg-white/10 dark:bg-zinc-800/40 backdrop-blur-xl border border-white/15 dark:border-zinc-700/60 flex flex-col items-center justify-center min-w-[145px] text-center shadow-xl hover:border-emerald-400/40 transition-all">
-            <div className="flex items-center gap-1.5 text-2xl sm:text-3xl font-black text-emerald-400">
-              <Flame className="w-6 h-6 text-amber-400 fill-amber-400/30 animate-pulse" />
+          <div className="p-4 sm:p-5 rounded-3xl bg-white/85 dark:bg-zinc-800/40 backdrop-blur-xl border border-emerald-200/80 dark:border-zinc-700/60 flex flex-col items-center justify-center min-w-[145px] text-center shadow-lg dark:shadow-xl hover:border-emerald-400/60 transition-all">
+            <div className="flex items-center gap-1.5 text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+              <Flame className="w-6 h-6 text-amber-500 dark:text-amber-400 fill-amber-500/30 dark:fill-amber-400/30 animate-pulse" />
               <span>{goals[0]?.streakDays || 7}</span>
-              <span className="text-xs sm:text-sm font-semibold text-zinc-300">{t('home.streak_days', language)}</span>
+              <span className="text-xs sm:text-sm font-semibold text-zinc-600 dark:text-zinc-300">{t('home.streak_days', language)}</span>
             </div>
-            <span className="text-[11px] text-zinc-300 font-medium mt-1">
+            <span className="text-[11px] text-zinc-500 dark:text-zinc-300 font-medium mt-1">
               {t('home.wellness_streak', language)}
             </span>
             <button
               onClick={() => setActiveTab('goals')}
-              className="mt-2.5 text-xs text-emerald-300 hover:text-white flex items-center gap-1 font-bold group cursor-pointer"
+              className="mt-2.5 text-xs text-emerald-700 hover:text-emerald-900 dark:text-emerald-300 dark:hover:text-white flex items-center gap-1 font-bold group cursor-pointer"
             >
               <span>{t('home.view_goals', language)}</span>
               <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
@@ -169,33 +172,33 @@ export const HomeScreen: React.FC = () => {
       <div 
         id="home-daily-wellness-tips-card"
         onClick={() => setWellnessModalOpen(true)}
-        className="group relative bg-gradient-to-r from-teal-950/90 via-emerald-950/90 to-zinc-900 border-2 border-emerald-400/60 dark:border-emerald-500/50 rounded-3xl p-6 text-white shadow-xl hover:border-emerald-300 hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden"
+        className="group relative bg-gradient-to-r from-emerald-50/95 via-teal-50/80 to-emerald-100/60 dark:from-teal-950/90 dark:via-emerald-950/90 dark:to-zinc-900 border-2 border-emerald-300/90 dark:border-emerald-500/50 rounded-3xl p-6 text-zinc-900 dark:text-white shadow-[0_8px_30px_rgba(16,185,129,0.08)] dark:shadow-xl hover:border-emerald-500 dark:hover:border-emerald-300 hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden"
       >
         {/* Subtle Background Glow */}
-        <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-emerald-500/20 blur-3xl group-hover:bg-emerald-500/30 transition-all pointer-events-none" />
+        <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-emerald-400/15 dark:bg-emerald-500/20 blur-3xl group-hover:bg-emerald-400/25 dark:group-hover:bg-emerald-500/30 transition-all pointer-events-none" />
 
         <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
           <div className="flex items-start gap-4">
-            <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform shrink-0">
-              <HeartPulse className="w-7 h-7 text-emerald-100 animate-pulse" />
+            <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/25 group-hover:scale-110 transition-transform shrink-0">
+              <HeartPulse className="w-7 h-7 text-white animate-pulse" />
             </div>
 
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-2">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-extrabold text-[11px] uppercase tracking-wider">
-                  <Sparkles className="w-3 h-3 text-amber-300" />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/90 dark:bg-emerald-500/20 border border-emerald-300/80 dark:border-emerald-400/40 text-emerald-800 dark:text-emerald-300 font-extrabold text-[11px] uppercase tracking-wider shadow-2xs">
+                  <Sparkles className="w-3 h-3 text-amber-500 dark:text-amber-300" />
                   <span>{isBn ? 'আজকের ডেইলি ওয়েলনেস টিপস' : "Today's Daily Wellness Tip"} • {todaysTip.category[isBn ? 'bn' : 'en']}</span>
                 </div>
-                <span className="text-[10px] font-semibold text-emerald-300/80 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-semibold text-emerald-800 dark:text-emerald-300/80 bg-emerald-100/70 dark:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 px-2.5 py-0.5 rounded-full">
                   {isBn ? 'প্রতি ২৪ ঘণ্টায় স্বয়ংক্রিয়ভাবে পরিবর্তিত' : 'Changes Every 24h at 12:00 AM'}
                 </span>
               </div>
 
-              <h3 className="text-xl sm:text-2xl font-black text-white group-hover:text-emerald-200 transition-colors leading-tight">
+              <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-200 transition-colors leading-tight">
                 {todaysTip.title[isBn ? 'bn' : 'en']}
               </h3>
 
-              <p className="text-xs sm:text-sm text-zinc-300 mt-1.5 line-clamp-2 max-w-2xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 mt-1.5 line-clamp-2 max-w-2xl leading-relaxed">
                 {todaysTip.description[isBn ? 'bn' : 'en']}
               </p>
             </div>
@@ -207,10 +210,10 @@ export const HomeScreen: React.FC = () => {
               e.stopPropagation();
               setWellnessModalOpen(true);
             }}
-            className="w-full md:w-auto px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-black font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shrink-0 group-hover:scale-105 cursor-pointer"
+            className="w-full md:w-auto px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:text-black font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/20 dark:shadow-md shrink-0 group-hover:scale-105 cursor-pointer"
           >
             <span>{isBn ? 'সম্পূর্ণ টিপস ও গাইড দেখুন' : 'View Full Tips & Guide'}</span>
-            <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 text-white dark:text-black group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </div>

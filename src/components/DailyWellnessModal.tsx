@@ -577,17 +577,17 @@ export const DailyWellnessModal: React.FC = () => {
           </div>
 
           {/* AI Instant Custom Tip Section */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900 text-white border border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/50 to-white dark:bg-zinc-900 text-zinc-900 dark:text-white border border-emerald-200/80 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0 shadow-2xs">
                 <Bot className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-white flex items-center gap-1.5">
+                <h4 className="font-bold text-sm text-zinc-900 dark:text-white flex items-center gap-1.5">
                   <span>{isBn ? 'আজকের তাৎক্ষণিক এআই পরামর্শ' : 'Instant AI Wellness Generator'}</span>
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                 </h4>
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-zinc-600 dark:text-zinc-400">
                   {customAiTip || (isBn ? 'আপনার বর্তমান সময় ও স্বাস্থ্য লক্ষ্যের ওপর ভিত্তি করে টিপস তৈরি করুন।' : 'Generate an instant personalized wellness boost right now.')}
                 </p>
               </div>
@@ -597,7 +597,7 @@ export const DailyWellnessModal: React.FC = () => {
               id="generate-fresh-ai-tip-btn"
               onClick={handleGenerateFreshAiTip}
               disabled={isAiLoading}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:text-black font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50 shadow-xs"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isAiLoading ? 'animate-spin' : ''}`} />
               <span>{isBn ? 'নতুন এআই টিপস পান' : 'Generate AI Tip'}</span>

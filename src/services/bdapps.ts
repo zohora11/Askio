@@ -280,14 +280,53 @@ export async function sendOTP(mobile: string): Promise<SendOtpResponse> {
     throw new Error(errorMessage || 'Invalid mobile number');
   }
 
-  return callBdAppsApi<SendOtpResponse>('send_otp', {
+  const res = await callBdAppsApi<SendOtpResponse>('send_otp', {
     user_mobile: cleaned,
   });
+
+  const code = String(res?.statusCode || '').trim().toUpperCase();
+  const detail = String(res?.statusDetail || '').toLowerCase();
+  if (code.startsWith('E') || detail.includes('fail') || detail.includes('error') || res?.success === false) {
+    throw new Error(res?.statusDetail || res?.message || 'ওটিপি পাঠানো সম্ভব হয়নি। মোবাইল নম্বরটি যাচাই করুন।');
+  }
+
+  return res;
 }
 
 // -------------------------------------------------------------
 // API 3: Verify OTP
 // -------------------------------------------------------------
+export function isOtpVerificationSuccessful(res: VerifyOtpResponse | null | undefined): boolean {
+  if (!res) return false;
+  const code = String(res.statusCode || '').trim().toUpperCase();
+  const detail = String(res.statusDetail || '').toLowerCase();
+  const msg = String(res.message || '').toLowerCase();
+
+  if (
+    code.startsWith('E') || 
+    detail.includes('invalid') || 
+    detail.includes('fail') || 
+    detail.includes('expire') || 
+    detail.includes('error') ||
+    msg.includes('invalid') ||
+    msg.includes('fail') ||
+    msg.includes('error') ||
+    res.success === false
+  ) {
+    return false;
+  }
+
+  if (code === 'S1000' || res.success === true || detail.includes('success')) {
+    return true;
+  }
+
+  if (code && code !== 'S1000') {
+    return false;
+  }
+
+  return Boolean(res.subscriptionStatus || res.referenceNo || res.subscriberId);
+}
+
 export async function verifyOTP(
   mobile: string,
   otp: string,
@@ -303,11 +342,18 @@ export async function verifyOTP(
     throw new Error('Please enter the OTP');
   }
 
-  return callBdAppsApi<VerifyOtpResponse>('verify_otp', {
+  const res = await callBdAppsApi<VerifyOtpResponse>('verify_otp', {
     Otp: cleanOtp,
+    otp: cleanOtp,
     referenceNo: referenceNo.trim(),
     user_mobile: cleaned,
   });
+
+  if (!isOtpVerificationSuccessful(res)) {
+    throw new Error(res?.statusDetail || res?.message || 'ভুল ওটিপি কোড বা ওটিপির মেয়াদ শেষ হয়ে গেছে।');
+  }
+
+  return res;
 }
 
 // -------------------------------------------------------------

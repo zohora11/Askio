@@ -82,127 +82,57 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col font-sans selection:bg-emerald-500/20">
-      {/* --- TOP APPBAR --- */}
-      <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-zinc-200/60 dark:border-zinc-800/60 px-4 sm:px-8 py-3 flex items-center justify-between transition-colors">
-        <div className="flex items-center gap-3">
-          {/* Askio Logo */}
+      {/* --- TOP FLOATING GLASS APPBAR (OPTIMIZED FOR TABLET, MOBILE & DESKTOP) --- */}
+      <header 
+        id="floating-top-appbar"
+        className="fixed top-3 inset-x-3 sm:inset-x-6 max-w-7xl mx-auto z-40 bg-white/85 dark:bg-zinc-900/85 backdrop-blur-xl backdrop-saturate-150 border border-zinc-200/75 dark:border-zinc-800/75 shadow-[0_8px_30px_rgb(0,0,0,0.07)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.35)] rounded-2xl sm:rounded-3xl px-3 sm:px-5 md:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4 transition-all"
+      >
+        {/* Far Left: App Logo & App Name (Askio) */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
           <AppLogo 
             id="brand-logo"
             onClick={() => {
               setActiveTab('home');
               setIsMobileMenuOpen(false);
             }}
-            subtitle={language === 'bn' ? 'স্মার্ট রিসোর্স ও এআই হাব' : 'Smart Resource & AI Hub'}
-            imgClassName="h-10 sm:h-12 w-auto"
+            subtitle={language === 'bn' ? 'স্মার্ট হাব' : 'Smart Hub'}
+            subtitleClassName="hidden lg:inline text-xs font-bold tracking-wide text-emerald-600 dark:text-emerald-400 mt-0.5 truncate"
+            imgClassName="h-8 sm:h-9 md:h-10 w-auto"
           />
         </div>
 
-        {/* Global Quick Search (Desktop) */}
-        <div 
-          onClick={() => setActiveTab('search')}
-          className="hidden md:flex items-center gap-2 bg-zinc-100/80 dark:bg-zinc-800/80 px-4 py-2 rounded-xl text-xs text-zinc-500 dark:text-zinc-400 w-80 cursor-pointer hover:bg-zinc-200/90 dark:hover:bg-zinc-700/90 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700"
-        >
-          <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-          <span className="truncate">{t('nav.search_placeholder', language)}</span>
-          <span className="ml-auto px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-[10px] font-mono text-zinc-600 dark:text-zinc-300">⌘K</span>
-        </div>
-
-        {/* Desktop Header Actions (Hidden on mobile) */}
-        <div className="hidden md:flex items-center gap-2 sm:gap-3">
-          {/* Landing Page button */}
-          {onOpenLandingPage && (
-            <button
-              id="appbar-landing-btn"
-              onClick={onOpenLandingPage}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors text-zinc-700 dark:text-zinc-300 cursor-pointer"
-              title={t('nav.landing', language)}
-            >
-              <Compass className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              <span>{t('nav.landing', language)}</span>
-            </button>
-          )}
-
-          {/* Theme Toggle (Light / Dark Mode) */}
-          <button
-            id="appbar-theme-toggle"
-            onClick={toggleTheme}
-            className="p-2 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center justify-center text-zinc-700 dark:text-zinc-300 cursor-pointer"
-            title={theme === 'dark' ? (language === 'bn' ? 'লাইট মোড চালু করুন' : 'Switch to Light Mode') : (language === 'bn' ? 'ডার্ক মোড চালু করুন' : 'Switch to Dark Mode')}
-            aria-label="Toggle App Theme"
+        {/* Right Side: Quick Search Bar on the right, and Three-Bar Menu on the far right */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
+          {/* Quick Search Bar */}
+          <div 
+            id="header-quick-search"
+            onClick={() => {
+              setActiveTab('search');
+              setIsMobileMenuOpen(false);
+            }}
+            className="flex items-center gap-2 bg-zinc-100/90 dark:bg-zinc-800/90 hover:bg-zinc-200/90 dark:hover:bg-zinc-700/90 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-xs text-zinc-500 dark:text-zinc-400 w-32 xs:w-44 sm:w-56 md:w-64 lg:w-72 cursor-pointer transition-all border border-zinc-200/70 dark:border-zinc-700/70 shadow-2xs"
+            title={t('nav.search_placeholder', language)}
           >
-            {theme === 'dark' ? (
-              <Sun className="w-4 h-4 text-amber-400" />
-            ) : (
-              <Moon className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
-            )}
-          </button>
-
-          {/* Language Switch */}
-          <button
-            id="appbar-lang-toggle"
-            onClick={() => setLanguage(language === 'en' ? 'bn' : 'en')}
-            className="px-2.5 py-1.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1 text-zinc-700 dark:text-zinc-300 cursor-pointer"
-            title={language === 'en' ? 'বাংলা ভাষায় পরিবর্তন করুন' : 'Switch to English'}
-          >
-            <Globe className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
-            <span>{language === 'en' ? 'বাংলা' : 'EN'}</span>
-          </button>
-
-          {/* Notifications Bell with Unread Counter */}
-          <button
-            id="appbar-notification-btn"
-            onClick={() => setActiveTab('notifications')}
-            className="relative p-2.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors text-zinc-600 dark:text-zinc-300 cursor-pointer"
-            title={t('nav.notifications', language)}
-          >
-            <Bell className="w-5 h-5" />
-            {unreadNotificationsCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center shadow-sm">
-                {unreadNotificationsCount}
-              </span>
-            )}
-          </button>
-
-          {/* Profile Avatar Quick Navigation */}
-          <div
-            id="appbar-avatar-btn"
-            onClick={() => setActiveTab('profile')}
-            className="flex items-center gap-2 cursor-pointer p-1 rounded-full hover:ring-2 hover:ring-emerald-500 transition-all"
-            title={language === 'bn' ? 'মাই প্রোফাইল' : 'My Profile'}
-          >
-            <img
-              src={user.avatar}
-              alt={user.fullName || 'User'}
-              className="w-8 h-8 rounded-full object-cover border border-zinc-300 dark:border-zinc-700 shadow-2xs"
-            />
+            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400 dark:text-zinc-400 shrink-0" />
+            <span className="truncate text-[11px] sm:text-xs font-medium">
+              {t('nav.search_placeholder', language)}
+            </span>
+            <span className="hidden md:inline-block ml-auto px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-700/80 text-[9px] sm:text-[10px] font-mono text-zinc-600 dark:text-zinc-300 shrink-0">⌘K</span>
           </div>
 
-          {/* Header Logout Button */}
+          {/* Far Right: Three-Bars Menu Button ("থ্রি বার") */}
           <button
-            id="appbar-logout-btn"
-            onClick={() => setIsLogoutModalOpen(true)}
-            className="p-2 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 text-xs font-semibold hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 text-zinc-600 dark:text-zinc-400 transition-colors flex items-center justify-center cursor-pointer ml-0.5"
-            title={language === 'bn' ? 'লগআউট করুন' : 'Log Out'}
-            aria-label="Log Out"
-          >
-            <LogOut className="w-4 h-4 text-rose-500" />
-          </button>
-        </div>
-
-        {/* Mobile Three-Lines Hamburger Menu Button (visible on mobile only) */}
-        <div className="md:hidden flex items-center">
-          <button
-            id="mobile-hamburger-menu-btn"
+            id="three-bars-menu-btn"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="relative p-2 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-100/80 dark:bg-zinc-800/80 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all cursor-pointer flex items-center justify-center"
-            aria-label="Toggle Mobile Menu"
-            title={language === 'bn' ? 'মেনু খুলুন' : 'Open Menu'}
+            className="relative p-2 sm:p-2.5 rounded-xl sm:rounded-2xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-100/90 dark:bg-zinc-800/90 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center justify-center shrink-0 shadow-2xs"
+            aria-label="Toggle Menu"
+            title={language === 'bn' ? 'থ্রি-বার মেনু' : 'Menu'}
           >
             {isMobileMenuOpen ? (
-              <X className="w-6 h-6 text-emerald-500" />
+              <X className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-emerald-500" />
             ) : (
               <>
-                <Menu className="w-6 h-6 text-zinc-800 dark:text-zinc-200" />
+                <Menu className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-zinc-800 dark:text-zinc-200" />
                 {unreadNotificationsCount > 0 && (
                   <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900 animate-pulse" />
                 )}
@@ -212,27 +142,40 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
         </div>
       </header>
 
-      {/* --- MOBILE THREE-LINES SLIDE-DOWN DRAWER MENU --- */}
+      {/* --- THREE-BAR FLOATING GLASS MENU POPOVER / DRAWER --- */}
       {isMobileMenuOpen && (
         <div 
-          className="md:hidden fixed inset-x-0 top-[57px] z-50 bg-black/60 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs animate-fade-in"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div 
-            id="mobile-drawer-panel"
-            className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-4 sm:p-5 shadow-2xl rounded-b-3xl space-y-3 max-h-[85vh] overflow-y-auto animate-slide-down"
+            id="three-bar-drawer-panel"
+            className="fixed top-16 sm:top-18 md:top-20 right-3 sm:right-6 md:right-8 w-[calc(100%-24px)] max-w-sm bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl border border-zinc-200 dark:border-zinc-800 p-4 sm:p-5 shadow-2xl rounded-3xl space-y-2.5 max-h-[85vh] overflow-y-auto animate-slide-down"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Header: Menu Title & Close Button */}
+            <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                {language === 'bn' ? 'মেনু ও সেটিংস' : 'Menu & Settings'}
+              </span>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
             {/* 1. Profile Option */}
             <div 
-              id="mobile-menu-profile"
+              id="menu-profile-card"
               onClick={() => {
                 setActiveTab('profile');
                 setIsMobileMenuOpen(false);
               }}
-              className="p-3.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 flex items-center justify-between cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
+              className="p-3 rounded-2xl bg-zinc-100/80 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-between cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <img 
                   src={user.avatar} 
                   alt={user.fullName || 'User'} 
@@ -247,169 +190,159 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
                   </p>
                 </div>
               </div>
-              <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs shrink-0 flex items-center gap-1">
+              <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs shrink-0 flex items-center gap-1">
                 <span>{language === 'bn' ? 'প্রোফাইল' : 'Profile'}</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-3 h-3" />
               </span>
             </div>
 
-            {/* Quick Actions List */}
-            <div className="space-y-2 pt-1">
-              {/* 2. Notifications Option */}
-              <button
-                id="mobile-menu-notifications"
-                onClick={() => {
-                  setActiveTab('notifications');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between text-left text-zinc-800 dark:text-zinc-200 font-semibold text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                    <Bell className="w-4 h-4" />
-                  </div>
-                  <span>{language === 'bn' ? 'নোটিফিকেশন' : 'Notifications'}</span>
+            {/* 2. BDApps Subscription Status */}
+            <div 
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setSubscriptionModalOpen(true);
+              }}
+              className="p-2.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-between cursor-pointer hover:bg-emerald-100/70 dark:hover:bg-emerald-900/40 transition-all"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Sparkles className="w-3.5 h-3.5" />
                 </div>
-                {unreadNotificationsCount > 0 ? (
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white font-extrabold text-xs">
-                    {unreadNotificationsCount} {language === 'bn' ? 'নতুন' : 'new'}
-                  </span>
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-zinc-400" />
-                )}
-              </button>
-
-              {/* 3. Theme Toggler */}
-              <button
-                id="mobile-menu-theme"
-                onClick={() => {
-                  toggleTheme();
-                }}
-                className="w-full p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between text-left text-zinc-800 dark:text-zinc-200 font-semibold text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                    {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-zinc-600" />}
-                  </div>
-                  <span>{language === 'bn' ? 'থিম টোগলার (Dark/Light)' : 'Theme Mode'}</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-emerald-900 dark:text-emerald-200 truncate">
+                    {language === 'bn' ? 'BDApps সাবস্ক্রিপশন' : 'BDApps Subscription'}
+                  </p>
+                  <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
+                    {user.membershipPlan || '৳২.৭৮/দিন (সক্রিয়)'}
+                  </p>
                 </div>
-                <span className="px-2.5 py-1 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-bold text-xs uppercase">
-                  {theme === 'dark' ? (language === 'bn' ? 'ডার্ক' : 'Dark') : (language === 'bn' ? 'লাইট' : 'Light')}
-                </span>
-              </button>
-
-              {/* 4. Language Setting */}
-              <button
-                id="mobile-menu-language"
-                onClick={() => {
-                  setLanguage(language === 'en' ? 'bn' : 'en');
-                }}
-                className="w-full p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between text-left text-zinc-800 dark:text-zinc-200 font-semibold text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                    <Globe className="w-4 h-4" />
-                  </div>
-                  <span>{language === 'bn' ? 'ল্যাঙ্গুয়েজ সেটিং' : 'Language Setting'}</span>
-                </div>
-                <span className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold text-xs">
-                  {language === 'bn' ? 'বাংলা (BN)' : 'English (EN)'}
-                </span>
-              </button>
-
-              {/* 5. Landing Page Option */}
-              {onOpenLandingPage && (
-                <button
-                  id="mobile-menu-landing-page"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    onOpenLandingPage();
-                  }}
-                  className="w-full p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-between text-left text-emerald-900 dark:text-emerald-200 font-bold text-sm hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-all cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                      <Compass className="w-4 h-4" />
-                    </div>
-                    <span>{language === 'bn' ? 'ল্যান্ডিং পেজে যাওয়ার অপশন' : 'Go to Landing Page'}</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                </button>
-              )}
-
-              {/* 6. Mobile Logout Option */}
-              <button
-                id="mobile-menu-logout"
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setIsLogoutModalOpen(true);
-                }}
-                className="w-full p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 flex items-center justify-between text-left text-rose-700 dark:text-rose-300 font-bold text-sm hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0">
-                    <LogOut className="w-4 h-4" />
-                  </div>
-                  <span>{language === 'bn' ? 'লগআউট করুন' : 'Log Out'}</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-rose-500" />
-              </button>
+              </div>
+              <ChevronRight className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             </div>
+
+            {/* 3. Notifications Option */}
+            <button
+              id="menu-notifications-btn"
+              onClick={() => {
+                setActiveTab('notifications');
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between text-left text-zinc-800 dark:text-zinc-200 font-semibold text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <Bell className="w-4 h-4" />
+                </div>
+                <span>{language === 'bn' ? 'নোটিফিকেশন' : 'Notifications'}</span>
+              </div>
+              {unreadNotificationsCount > 0 ? (
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white font-extrabold text-xs">
+                  {unreadNotificationsCount} {language === 'bn' ? 'নতুন' : 'new'}
+                </span>
+              ) : (
+                <ChevronRight className="w-4 h-4 text-zinc-400" />
+              )}
+            </button>
+
+            {/* 4. Theme Toggler (Dark/Light) */}
+            <button
+              id="menu-theme-btn"
+              onClick={() => {
+                toggleTheme();
+              }}
+              className="w-full p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between text-left text-zinc-800 dark:text-zinc-200 font-semibold text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-zinc-600" />}
+                </div>
+                <span>{language === 'bn' ? 'থিম টগলার' : 'Theme Mode'}</span>
+              </div>
+              <span className="px-2.5 py-1 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-bold text-xs uppercase">
+                {theme === 'dark' ? (language === 'bn' ? 'ডার্ক' : 'Dark') : (language === 'bn' ? 'লাইট' : 'Light')}
+              </span>
+            </button>
+
+            {/* 5. Language Switcher */}
+            <button
+              id="menu-language-btn"
+              onClick={() => {
+                setLanguage(language === 'en' ? 'bn' : 'en');
+              }}
+              className="w-full p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between text-left text-zinc-800 dark:text-zinc-200 font-semibold text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <span>{language === 'bn' ? 'ল্যাঙ্গুয়েজ' : 'Language'}</span>
+              </div>
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold text-xs">
+                {language === 'bn' ? 'বাংলা (BN)' : 'English (EN)'}
+              </span>
+            </button>
+
+            {/* 6. Landing Page Option */}
+            {onOpenLandingPage && (
+              <button
+                id="menu-landing-btn"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  onOpenLandingPage();
+                }}
+                className="w-full p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-between text-left text-emerald-900 dark:text-emerald-200 font-bold text-sm hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-all cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                    <Compass className="w-4 h-4" />
+                  </div>
+                  <span>{language === 'bn' ? 'ল্যান্ডিং পেজ' : 'Landing Page'}</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </button>
+            )}
+
+            {/* 7. Settings Option */}
+            <button
+              id="menu-settings-btn"
+              onClick={() => {
+                setActiveTab('settings');
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between text-left text-zinc-800 dark:text-zinc-200 font-semibold text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                  <Settings className="w-4 h-4" />
+                </div>
+                <span>{t('nav.settings', language)}</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-zinc-400" />
+            </button>
+
+            {/* 8. PROMINENT LOGOUT OPTION (লগআউট অপশন) */}
+            <button
+              id="menu-logout-btn"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setIsLogoutModalOpen(true);
+              }}
+              className="w-full p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 flex items-center justify-between text-left text-rose-700 dark:text-rose-300 font-bold text-sm hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <LogOut className="w-4 h-4" />
+                </div>
+                <span>{language === 'bn' ? 'লগআউট অপশন' : 'Log Out'}</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-rose-500" />
+            </button>
           </div>
         </div>
       )}
 
-      {/* --- DESKTOP NAVIGATION RAIL + MAIN CONTENT --- */}
-      <div className="flex-1 flex max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 gap-8">
-        {/* Desktop Navigation Rail (Hidden on mobile) */}
-        <aside className="hidden lg:flex flex-col w-56 shrink-0 space-y-1.5 sticky top-24 self-start">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                id={`desktop-nav-${item.id}`}
-                onClick={() => setActiveTab(item.id)}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all ${
-                  isActive
-                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400 dark:text-emerald-600' : ''}`} />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-
-          <div className="pt-6 mt-6 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
-            <button
-              id="desktop-nav-settings"
-              onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all w-full text-left ${
-                activeTab === 'settings'
-                  ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-              }`}
-            >
-              <Settings className="w-4 h-4" />
-              <span>{t('nav.settings', language)}</span>
-            </button>
-
-            {onOpenLandingPage && (
-              <button
-                id="desktop-nav-landing-page"
-                onClick={onOpenLandingPage}
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all w-full text-left text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 hover:text-emerald-600 dark:hover:text-emerald-400"
-              >
-                <Compass className="w-4 h-4 text-emerald-500" />
-                <span>{t('nav.landing', language)}</span>
-              </button>
-            )}
-          </div>
-        </aside>
-
+      {/* --- MAIN CONTENT CONTAINER (SCROLLS UNDERNEATH FIXED FLOATING BARS) --- */}
+      <div className="flex-1 flex max-w-6xl w-full mx-auto px-3 sm:px-6 md:px-8 pt-20 sm:pt-24 pb-28 sm:pb-32">
         {/* Dynamic Route View Render */}
         <main className="flex-1 w-full min-w-0">
           {activeTab === 'home' && <HomeScreen />}
@@ -429,7 +362,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
         <button
           id="floating-3d-ai-btn"
           onClick={() => setActiveTab('ai')}
-          className="fixed bottom-20 sm:bottom-8 right-5 sm:right-7 z-40 group cursor-pointer"
+          className="fixed bottom-24 sm:bottom-24 right-4 sm:right-6 z-40 group cursor-pointer"
           title={language === 'bn' ? 'Askio এআই সহকারীর সাথে কথা বলুন' : 'Open Askio AI Assistant'}
           aria-label="Open Askio AI Assistant"
         >
@@ -460,10 +393,11 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
         </button>
       )}
 
-      {/* --- MOBILE BOTTOM NAVIGATION BAR --- */}
+      {/* --- FLOATING GLASS BOTTOM NAVIGATION BAR (FIXED ACROSS ALL SCREENS) --- */}
       <nav 
-        id="mobile-bottom-nav"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-lg border-t border-zinc-200 dark:border-zinc-800 px-2 py-2 flex items-center justify-around shadow-lg"
+        id="floating-bottom-nav"
+        className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl backdrop-saturate-150 border border-zinc-200/70 dark:border-zinc-800/70 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.15),0_4px_12px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_30px_-5px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3)] rounded-2xl sm:rounded-3xl px-2 sm:px-4 py-2 flex items-center justify-between sm:justify-center gap-1 sm:gap-2 max-w-lg sm:max-w-xl md:max-w-2xl w-auto transition-all"
+        aria-label="Main Navigation"
       >
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -471,16 +405,19 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
           return (
             <button
               key={item.id}
-              id={`mobile-nav-${item.id}`}
+              id={`floating-nav-${item.id}`}
               onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center justify-center p-1.5 rounded-xl transition-all ${
+              className={`flex flex-col items-center justify-center px-2 sm:px-3.5 py-1.5 rounded-xl sm:rounded-2xl transition-all cursor-pointer ${
                 isActive
-                  ? 'text-emerald-600 dark:text-emerald-400 font-bold scale-105'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  ? 'bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold scale-105 shadow-2xs'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/60'
               }`}
+              title={item.label}
             >
-              <Icon className="w-5 h-5" />
-              <span className="text-[10px] mt-0.5 tracking-tight">{item.label}</span>
+              <Icon className={`w-5 h-5 sm:w-5 sm:h-5 transition-transform ${isActive ? 'scale-110' : ''}`} />
+              <span className="text-[10px] sm:text-[11px] mt-0.5 tracking-tight font-medium whitespace-nowrap">
+                {item.label}
+              </span>
             </button>
           );
         })}
