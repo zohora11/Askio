@@ -12,6 +12,13 @@
         "isPremium": { "type": "boolean", "description": "Active subscription status" },
         "membershipPlan": { "type": "string", "description": "Subscription plan name" },
         "avatar": { "type": "string", "description": "Profile photo URL" },
+        "age": { "type": "string", "description": "User age in years" },
+        "gender": { "type": "string", "description": "User gender (e.g. Male, Female, Other)" },
+        "religion": { "type": "string", "description": "User religion (e.g. Islam, Hinduism, Christianity, Buddhism, Other)" },
+        "bloodGroup": { "type": "string", "description": "User blood group (e.g. A+, B+, O+, AB+, etc.)" },
+        "profession": { "type": "string", "description": "User occupation or study role (e.g. Student, Teacher, Engineer, etc.)" },
+        "address": { "type": "string", "description": "User residential address" },
+        "city": { "type": "string", "description": "User city or district" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },

@@ -60,6 +60,13 @@ export interface FirestoreUserData {
   createdAt?: any;
   updatedAt?: any;
   avatar?: string;
+  age?: number | string;
+  gender?: string;
+  religion?: string;
+  bloodGroup?: string;
+  profession?: string;
+  address?: string;
+  city?: string;
 }
 
 // Simple base64/hash helper for fallback credentials in Firestore

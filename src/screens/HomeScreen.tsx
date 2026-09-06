@@ -16,7 +16,8 @@ import {
   Flame,
   Globe,
   Compass,
-  HeartPulse
+  HeartPulse,
+  GraduationCap
 } from 'lucide-react';
 import { ResourceCard } from '../components/ResourceCard';
 import { MOCK_RESOURCES, FEATURED_SPOTLIGHTS, CATEGORIES_DATA } from '../data/mockData';
@@ -98,6 +99,30 @@ export const HomeScreen: React.FC = () => {
 
           {/* Prompt quick actions */}
           <div className="flex flex-wrap gap-2.5 pt-2">
+            {user.profession && (
+              <button
+                onClick={() => {
+                  const queryMap: Record<string, string> = {
+                    'Student': isBn ? 'একাডেমিক পাঠ্যবই' : 'Textbooks and study guides',
+                    'Teacher': isBn ? 'শিক্ষাদান মেটেরিয়াল' : 'Teaching and educational guides',
+                    'Engineer / Tech': isBn ? 'প্রোগ্রামিং ও সফটওয়্যার' : 'Programming and Software Engineering',
+                    'Healthcare': isBn ? 'স্বাস্থ্যসেবা ও মেডিসিন' : 'Medical and healthcare guides',
+                    'Business': isBn ? 'ব্যবসা ও উদ্যোক্তা' : 'Business and management',
+                    'Govt / Private Service': isBn ? 'ক্যারিয়ার ডেভেলপমেন্ট' : 'Career and leadership',
+                    'Freelancer': isBn ? 'ফ্রিল্যান্সিং ও ডিজাইন' : 'Freelancing and design',
+                  };
+                  handleQuickSearch(queryMap[user.profession] || (isBn ? 'রিসোর্স' : 'Resources'));
+                }}
+                className="px-4 py-2 rounded-xl bg-teal-500/15 hover:bg-teal-500/25 text-teal-900 dark:text-teal-200 border border-teal-300 dark:border-teal-500/40 text-xs font-bold backdrop-blur-md transition-all flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+              >
+                <GraduationCap className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                <span>
+                  {isBn 
+                    ? `${user.profession === 'Student' ? 'শিক্ষার্থী' : user.profession === 'Teacher' ? 'শিক্ষক' : user.profession} স্পেশাল` 
+                    : `${user.profession} Special`}
+                </span>
+              </button>
+            )}
             <button
               onClick={() => handleQuickSearch('PDF books')}
               className="px-4 py-2 rounded-xl bg-white/90 hover:bg-emerald-50 text-zinc-700 hover:text-zinc-950 border border-emerald-200/70 shadow-xs dark:bg-white/10 dark:hover:bg-white/20 dark:text-white dark:border-white/10 text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer"

@@ -101,6 +101,14 @@ export interface UserProfile {
   isPremium: boolean;
   membershipPlan?: string;
   joinedDate: string;
+  // Personal Details
+  age?: number | string;
+  gender?: 'Male' | 'Female' | 'Other' | string;
+  religion?: 'Islam' | 'Hinduism' | 'Christianity' | 'Buddhism' | 'Other' | string;
+  bloodGroup?: 'A+' | 'A-' | 'B+' | 'B-' | 'O+' | 'O-' | 'AB+' | 'AB-' | string;
+  profession?: 'Student' | 'Teacher' | 'Engineer / Tech' | 'Healthcare' | 'Business' | 'Govt / Private Service' | 'Freelancer' | 'Other' | string;
+  address?: string;
+  city?: string;
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system';

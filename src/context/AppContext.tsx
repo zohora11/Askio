@@ -256,7 +256,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               avatar: finalAvatar,
               fullName: fsUser?.fullName || prev.fullName,
               email: fsUser?.email || prev.email,
-              phone: fsUser?.phone || prev.phone
+              phone: fsUser?.phone || prev.phone,
+              age: fsUser?.age !== undefined ? fsUser.age : prev.age,
+              gender: fsUser?.gender || prev.gender,
+              religion: fsUser?.religion || prev.religion,
+              bloodGroup: fsUser?.bloodGroup || prev.bloodGroup,
+              profession: fsUser?.profession || prev.profession,
+              address: fsUser?.address || prev.address,
+              city: fsUser?.city || prev.city
             };
           });
 
@@ -542,6 +549,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     setUser(prev => {
       const next = { ...prev, ...updated };
+      // Secure local caching for custom avatar across sessions
+      if (next.avatar && isCustomAvatar(next.avatar)) {
+        try {
+          localStorage.setItem('askio_custom_avatar', next.avatar);
+          if (next.phone) localStorage.setItem(`askio_avatar_phone_${next.phone}`, next.avatar);
+          if (next.email) localStorage.setItem(`askio_avatar_email_${next.email.toLowerCase()}`, next.avatar);
+        } catch { /* ignore storage quota */ }
+      }
       // Save to Firestore asynchronously with full UID, email, and phone resolution
       const identifier = next.email || next.phone || next.uid || auth.currentUser?.uid;
       if (identifier) {
@@ -554,7 +569,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             phone: next.phone,
             avatar: next.avatar,
             membershipPlan: next.membershipPlan,
-            isPremium: next.isPremium
+            isPremium: next.isPremium,
+            age: next.age,
+            gender: next.gender,
+            religion: next.religion,
+            bloodGroup: next.bloodGroup,
+            profession: next.profession,
+            address: next.address,
+            city: next.city
           },
           { uid: next.uid || auth.currentUser?.uid, email: next.email, phone: next.phone }
         ).catch(err => console.warn('Save to Firestore error:', err));

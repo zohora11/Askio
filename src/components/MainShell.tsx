@@ -74,31 +74,172 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
     { id: 'home', label: t('nav.home', language), icon: Home },
     { id: 'search', label: t('nav.search', language), icon: Search },
     { id: 'ai', label: t('nav.ai', language), icon: Sparkles },
-    { id: 'goals', label: t('nav.goals', language), icon: Target },
-    { id: 'health', label: t('nav.health', language), icon: Compass },
+    { id: 'goals', label: language === 'bn' ? 'গোলস' : 'Goals', icon: Target },
+    { id: 'health', label: language === 'bn' ? 'ডিসকভার' : 'Discover', icon: Compass },
     { id: 'library', label: t('nav.library', language), icon: Bookmark },
     { id: 'profile', label: t('nav.profile', language), icon: User },
   ];
 
+  // Primary sidebar navigation items for laptop screens (Library is now the last primary item)
+  const sidebarPrimaryItems = [
+    { id: 'home', label: t('nav.home', language), icon: Home },
+    { id: 'search', label: t('nav.search', language), icon: Search },
+    { id: 'ai', label: t('nav.ai', language), icon: Sparkles },
+    { id: 'goals', label: language === 'bn' ? 'গোলস' : 'Goals', icon: Target },
+    { id: 'health', label: language === 'bn' ? 'ডিসকভার' : 'Discover', icon: Compass },
+    { id: 'library', label: t('nav.library', language), icon: Bookmark },
+  ];
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col font-sans selection:bg-emerald-500/20">
-      {/* --- TOP FLOATING GLASS APPBAR (OPTIMIZED FOR TABLET, MOBILE & DESKTOP) --- */}
+      {/* --- LAPTOP/DESKTOP LEFT SIDEBAR NAVIGATION (FIXED ON LEFT) --- */}
+      <aside
+        id="desktop-left-sidebar"
+        className="fixed top-0 left-0 bottom-0 w-64 z-40 bg-white/85 dark:bg-zinc-900/85 backdrop-blur-2xl backdrop-saturate-150 border-r border-zinc-200/80 dark:border-zinc-800/80 shadow-[4px_0_24px_rgba(0,0,0,0.03)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.35)] hidden lg:flex flex-col justify-between p-4 select-none transition-colors"
+        aria-label="Sidebar Navigation"
+      >
+        {/* Brand Header */}
+        <div className="px-2 pt-1 pb-4 flex items-center justify-between border-b border-zinc-200/80 dark:border-zinc-800/80">
+          <AppLogo 
+            id="sidebar-brand-logo"
+            onClick={() => setActiveTab('home')}
+            subtitle={language === 'bn' ? 'রিসোর্স ও এআই হাব' : 'Resource & AI Hub'}
+            subtitleClassName="text-xs font-bold tracking-wide text-emerald-600 dark:text-emerald-400 mt-0.5 truncate"
+            imgClassName="h-9 w-auto"
+          />
+        </div>
+
+        {/* Navigation Items List */}
+        <nav className="flex-1 py-3.5 space-y-1 overflow-y-auto">
+          {/* Top Primary Items: Home, Search, Ask AI, Goals, Discover, Library, Profile */}
+          {sidebarPrimaryItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                id={`sidebar-nav-${item.id}`}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-bold border-l-4 border-emerald-500 shadow-2xs'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border-l-4 border-transparent'
+                }`}
+                title={item.label}
+              >
+                <Icon className={`w-5 h-5 shrink-0 transition-transform ${isActive ? 'text-emerald-600 dark:text-emerald-400 scale-110' : 'text-zinc-500 dark:text-zinc-400'}`} />
+                <span className="truncate">{item.label}</span>
+                {item.id === 'notifications' && unreadNotificationsCount > 0 && (
+                  <span className="ml-auto px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold">
+                    {unreadNotificationsCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+
+          {/* Horizontal Divider Line as requested by user */}
+          <div className="my-2.5 mx-1 border-t border-zinc-200 dark:border-zinc-800/80" />
+
+          {/* Landing Page Button */}
+          {onOpenLandingPage && (
+            <button
+              id="sidebar-nav-landing"
+              onClick={onOpenLandingPage}
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border-l-4 border-transparent transition-all cursor-pointer"
+              title={language === 'bn' ? 'ল্যান্ডিং পেজ' : 'Landing Page'}
+            >
+              <Globe className="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <span className="truncate">{language === 'bn' ? 'ল্যান্ডিং পেজ' : 'Landing Page'}</span>
+            </button>
+          )}
+
+          {/* Settings Button (Sits at the very bottom of the navigation list) */}
+          <button
+            id="sidebar-nav-settings"
+            onClick={() => setActiveTab('settings')}
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all cursor-pointer ${
+              activeTab === 'settings'
+                ? 'bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-bold border-l-4 border-emerald-500 shadow-2xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border-l-4 border-transparent'
+            }`}
+            title={t('nav.settings', language)}
+          >
+            <Settings className={`w-5 h-5 shrink-0 transition-transform ${activeTab === 'settings' ? 'text-emerald-600 dark:text-emerald-400 scale-110' : 'text-zinc-500 dark:text-zinc-400'}`} />
+            <span className="truncate">{t('nav.settings', language)}</span>
+          </button>
+        </nav>
+
+        {/* Bottom Profile / Quick Info Card (Direct shortcut to Profile Screen) */}
+        <div className="pt-3 border-t border-zinc-200/80 dark:border-zinc-800/80 space-y-2">
+          <div 
+            id="sidebar-bottom-profile"
+            onClick={() => setActiveTab('profile')}
+            className={`flex items-center gap-3 p-2.5 rounded-2xl cursor-pointer transition-all border ${
+              activeTab === 'profile'
+                ? 'bg-emerald-500/15 dark:bg-emerald-500/25 border-emerald-500/60 shadow-xs'
+                : 'border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/80'
+            }`}
+            title={language === 'bn' ? 'প্রোফাইল স্ক্রিনে যান' : 'Go to Profile Screen'}
+          >
+            <div className="relative shrink-0">
+              <img
+                src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'}
+                alt={user.fullName || 'User'}
+                className={`w-9 h-9 rounded-xl object-cover ring-2 transition-all ${
+                  activeTab === 'profile' ? 'ring-emerald-500 shadow-xs' : 'ring-emerald-500/30'
+                }`}
+              />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-zinc-900" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className={`text-xs font-bold truncate transition-colors ${
+                activeTab === 'profile' ? 'text-emerald-700 dark:text-emerald-300' : 'text-zinc-900 dark:text-zinc-100'
+              }`}>
+                {user.fullName || (language === 'bn' ? 'ব্যবহারকারী' : 'Askio User')}
+              </p>
+              <div className="flex items-center justify-between gap-1 mt-0.5">
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold truncate">
+                  {user.membershipPlan || (language === 'bn' ? 'সাবস্ক্রাইবড' : 'Subscribed')}
+                </span>
+                <span className="text-[10px] text-zinc-400 dark:text-zinc-500 shrink-0 font-medium">
+                  {language === 'bn' ? 'প্রোফাইল' : 'Profile'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* --- TOP FLOATING GLASS APPBAR (FIXED ON TOP ACROSS ALL SCREENS) --- */}
       <header 
         id="floating-top-appbar"
-        className="fixed top-3 inset-x-3 sm:inset-x-6 max-w-7xl mx-auto z-40 bg-white/85 dark:bg-zinc-900/85 backdrop-blur-xl backdrop-saturate-150 border border-zinc-200/75 dark:border-zinc-800/75 shadow-[0_8px_30px_rgb(0,0,0,0.07)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.35)] rounded-2xl sm:rounded-3xl px-3 sm:px-5 md:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4 transition-all"
+        className="fixed top-3 z-30 transition-all inset-x-3 sm:inset-x-6 lg:inset-x-auto lg:left-70 lg:right-6 lg:max-w-none bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl backdrop-saturate-150 border border-zinc-200/75 dark:border-zinc-800/75 shadow-[0_8px_30px_rgb(0,0,0,0.07)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.35)] rounded-2xl sm:rounded-3xl px-3 sm:px-5 md:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4"
       >
-        {/* Far Left: App Logo & App Name (Askio) */}
+        {/* Far Left: App Logo on Mobile/Tablet, Active Breadcrumb on Laptop */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
-          <AppLogo 
-            id="brand-logo"
-            onClick={() => {
-              setActiveTab('home');
-              setIsMobileMenuOpen(false);
-            }}
-            subtitle={language === 'bn' ? 'স্মার্ট হাব' : 'Smart Hub'}
-            subtitleClassName="hidden lg:inline text-xs font-bold tracking-wide text-emerald-600 dark:text-emerald-400 mt-0.5 truncate"
-            imgClassName="h-8 sm:h-9 md:h-10 w-auto"
-          />
+          <div className="lg:hidden">
+            <AppLogo 
+              id="brand-logo"
+              onClick={() => {
+                setActiveTab('home');
+                setIsMobileMenuOpen(false);
+              }}
+              subtitle={language === 'bn' ? 'রিসোর্স ও এআই হাব' : 'Resource & AI Hub'}
+              subtitleClassName="hidden sm:inline text-xs font-bold tracking-wide text-emerald-600 dark:text-emerald-400 mt-0.5 truncate"
+              imgClassName="h-8 sm:h-9 md:h-10 w-auto"
+            />
+          </div>
+
+          <div className="hidden lg:flex items-center gap-2 text-sm font-bold text-zinc-800 dark:text-zinc-200">
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
+              Askio
+            </span>
+            <span className="text-zinc-400 dark:text-zinc-600 font-normal">/</span>
+            <span className="capitalize font-extrabold text-zinc-800 dark:text-zinc-100">
+              {sidebarPrimaryItems.find(i => i.id === activeTab)?.label || (activeTab === 'settings' ? t('nav.settings', language) : activeTab === 'profile' ? t('nav.profile', language) : activeTab)}
+            </span>
+          </div>
         </div>
 
         {/* Right Side: Quick Search Bar on the right, and Three-Bar Menu on the far right */}
@@ -342,7 +483,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
       )}
 
       {/* --- MAIN CONTENT CONTAINER (SCROLLS UNDERNEATH FIXED FLOATING BARS) --- */}
-      <div className="flex-1 flex max-w-6xl w-full mx-auto px-3 sm:px-6 md:px-8 pt-20 sm:pt-24 pb-28 sm:pb-32">
+      <div className="flex-1 flex max-w-7xl w-full mx-auto px-3 sm:px-6 md:px-8 lg:pl-70 lg:pr-8 pt-20 sm:pt-24 pb-28 sm:pb-32 lg:pb-12 transition-all">
         {/* Dynamic Route View Render */}
         <main className="flex-1 w-full min-w-0">
           {activeTab === 'home' && <HomeScreen />}
@@ -362,7 +503,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
         <button
           id="floating-3d-ai-btn"
           onClick={() => setActiveTab('ai')}
-          className="fixed bottom-24 sm:bottom-24 right-4 sm:right-6 z-40 group cursor-pointer"
+          className="fixed bottom-24 sm:bottom-28 lg:bottom-8 right-4 sm:right-6 z-40 group cursor-pointer"
           title={language === 'bn' ? 'Askio এআই সহকারীর সাথে কথা বলুন' : 'Open Askio AI Assistant'}
           aria-label="Open Askio AI Assistant"
         >
@@ -393,10 +534,10 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
         </button>
       )}
 
-      {/* --- FLOATING GLASS BOTTOM NAVIGATION BAR (FIXED ACROSS ALL SCREENS) --- */}
+      {/* --- FLOATING GLASS BOTTOM NAVIGATION BAR (FIXED FOR TABLET & MOBILE, HIDDEN ON LAPTOP) --- */}
       <nav 
         id="floating-bottom-nav"
-        className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl backdrop-saturate-150 border border-zinc-200/70 dark:border-zinc-800/70 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.15),0_4px_12px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_30px_-5px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3)] rounded-2xl sm:rounded-3xl px-2 sm:px-4 py-2 flex items-center justify-between sm:justify-center gap-1 sm:gap-2 max-w-lg sm:max-w-xl md:max-w-2xl w-auto transition-all"
+        className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-40 lg:hidden bg-white/75 dark:bg-zinc-900/75 backdrop-blur-2xl backdrop-saturate-150 border border-zinc-200/80 dark:border-zinc-800/80 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.12),0_4px_16px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl sm:rounded-3xl px-3 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 flex items-center justify-between sm:justify-center gap-1.5 xs:gap-2.5 sm:gap-4 md:gap-6 w-[calc(100%-24px)] xs:w-auto max-w-lg sm:max-w-xl md:max-w-2xl transition-all select-none"
         aria-label="Main Navigation"
       >
         {navItems.map((item) => {
@@ -407,15 +548,15 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
               key={item.id}
               id={`floating-nav-${item.id}`}
               onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center justify-center px-2 sm:px-3.5 py-1.5 rounded-xl sm:rounded-2xl transition-all cursor-pointer ${
+              className={`flex flex-col items-center justify-center px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-xl sm:rounded-2xl transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold scale-105 shadow-2xs'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/60'
+                  ? 'bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 font-bold scale-105 shadow-2xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/70'
               }`}
               title={item.label}
             >
-              <Icon className={`w-5 h-5 sm:w-5 sm:h-5 transition-transform ${isActive ? 'scale-110' : ''}`} />
-              <span className="text-[10px] sm:text-[11px] mt-0.5 tracking-tight font-medium whitespace-nowrap">
+              <Icon className={`w-5 h-5 sm:w-5.5 sm:h-5.5 md:w-6 md:h-6 transition-transform ${isActive ? 'scale-110' : ''}`} />
+              <span className="text-[10px] sm:text-[11px] md:text-xs mt-0.5 sm:mt-1 tracking-tight font-medium whitespace-nowrap">
                 {item.label}
               </span>
             </button>

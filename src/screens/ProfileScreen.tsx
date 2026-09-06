@@ -35,10 +35,21 @@ import {
   FileText,
   Share2,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   BarChart3,
   History,
   CheckCircle,
-  Trash2
+  Trash2,
+  Upload,
+  Heart,
+  Droplet,
+  Briefcase,
+  GraduationCap,
+  MapPin,
+  Home,
+  BookOpen,
+  UserCheck
 } from 'lucide-react';
 import { UnsubscribeModal } from '../components/UnsubscribeModal';
 import { LogoutModal } from '../components/LogoutModal';
@@ -47,6 +58,67 @@ import { logoutFirebaseUser, isCustomAvatar, DEFAULT_AVATAR } from '../services/
 import { clearDeviceTrustForPhone } from '../services/deviceTrust';
 import { t } from '../constants/translations';
 import { optimizeAvatarImage } from '../utils/imageOptimizer';
+
+const AVATAR_PRESETS = [
+  { id: 'av1', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80', label: 'Default' },
+  { id: 'av2', url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80', label: 'Avatar 1' },
+  { id: 'av3', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80', label: 'Avatar 2' },
+  { id: 'av4', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80', label: 'Avatar 3' },
+  { id: 'av5', url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&auto=format&fit=crop&q=80', label: 'Avatar 4' },
+  { id: 'av6', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80', label: 'Avatar 5' },
+  { id: 'av7', url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80', label: 'Avatar 6' },
+  { id: 'av8', url: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&auto=format&fit=crop&q=80', label: 'Avatar 7' },
+];
+
+export const GENDER_OPTIONS = [
+  { value: 'Male', labelBn: 'পুরুষ (Male)', labelEn: 'Male' },
+  { value: 'Female', labelBn: 'নারী (Female)', labelEn: 'Female' },
+  { value: 'Other', labelBn: 'অন্যান্য (Other)', labelEn: 'Other' }
+];
+
+export const RELIGION_OPTIONS = [
+  { value: 'Islam', labelBn: 'ইসলাম (Islam)', labelEn: 'Islam' },
+  { value: 'Hinduism', labelBn: 'হিন্দুধর্ম (Hinduism)', labelEn: 'Hinduism' },
+  { value: 'Christianity', labelBn: 'খ্রিস্টধর্ম (Christianity)', labelEn: 'Christianity' },
+  { value: 'Buddhism', labelBn: 'বৌদ্ধধর্ম (Buddhism)', labelEn: 'Buddhism' },
+  { value: 'Other', labelBn: 'অন্যান্য (Other)', labelEn: 'Other' }
+];
+
+export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+
+export const PROFESSION_OPTIONS = [
+  { value: 'Student', labelBn: 'শিক্ষার্থী / স্টুডেন্ট', labelEn: 'Student', hintBn: 'বোর্ড পাঠ্যবই, একাডেমি ও স্কলারশিপ কনটেন্ট', hintEn: 'Textbooks, academy & study guides' },
+  { value: 'Teacher', labelBn: 'শিক্ষক / শিক্ষাবিদ', labelEn: 'Teacher / Educator', hintBn: 'পাঠদান কৌশল, লেকচার নোট ও গবেষণা পত্র', hintEn: 'Teaching methodology & lecture resources' },
+  { value: 'Engineer / Tech', labelBn: 'প্রকৌশলী / আইটি প্রফেশনাল', labelEn: 'Engineer / Tech', hintBn: 'কোডিং, সফটওয়্যার ও এআই টেকনোলজি', hintEn: 'Software, AI, development & cloud' },
+  { value: 'Healthcare', labelBn: 'চিকিৎসক / স্বাস্থ্যকর্মী', labelEn: 'Doctor / Healthcare', hintBn: 'চিকিৎসাবিজ্ঞান, হেলথকেয়ার ও সুস্থতা', hintEn: 'Medical literature & wellness guides' },
+  { value: 'Business', labelBn: 'ব্যবসায়ী / উদ্যোক্তা', labelEn: 'Business / Entrepreneur', hintBn: 'বিজনেস প্ল্যান, অর্থনীতি ও বাজার ব্যবস্থাপনা', hintEn: 'Business models, economics & trade' },
+  { value: 'Govt / Private Service', labelBn: 'চাকরিজীবী (সরকারি/বেসরকারি)', labelEn: 'Govt / Private Service', hintBn: 'ক্যারিয়ার ডেভেলপমেন্ট, স্কিলস ও প্রফেশনাল গ্রোথ', hintEn: 'Professional development & skills' },
+  { value: 'Freelancer', labelBn: 'ফ্রিল্যান্সার / ক্রিয়েটর', labelEn: 'Freelancer / Creator', hintBn: 'রিমোট জবস, ক্রিয়েটিভ ডিজাইন ও ফ্রিল্যান্সিং', hintEn: 'Freelance guides & creative skills' },
+  { value: 'Other', labelBn: 'অন্যান্য পেশা', labelEn: 'Other Profession', hintBn: 'সাধারণ জ্ঞান ও সার্বিক জীবন দক্ষতা', hintEn: 'General knowledge & self-growth' }
+];
+
+export const BANGLADESH_CITIES = [
+  'Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi', 'Khulna', 'Barishal', 
+  'Rangpur', 'Mymensingh', 'Cumilla', 'Gazipur', 'Narayanganj', 'Bogura', 'Cox\'s Bazar', 'Other'
+];
+
+export const getGenderLabel = (val?: string, isBn?: boolean) => {
+  if (!val) return isBn ? 'যোগ করুন' : 'Not set';
+  const found = GENDER_OPTIONS.find(o => o.value === val);
+  return found ? (isBn ? found.labelBn : found.labelEn) : val;
+};
+
+export const getReligionLabel = (val?: string, isBn?: boolean) => {
+  if (!val) return isBn ? 'যোগ করুন' : 'Not set';
+  const found = RELIGION_OPTIONS.find(o => o.value === val);
+  return found ? (isBn ? found.labelBn : found.labelEn) : val;
+};
+
+export const getProfessionLabel = (val?: string, isBn?: boolean) => {
+  if (!val) return isBn ? 'যোগ করুন' : 'Not set';
+  const found = PROFESSION_OPTIONS.find(o => o.value === val);
+  return found ? (isBn ? found.labelBn : found.labelEn) : val;
+};
 
 export const ProfileScreen: React.FC = () => {
   const { 
@@ -75,6 +147,7 @@ export const ProfileScreen: React.FC = () => {
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeActivityTab, setActiveActivityTab] = useState<'all' | 'ai' | 'search' | 'bookmark'>('all');
+  const [isPersonalDetailsExpanded, setIsPersonalDetailsExpanded] = useState<boolean>(false);
 
   // Real-time Profile Views tracking in localStorage
   const [profileViews, setProfileViews] = useState<number>(() => {
@@ -93,12 +166,20 @@ export const ProfileScreen: React.FC = () => {
   }, [user.phone, user.email]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const editModalFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [nameInput, setNameInput] = useState(user.fullName || '');
   const [emailInput, setEmailInput] = useState(user.email || '');
   const [phoneInput, setPhoneInput] = useState(user.phone || '');
   const [passwordInput, setPasswordInput] = useState(user.password || '');
   const [avatarInput, setAvatarInput] = useState(user.avatar || '');
+  const [ageInput, setAgeInput] = useState(user.age !== undefined ? user.age.toString() : '');
+  const [genderInput, setGenderInput] = useState(user.gender || '');
+  const [religionInput, setReligionInput] = useState(user.religion || '');
+  const [bloodGroupInput, setBloodGroupInput] = useState(user.bloodGroup || '');
+  const [professionInput, setProfessionInput] = useState(user.profession || '');
+  const [addressInput, setAddressInput] = useState(user.address || '');
+  const [cityInput, setCityInput] = useState(user.city || '');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Keep form inputs synchronized when logged-in user profile updates
@@ -108,7 +189,27 @@ export const ProfileScreen: React.FC = () => {
     setPhoneInput(user.phone || '');
     setPasswordInput(user.password || '');
     setAvatarInput(user.avatar || '');
-  }, [user.fullName, user.email, user.phone, user.password, user.avatar]);
+    setAgeInput(user.age !== undefined ? user.age.toString() : '');
+    setGenderInput(user.gender || '');
+    setReligionInput(user.religion || '');
+    setBloodGroupInput(user.bloodGroup || '');
+    setProfessionInput(user.profession || '');
+    setAddressInput(user.address || '');
+    setCityInput(user.city || '');
+  }, [
+    user.fullName, 
+    user.email, 
+    user.phone, 
+    user.password, 
+    user.avatar,
+    user.age,
+    user.gender,
+    user.religion,
+    user.bloodGroup,
+    user.profession,
+    user.address,
+    user.city
+  ]);
 
   // Real user stats
   const totalSearches = recentSearches.length;
@@ -194,11 +295,18 @@ export const ProfileScreen: React.FC = () => {
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     updateProfile({
-      fullName: nameInput,
-      email: emailInput,
-      phone: phoneInput,
+      fullName: nameInput.trim(),
+      email: emailInput.trim(),
+      phone: phoneInput.trim(),
       password: passwordInput,
-      avatar: avatarInput
+      avatar: avatarInput,
+      age: ageInput.trim() ? ageInput.trim() : undefined,
+      gender: genderInput || undefined,
+      religion: religionInput || undefined,
+      bloodGroup: bloodGroupInput || undefined,
+      profession: professionInput || undefined,
+      address: addressInput.trim() || undefined,
+      city: cityInput || undefined
     });
     setSaveSuccess(true);
     setTimeout(() => {
@@ -242,6 +350,27 @@ export const ProfileScreen: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  const handleModalImageUpload = () => {
+    if (editModalFileInputRef.current) {
+      editModalFileInputRef.current.click();
+    }
+  };
+
+  const handleModalFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const optimized = await optimizeAvatarImage(file, 320, 0.85);
+        if (optimized) {
+          setAvatarInput(optimized);
+        }
+      } catch (err) {
+        console.error('Modal avatar select error:', err);
+      }
+    }
+    if (e.target) e.target.value = '';
+  };
+
   const handleShareProfile = () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(window.location.href);
@@ -276,20 +405,24 @@ export const ProfileScreen: React.FC = () => {
       />
 
       {/* Profile Banner Card */}
-      <div className="relative rounded-3xl border border-emerald-900/40 dark:border-zinc-800 bg-gradient-to-b from-emerald-600 via-emerald-950 to-zinc-950 px-6 sm:px-10 py-10 sm:py-14 shadow-xl overflow-hidden text-white flex flex-col justify-between min-h-[260px]">
+      <div className="relative rounded-3xl border border-emerald-400/40 dark:border-zinc-800 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 dark:from-zinc-900 dark:via-zinc-950 dark:to-black px-6 sm:px-10 py-8 sm:py-12 shadow-lg dark:shadow-2xl overflow-hidden text-white flex flex-col justify-between min-h-[240px] transition-colors">
+        {/* Soft Ambient Glow Elements */}
+        <div className="absolute -top-12 -right-12 w-56 h-56 bg-teal-400/20 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-12 -left-12 w-56 h-56 bg-emerald-500/20 dark:bg-zinc-800/20 rounded-full blur-3xl pointer-events-none" />
+
         {/* Top Header Navigation Controls */}
         <div className="flex items-center justify-end z-20 mb-4">
           <div className="flex items-center gap-2">
             <button
               onClick={handleShareProfile}
-              className="p-2 sm:p-2.5 rounded-xl bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-colors cursor-pointer border border-white/10"
+              className="p-2 sm:p-2.5 rounded-xl bg-white/15 hover:bg-white/25 dark:bg-white/10 dark:hover:bg-white/15 text-white backdrop-blur-md transition-colors cursor-pointer border border-white/20 dark:border-white/10 shadow-xs"
               title={isBn ? 'প্রোফাইল শেয়ার করুন' : 'Share Profile'}
             >
               <Share2 className="w-4 h-4" />
             </button>
             <button
               onClick={() => setActiveTab('settings')}
-              className="p-2 sm:p-2.5 rounded-xl bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-colors cursor-pointer border border-white/10"
+              className="p-2 sm:p-2.5 rounded-xl bg-white/15 hover:bg-white/25 dark:bg-white/10 dark:hover:bg-white/15 text-white backdrop-blur-md transition-colors cursor-pointer border border-white/20 dark:border-white/10 shadow-xs"
               title={t('nav.settings', language)}
             >
               <Settings className="w-4 h-4" />
@@ -300,7 +433,7 @@ export const ProfileScreen: React.FC = () => {
         {/* Main Profile Details */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 text-center sm:text-left z-20">
           {/* Profile Avatar */}
-          <div className="flex flex-col items-center sm:items-start gap-1.5 shrink-0">
+          <div className="flex flex-col items-center sm:items-start shrink-0">
             <div 
               className="relative group cursor-pointer"
               onClick={handleTriggerImageUpload}
@@ -309,7 +442,7 @@ export const ProfileScreen: React.FC = () => {
               <img
                 src={user.avatar}
                 alt={user.fullName}
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-emerald-400/80 shadow-2xl group-hover:scale-105 transition-all duration-300"
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-white/90 dark:border-emerald-500/80 shadow-lg group-hover:scale-105 transition-all duration-300"
               />
               <button
                 id="avatar-camera-btn"
@@ -319,60 +452,44 @@ export const ProfileScreen: React.FC = () => {
                   handleTriggerImageUpload();
                 }}
                 title={isBn ? 'ছবি আপলোড করুন' : 'Upload photo'}
-                className="absolute bottom-0 right-0 p-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white shadow-xl border-2 border-white/80 transition-all cursor-pointer hover:scale-110"
+                className="absolute bottom-0 right-0 p-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white shadow-md border-2 border-white dark:border-zinc-900 transition-all cursor-pointer hover:scale-110"
               >
                 <Camera className="w-3.5 h-3.5" />
               </button>
-
-              {isCustomAvatar(user.avatar) && (
-                <button
-                  id="avatar-remove-btn"
-                  type="button"
-                  onClick={handleRemoveAvatar}
-                  title={isBn ? 'ছবি মুছে ফেলুন' : 'Remove profile photo'}
-                  className="absolute top-0 right-0 p-1.5 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white shadow-xl border-2 border-white/80 transition-all cursor-pointer hover:scale-110"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              )}
             </div>
-
-            {isCustomAvatar(user.avatar) && (
-              <button
-                type="button"
-                onClick={handleRemoveAvatar}
-                className="text-[11px] text-zinc-300 hover:text-rose-300 underline underline-offset-2 flex items-center gap-1 transition-colors cursor-pointer pt-0.5"
-              >
-                <Trash2 className="w-3 h-3 text-rose-400" />
-                <span>{isBn ? 'ছবি মুছুন' : 'Remove photo'}</span>
-              </button>
-            )}
           </div>
 
           {/* User Meta */}
           <div className="space-y-2 flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-wide leading-tight drop-shadow-md">
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight drop-shadow-xs">
                 {user.fullName || (isBn ? 'ব্যবহারকারী' : 'Askio User')}
               </h1>
-              <span className="inline-flex items-center justify-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[11px] font-bold self-center sm:self-auto">
+              <span className="inline-flex items-center justify-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/40 text-[11px] font-bold self-center sm:self-auto backdrop-blur-md">
                 <Crown className="w-3.5 h-3.5" />
                 <span>Askio Premium</span>
               </span>
             </div>
             
-            <p className="text-xs sm:text-sm text-zinc-300 font-medium">
-              {user.email} • <span className="font-mono text-emerald-300">{user.phone}</span>
+            <p className="text-xs sm:text-sm text-emerald-50/90 dark:text-zinc-300 font-medium flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-1">
+              <span>{user.email || (isBn ? 'ইমেইল নেই' : 'No email')}</span>
+              <span className="text-white/40 dark:text-zinc-500">•</span>
+              <span className="font-mono font-bold text-amber-200 dark:text-emerald-300">{user.phone}</span>
+              <span className="text-white/40 dark:text-zinc-500">•</span>
+              <span className="inline-flex items-center gap-1 bg-white/20 dark:bg-emerald-900/40 text-white dark:text-emerald-200 px-2.5 py-0.5 rounded-full font-bold text-xs border border-white/30 dark:border-emerald-700/60 shadow-2xs backdrop-blur-md">
+                <Calendar className="w-3 h-3 text-emerald-200 dark:text-emerald-400" />
+                <span>{user.age ? (isBn ? `বয়স: ${user.age} বছর` : `Age: ${user.age} yrs`) : (isBn ? 'বয়স: সেট করুন' : 'Age: Set')}</span>
+              </span>
             </p>
 
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
-              <span className="px-3 py-1 rounded-full bg-white/10 text-white text-[11px] font-medium backdrop-blur-md border border-white/10 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="px-3 py-1 rounded-full bg-white/15 dark:bg-white/10 text-white text-[11px] font-medium backdrop-blur-md border border-white/20 flex items-center gap-1.5 shadow-2xs">
+                <Calendar className="w-3.5 h-3.5 text-emerald-200 dark:text-emerald-400" />
                 <span>{isBn ? 'সদস্য হয়েছেন:' : 'Member since:'} {user.joinedDate}</span>
               </span>
 
-              <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 backdrop-blur-md">
-                <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span className="px-3 py-1 rounded-full bg-white/15 dark:bg-emerald-500/20 text-emerald-100 dark:text-emerald-300 border border-white/20 dark:border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 backdrop-blur-md">
+                <Zap className="w-3.5 h-3.5 text-amber-300 dark:text-amber-400" />
                 <span>{isBn ? 'বিডি অ্যাপস ডেইলি (৳২.৭৮/দিন)' : 'BDApps Daily (৳2.78/day)'}</span>
               </span>
             </div>
@@ -384,12 +501,359 @@ export const ProfileScreen: React.FC = () => {
           <button
             id="edit-profile-sheet-btn"
             onClick={() => setIsEditModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white shadow-md transition-all flex items-center gap-2 cursor-pointer text-xs font-bold border border-emerald-400/30"
+            className="px-4 py-2 rounded-xl bg-white hover:bg-emerald-50 active:bg-emerald-100 text-emerald-900 dark:bg-emerald-600 dark:hover:bg-emerald-500 dark:text-white shadow-md transition-all flex items-center gap-2 cursor-pointer text-xs font-extrabold border border-white/80 dark:border-emerald-500 hover:scale-105 active:scale-95"
           >
-            <Edit3 className="w-3.5 h-3.5" />
+            <Edit3 className="w-3.5 h-3.5 text-emerald-700 dark:text-white" />
             <span>{isBn ? 'প্রোফাইল এডিট করুন' : 'Edit Profile'}</span>
           </button>
         </div>
+      </div>
+
+      {/* 0. Personal Details Section (পার্সোনাল ডিটেইলস - হাফ-শো এবং ড্রপডাউন এক্সপ্যান্ড) */}
+      <div id="personal-details-section" className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 sm:p-7 shadow-sm space-y-4 sm:space-y-5 transition-all">
+        {/* Header with Title on Left, Edit Details and Dropdown Arrow Button on Right */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-zinc-100 dark:border-zinc-800/80">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold shrink-0">
+              <UserCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                <span>{isBn ? 'পার্সোনাল ডিটেইলস (ব্যক্তিগত তথ্য)' : 'Personal Details'}</span>
+                <span className="px-2 py-0.5 rounded-md bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 text-[10px] font-extrabold flex items-center gap-1">
+                  <Sparkles className="w-2.5 h-2.5" />
+                  {isBn ? 'স্মার্ট ফিড' : 'Smart Feed'}
+                </span>
+              </h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                {isBn 
+                  ? 'আপনার পেশা ও তথ্যের ওপর ভিত্তি করে Askio AI আপনার ফিড ও রেজাল্ট সাজিয়ে দেয়' 
+                  : 'Askio AI personalizes content and study resources based on these traits'}
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons: Edit Details + Dropdown Arrow Button Side by Side */}
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <button
+              id="edit-personal-details-btn"
+              onClick={() => setIsEditModalOpen(true)}
+              className="px-3.5 sm:px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 active:bg-teal-700 text-white font-bold text-xs transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer border border-teal-500"
+              title={isBn ? 'তথ্য পরিবর্তন করুন' : 'Edit details'}
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>{isBn ? 'তথ্য সম্পাদন' : 'Edit Details'}</span>
+            </button>
+
+            <button
+              id="toggle-personal-details-dropdown"
+              onClick={() => setIsPersonalDetailsExpanded(prev => !prev)}
+              className={`px-3 sm:px-3.5 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer border shadow-2xs ${
+                isPersonalDetailsExpanded
+                  ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border-teal-300 dark:border-teal-700'
+                  : 'bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border-zinc-200 dark:border-zinc-700'
+              }`}
+              title={isPersonalDetailsExpanded ? (isBn ? 'তথ্য সংক্ষেপ করুন' : 'Collapse details') : (isBn ? 'সম্পূর্ণ তথ্য বিস্তারিত দেখুন' : 'Expand full details')}
+              aria-expanded={isPersonalDetailsExpanded}
+            >
+              <span>{isPersonalDetailsExpanded ? (isBn ? 'সংক্ষেপ করুন' : 'Hide Details') : (isBn ? 'বিস্তারিত দেখুন' : 'View Details')}</span>
+              {isPersonalDetailsExpanded ? (
+                <ChevronUp className="w-4 h-4 text-teal-600 dark:text-teal-400 transition-transform duration-200" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-zinc-500 dark:text-zinc-400 transition-transform duration-200" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Content Personalization Highlight Banner */}
+        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-teal-50/90 via-emerald-50/50 to-teal-50/30 dark:from-teal-950/40 dark:via-zinc-900 dark:to-emerald-950/20 border border-teal-200/80 dark:border-teal-800/60 flex items-start gap-3">
+          <div className="p-2 rounded-xl bg-teal-500 text-white shadow-xs shrink-0 mt-0.5">
+            <GraduationCap className="w-4 h-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-teal-900 dark:text-teal-200">
+                {isBn ? 'স্মার্ট কন্টেন্ট রেকমেন্ডেশন ইঞ্জিন' : 'Smart Content Recommendation Engine'}
+              </span>
+            </div>
+            <p className="text-xs text-teal-800/90 dark:text-teal-300/90 mt-0.5 leading-relaxed">
+              {user.profession ? (
+                isBn ? (
+                  <>আপনার পেশা হিসেবে <strong className="font-extrabold text-teal-950 dark:text-teal-100">{getProfessionLabel(user.profession, true)}</strong> নির্বাচন করা আছে। Askio AI আপনার জন্য বোর্ড পাঠ্যবই, গবেষণা ও ক্যারিয়ার গাইড প্রাধান্য দিয়ে কন্টেন্ট প্রস্তুত করছে।</>
+                ) : (
+                  <>You have selected <strong className="font-extrabold text-teal-950 dark:text-teal-100">{getProfessionLabel(user.profession, false)}</strong>. Askio AI prioritizes relevant books, research papers, and growth guides for you.</>
+                )
+              ) : (
+                isBn ? (
+                  <>আপনি কি শিক্ষার্থী, শিক্ষক নাকি কোনো পেশাজীবী? আপনার পেশা ও তথ্য নির্বাচন করুন যাতে Askio AI আপনার পড়াশোনা ও ক্যারিয়ারে সর্বোচ্চ সাহায্য করতে পারে।</>
+                ) : (
+                  <>Select your profession (Student, Teacher, Tech, Healthcare, Business, etc.) so Askio AI can present the most relevant guides and books for you.</>
+                )
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* HALF-SHOW MODE: Sleek, compact summary preview strip when collapsed */}
+        {!isPersonalDetailsExpanded ? (
+          <div className="space-y-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+              {/* Snapshot 1: Profession */}
+              <div className="p-3 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                  <Briefcase className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'পেশা / ভূমিকা' : 'Profession'}
+                  </span>
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 block truncate">
+                    {getProfessionLabel(user.profession, isBn)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Snapshot 2: Age & Blood Group */}
+              <div className="p-3 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                  <Heart className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'বয়স ও রক্তের গ্রুপ' : 'Age & Blood'}
+                  </span>
+                  <div className="flex items-center gap-1.5 truncate">
+                    <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                      {user.age ? (isBn ? `${user.age} বছর` : `${user.age} yrs`) : (isBn ? 'বয়স -' : 'Age -')}
+                    </span>
+                    <span className="text-zinc-300 dark:text-zinc-700">•</span>
+                    {user.bloodGroup ? (
+                      <span className="px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold">
+                        {user.bloodGroup}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                        {isBn ? 'গ্রুপ -' : 'Blood -'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Snapshot 3: City & Address */}
+              <div className="p-3 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                  <MapPin className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'শহর / অবস্থান' : 'City / Location'}
+                  </span>
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 block truncate">
+                    {user.city || (isBn ? 'বাংলাদেশ' : 'Bangladesh')}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Clickable interactive dropdown prompt bar */}
+            <div 
+              onClick={() => setIsPersonalDetailsExpanded(true)}
+              className="p-3 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/40 hover:bg-teal-50/60 dark:hover:bg-teal-950/30 border border-zinc-200/80 dark:border-zinc-800 transition-all cursor-pointer flex items-center justify-between text-xs group"
+              title={isBn ? 'সকল ব্যক্তিগত তথ্য দেখতে ক্লিক করুন' : 'Click to view all personal details'}
+            >
+              <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300 font-medium truncate">
+                <UserCheck className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                <span className="truncate">
+                  {isBn 
+                    ? 'আরো ৬টি তথ্য (মোবাইল নম্বর, ইমেইল, জেন্ডার, ধর্ম, পূর্ণ ঠিকানা) দেখতে ড্রপডাউনে চাপুন' 
+                    : 'Tap to view 6 more traits (Phone, Email, Gender, Religion, Full Address)'}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 font-bold text-teal-600 dark:text-teal-400 group-hover:translate-x-0.5 transition-transform shrink-0 ml-2">
+                <span>{isBn ? 'সকল তথ্য দেখুন' : 'View All'}</span>
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* FULL-SHOW MODE: Comprehensive structured grid with all 10 details */
+          <div className="space-y-4 transition-all animate-fadeIn">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {/* 1. Full Name */}
+              <div className="p-3.5 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <User className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'পূর্ণ নাম' : 'Full Name'}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 block truncate">
+                    {user.fullName || (isBn ? 'দেওয়া হয়নি' : 'Not set')}
+                  </span>
+                </div>
+              </div>
+
+              {/* 2. Phone Number */}
+              <div className="p-3.5 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <Phone className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'মোবাইল নম্বর' : 'Phone Number'}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold font-mono text-zinc-900 dark:text-zinc-100 block truncate">
+                    {user.phone || (isBn ? 'দেওয়া হয়নি' : 'Not set')}
+                  </span>
+                </div>
+              </div>
+
+              {/* 3. Email Address */}
+              <div className="p-3.5 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'ইমেইল ঠিকানা' : 'Email Address'}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 block truncate">
+                    {user.email || (isBn ? 'দেওয়া হয়নি' : 'Not set')}
+                  </span>
+                </div>
+              </div>
+
+              {/* 4. Age */}
+              <div className="p-3.5 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'বয়স' : 'Age'}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 block truncate">
+                    {user.age ? (isBn ? `${user.age} বছর` : `${user.age} years`) : (isBn ? 'সেট করা হয়নি' : 'Not set')}
+                  </span>
+                </div>
+              </div>
+
+              {/* 5. Gender */}
+              <div className="p-3.5 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'জেন্ডার' : 'Gender'}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 block truncate">
+                    {getGenderLabel(user.gender, isBn)}
+                  </span>
+                </div>
+              </div>
+
+              {/* 6. Religion */}
+              <div className="p-3.5 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'ধর্ম / বিশ্বাস' : 'Religion'}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 block truncate">
+                    {getReligionLabel(user.religion, isBn)}
+                  </span>
+                </div>
+              </div>
+
+              {/* 7. Blood Group */}
+              <div className="p-3.5 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                  <Heart className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'রক্তের গ্রুপ' : 'Blood Group'}
+                  </span>
+                  <div className="pt-0.5">
+                    {user.bloodGroup ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-extrabold text-xs border border-rose-200 dark:border-rose-800/80">
+                        <Droplet className="w-3 h-3 mr-1 text-rose-500 fill-rose-500" />
+                        {user.bloodGroup}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                        {isBn ? 'সেট করা হয়নি' : 'Not set'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 8. Profession */}
+              <div className="p-3.5 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'পেশা / ভূমিকা' : 'Profession'}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 block truncate">
+                    {getProfessionLabel(user.profession, isBn)}
+                  </span>
+                </div>
+              </div>
+
+              {/* 9. City / District */}
+              <div className="p-3.5 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'শহর / জেলা' : 'City / District'}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 block truncate">
+                    {user.city || (isBn ? 'সেট করা হয়নি' : 'Not set')}
+                  </span>
+                </div>
+              </div>
+
+              {/* 10. Address (Full Width on lg screens) */}
+              <div className="p-3.5 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/70 dark:border-zinc-800/80 flex items-center gap-3 sm:col-span-2 lg:col-span-3">
+                <div className="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0">
+                  <Home className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 block truncate">
+                    {isBn ? 'বর্তমান ঠিকানা / এলাকা' : 'Address / Area'}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 block truncate">
+                    {user.address || (isBn ? 'সেট করা হয়নি' : 'Not set')}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Collapse button at the bottom of full-show */}
+            <div className="pt-1 flex justify-center">
+              <button
+                id="collapse-personal-details-bottom-btn"
+                onClick={() => setIsPersonalDetailsExpanded(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all flex items-center gap-1.5 cursor-pointer border border-zinc-200 dark:border-zinc-700"
+              >
+                <span>{isBn ? 'তথ্য সংক্ষেপ করুন' : 'Hide / Collapse Details'}</span>
+                <ChevronUp className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 1. Real Profile Analytics & Overview */}
@@ -648,20 +1112,20 @@ export const ProfileScreen: React.FC = () => {
       </div>
 
       {/* 4. Active Subscription Plan Details (No "Micro" terms) */}
-      <div className="bg-gradient-to-br from-emerald-900/10 via-zinc-900 to-zinc-900 border border-emerald-500/30 rounded-3xl p-6 sm:p-7 shadow-lg text-white space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+      <div className="bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm text-zinc-900 dark:text-white space-y-4 transition-colors">
+        <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
               <Crown className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-white flex items-center gap-2">
+              <h3 className="font-extrabold text-base text-zinc-900 dark:text-white flex items-center gap-2">
                 <span>{isBn ? 'আপনার সক্রিয় বিডি অ্যাপস সাবস্ক্রিপশন' : 'Your Active BDApps Subscription'}</span>
-                <span className="px-2 py-0.5 rounded-md bg-emerald-500/30 text-emerald-300 text-[10px] font-bold border border-emerald-400/40">
+                <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
                   {isBn ? 'সক্রিয়' : 'Active'}
                 </span>
               </h3>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 {isBn ? 'বিডি অ্যাপস পেমেন্ট গেটওয়ে • দৈনিক অটো-রিনিউয়াল' : 'BDApps Payment Gateway • Auto-Renews Daily'}
               </p>
             </div>
@@ -669,26 +1133,26 @@ export const ProfileScreen: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-            <span className="text-zinc-400 text-[10px] block">{isBn ? 'প্ল্যানের নাম:' : 'Plan Name:'}</span>
-            <strong className="text-emerald-400 font-bold text-sm">BDApps Daily</strong>
+          <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800">
+            <span className="text-zinc-500 dark:text-zinc-400 text-[10px] block">{isBn ? 'প্ল্যানের নাম:' : 'Plan Name:'}</span>
+            <strong className="text-emerald-600 dark:text-emerald-400 font-bold text-sm">BDApps Daily</strong>
           </div>
-          <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-            <span className="text-zinc-400 text-[10px] block">{isBn ? 'দৈনিক চার্জ:' : 'Daily Charge:'}</span>
-            <strong className="text-white font-bold text-sm">
+          <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800">
+            <span className="text-zinc-500 dark:text-zinc-400 text-[10px] block">{isBn ? 'দৈনিক চার্জ:' : 'Daily Charge:'}</span>
+            <strong className="text-zinc-900 dark:text-white font-bold text-sm">
               {isBn ? '৳২.৭৮ / দিন (ভ্যাটসহ)' : '৳2.78 / day (incl. VAT)'}
             </strong>
           </div>
-          <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-            <span className="text-zinc-400 text-[10px] block">{isBn ? 'পেমেন্ট মাধ্যম:' : 'Payment Channel:'}</span>
-            <strong className="text-amber-300 font-bold text-sm">
+          <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800">
+            <span className="text-zinc-500 dark:text-zinc-400 text-[10px] block">{isBn ? 'পেমেন্ট মাধ্যম:' : 'Payment Channel:'}</span>
+            <strong className="text-amber-600 dark:text-amber-400 font-bold text-sm">
               {isBn ? 'রবি / এয়ারটেল ব্যালেন্স' : 'Robi / Airtel Balance'}
             </strong>
           </div>
         </div>
 
-        <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-200 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-zinc-900 border border-emerald-200/80 dark:border-zinc-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>
             {isBn 
               ? 'আপনার বিডি অ্যাপস সাবস্ক্রিপশন সক্রিয় রয়েছে। আপনি যেকোনো সময় নিচে আনসাবস্ক্রাইব করতে পারবেন।' 
@@ -965,79 +1429,323 @@ export const ProfileScreen: React.FC = () => {
         >
           <div 
             id="edit-profile-sheet"
-            className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl transition-all my-auto cursor-default"
+            className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-2xl transition-all my-auto cursor-default max-h-[92vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-5 border-b border-zinc-100 dark:border-zinc-800 pb-3">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                {isBn ? 'প্রোফাইল তথ্য সম্পাদন' : 'Edit Profile Information'}
-              </h3>
+            <div className="flex items-center justify-between mb-4 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <div>
+                <h3 className="text-base sm:text-lg font-extrabold text-zinc-900 dark:text-zinc-100">
+                  {isBn ? 'প্রোফাইল ও ব্যক্তিগত তথ্য সম্পাদন' : 'Edit Profile & Personal Details'}
+                </h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  {isBn ? 'আপনার ব্যক্তিগত বিবরণ ও পছন্দসমূহ আপডেট করুন' : 'Update your personal profile details and preferences'}
+                </p>
+              </div>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                className="p-1 text-zinc-400 hover:text-zinc-600 rounded-lg"
+                className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg cursor-pointer transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {saveSuccess && (
-              <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 text-emerald-700 text-xs rounded-xl flex items-center gap-2">
+              <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs rounded-xl flex items-center gap-2">
                 <Check className="w-4 h-4" />
-                <span>{isBn ? 'প্রোফাইল সফলভাবে আপডেট করা হয়েছে!' : 'Profile updated successfully!'}</span>
+                <span>{isBn ? 'প্রোফাইল ও ব্যক্তিগত তথ্য সফলভাবে সংরক্ষিত হয়েছে!' : 'Profile and personal details updated successfully!'}</span>
               </div>
             )}
 
-            <form onSubmit={handleSaveProfile} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  {isBn ? 'পূর্ণ নাম' : 'Full Name'}
+            {/* Hidden File Input for Modal Image Upload */}
+            <input 
+              type="file"
+              ref={editModalFileInputRef}
+              onChange={handleModalFileSelect}
+              accept="image/*"
+              className="hidden"
+            />
+
+            <form onSubmit={handleSaveProfile} className="space-y-5">
+              {/* Profile Picture Management Section */}
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80 space-y-3">
+                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  {isBn ? 'প্রোফাইল ছবি' : 'Profile Picture'}
                 </label>
-                <input
-                  type="text"
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500"
-                  required
-                />
+
+                <div className="flex flex-wrap items-center gap-3.5">
+                  <img
+                    src={avatarInput || DEFAULT_AVATAR}
+                    alt="Current avatar"
+                    className="w-16 h-16 rounded-full object-cover border-2 border-emerald-500 shadow-sm shrink-0"
+                  />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleModalImageUpload}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{isBn ? 'ডিভাইস থেকে আপলোড' : 'Upload photo'}</span>
+                    </button>
+
+                    {avatarInput && avatarInput !== DEFAULT_AVATAR && (
+                      <button
+                        type="button"
+                        onClick={() => setAvatarInput(DEFAULT_AVATAR)}
+                        className="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/80 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>{isBn ? 'ছবি রিমুভ করুন' : 'Remove photo'}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Preset Avatars Selection */}
+                <div className="pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60">
+                  <span className="block text-[11px] font-semibold text-zinc-600 dark:text-zinc-400 mb-2">
+                    {isBn ? 'অথবা নিচের যেকোনো একটি অবতার বেছে নিন:' : 'Or choose an avatar preset:'}
+                  </span>
+                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                    {AVATAR_PRESETS.map((preset, index) => {
+                      const isSelected = avatarInput === preset.url;
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => setAvatarInput(preset.url)}
+                          className={`relative rounded-full p-0.5 transition-all cursor-pointer ${
+                            isSelected 
+                              ? 'ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-zinc-900 scale-110 shadow-sm' 
+                              : 'opacity-75 hover:opacity-100 hover:scale-105'
+                          }`}
+                          title={`Avatar ${index + 1}`}
+                        >
+                          <img
+                            src={preset.url}
+                            alt={`Avatar ${index + 1}`}
+                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover"
+                          />
+                          {isSelected && (
+                            <div className="absolute -bottom-1 -right-1 p-0.5 rounded-full bg-emerald-500 text-white shadow-xs">
+                              <Check className="w-2.5 h-2.5" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  {isBn ? 'ইমেইল ঠিকানা' : 'Email Address'}
-                </label>
-                <input
-                  type="email"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500"
-                  required
-                />
+              {/* Basic Account Information */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                  {isBn ? 'অ্যাকাউন্ট বিবরণ' : 'Account Credentials'}
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                      {isBn ? 'পূর্ণ নাম' : 'Full Name'} *
+                    </label>
+                    <input
+                      type="text"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                      {isBn ? 'মোবাইল নম্বর' : 'Phone Number'} *
+                    </label>
+                    <input
+                      type="tel"
+                      value={phoneInput}
+                      onChange={(e) => setPhoneInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                      {isBn ? 'ইমেইল ঠিকানা' : 'Email Address'} *
+                    </label>
+                    <input
+                      type="email"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  {isBn ? 'মোবাইল নম্বর' : 'Phone Number'}
-                </label>
-                <input
-                  type="tel"
-                  value={phoneInput}
-                  onChange={(e) => setPhoneInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500"
-                  required
-                />
+              {/* Personal Details Section in Modal */}
+              <div className="space-y-3 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
+                    <UserCheck className="w-3.5 h-3.5" />
+                    <span>{isBn ? 'পার্সোনাল ডিটেইলস (ব্যক্তিগত তথ্য)' : 'Personal Details'}</span>
+                  </h4>
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-semibold">
+                    {isBn ? 'কন্টেন্ট পার্সোনালাইজেশন' : 'Content Targeting'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Profession / Role */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1 flex items-center justify-between">
+                      <span>{isBn ? 'পেশা / ভূমিকা (Profession)' : 'Profession / Role'}</span>
+                      <span className="text-[11px] text-teal-600 dark:text-teal-400 font-normal">
+                        {isBn ? '💡 কন্টেন্ট রিকমেন্ডেশনের জন্য গুরুত্বপূর্ণ' : '💡 Used for smart content feed'}
+                      </span>
+                    </label>
+                    <select
+                      value={professionInput}
+                      onChange={(e) => setProfessionInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-teal-500 cursor-pointer"
+                    >
+                      <option value="">{isBn ? '-- পেশা নির্বাচন করুন --' : '-- Select Profession --'}</option>
+                      {PROFESSION_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {isBn ? opt.labelBn : opt.labelEn}
+                        </option>
+                      ))}
+                    </select>
+                    {professionInput && (
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+                        {isBn 
+                          ? PROFESSION_OPTIONS.find(p => p.value === professionInput)?.hintBn 
+                          : PROFESSION_OPTIONS.find(p => p.value === professionInput)?.hintEn}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Age */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                      {isBn ? 'বয়স (Age)' : 'Age'}
+                    </label>
+                    <input
+                      type="number"
+                      min="5"
+                      max="110"
+                      placeholder={isBn ? 'যেমন: ২৪' : 'e.g. 24'}
+                      value={ageInput}
+                      onChange={(e) => setAgeInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-teal-500"
+                    />
+                  </div>
+
+                  {/* Gender */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                      {isBn ? 'জেন্ডার (Gender)' : 'Gender'}
+                    </label>
+                    <select
+                      value={genderInput}
+                      onChange={(e) => setGenderInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-teal-500 cursor-pointer"
+                    >
+                      <option value="">{isBn ? '-- নির্বাচন করুন --' : '-- Select Gender --'}</option>
+                      {GENDER_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {isBn ? opt.labelBn : opt.labelEn}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Religion */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                      {isBn ? 'ধর্ম (Religion)' : 'Religion'}
+                    </label>
+                    <select
+                      value={religionInput}
+                      onChange={(e) => setReligionInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-teal-500 cursor-pointer"
+                    >
+                      <option value="">{isBn ? '-- নির্বাচন করুন --' : '-- Select Religion --'}</option>
+                      {RELIGION_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {isBn ? opt.labelBn : opt.labelEn}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Blood Group */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                      {isBn ? 'রক্তের গ্রুপ (Blood Group)' : 'Blood Group'}
+                    </label>
+                    <select
+                      value={bloodGroupInput}
+                      onChange={(e) => setBloodGroupInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm font-semibold bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-teal-500 cursor-pointer"
+                    >
+                      <option value="">{isBn ? '-- নির্বাচন করুন --' : '-- Select Blood Group --'}</option>
+                      {BLOOD_GROUPS.map((bg) => (
+                        <option key={bg} value={bg}>
+                          {bg}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* City / District */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                      {isBn ? 'বর্তমান শহর / জেলা (City)' : 'City / District'}
+                    </label>
+                    <select
+                      value={cityInput}
+                      onChange={(e) => setCityInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-teal-500 cursor-pointer"
+                    >
+                      <option value="">{isBn ? '-- শহর নির্বাচন করুন --' : '-- Select City --'}</option>
+                      {BANGLADESH_CITIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Address */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                      {isBn ? 'বর্তমান ঠিকানা (Address)' : 'Street Address'}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={isBn ? 'বাড়ি, রোড, এলাকা বা গ্রাম' : 'House, street or area'}
+                      value={addressInput}
+                      onChange={(e) => setAddressInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:border-teal-500"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-600 dark:text-zinc-400"
+                  className="px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                 >
                   {isBn ? 'বাতিল' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm"
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
                 >
                   {isBn ? 'সংরক্ষণ করুন' : 'Save Changes'}
                 </button>

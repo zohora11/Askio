@@ -15,7 +15,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
   className = '',
   imgClassName = 'h-10 sm:h-12 w-auto',
   showText = true,
-  subtitle = 'Smart Resource & AI Hub',
+  subtitle = 'Resource & AI Hub',
   subtitleClassName = 'hidden sm:inline text-xs sm:text-[13px] font-bold tracking-wide text-emerald-600 dark:text-emerald-400 mt-0.5',
   onClick,
   id = 'app-brand-logo'
