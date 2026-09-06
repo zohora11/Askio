@@ -657,7 +657,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
             {/* Micro Highlights */}
             <div className="grid grid-cols-3 gap-3 pt-2 max-w-lg mx-auto lg:mx-0 text-left">
-              <div className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800">
+              <div id="landing-stat-resources-card" className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 cursor-default">
                 <div className="font-extrabold text-lg text-emerald-600 dark:text-emerald-400">
                   14,000+
                 </div>
@@ -666,7 +666,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800">
+              <div id="landing-stat-ai-card" className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 cursor-default">
                 <div className="font-extrabold text-lg text-teal-600 dark:text-teal-400">
                   Smart AI
                 </div>
@@ -675,7 +675,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800">
+              <div id="landing-stat-fee-card" className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 cursor-default">
                 <div className="font-extrabold text-lg text-amber-600 dark:text-amber-400">
                   ৳2.78
                 </div>
@@ -710,7 +710,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
           {/* Right Column: Interactive BDApps Carrier Subscription Card */}
           <div id="subscription" className="lg:col-span-5 scroll-mt-24">
-            <div className="bg-white dark:bg-zinc-900 border-2 border-emerald-500/40 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-emerald-950/10 relative">
+            <div id="landing-subscription-card" className="bg-white dark:bg-zinc-900 border-2 border-emerald-500/40 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-emerald-950/10 relative">
               {/* Header Badge */}
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center gap-2">

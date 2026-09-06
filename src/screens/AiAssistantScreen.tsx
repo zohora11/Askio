@@ -202,7 +202,7 @@ export const AiAssistantScreen: React.FC = () => {
 
           <div>
             <h2 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100">
-              Askio Ai Assistant
+              {language === 'bn' ? 'Askio জিনি' : 'Askio Genie'}
             </h2>
             <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
@@ -317,7 +317,7 @@ export const AiAssistantScreen: React.FC = () => {
             </div>
             <div className="bg-zinc-100 dark:bg-zinc-800 rounded-3xl rounded-tl-xs p-4 flex items-center gap-2 border border-zinc-200/60 dark:border-zinc-700/60 text-xs text-zinc-500">
               <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-600" />
-              <span>Askio AI is synthesizing guidance...</span>
+              <span>{language === 'bn' ? 'Askio জিনি তথ্য ও গাইডেন্স প্রস্তুত করছে...' : 'Askio Genie is synthesizing guidance...'}</span>
             </div>
           </div>
         )}
@@ -336,7 +336,7 @@ export const AiAssistantScreen: React.FC = () => {
             id="ai-chat-input"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Ask AI anything: book summaries, PDF guides, coding, research..."
+            placeholder={language === 'bn' ? 'Askio জিনি-কে যেকোনো প্রশ্ন করুন: বই, পিডিএফ, কোডিং, ক্যারিয়ার...' : 'Ask Genie anything: book summaries, PDF guides, coding, research...'}
             className="flex-1 bg-transparent text-sm sm:text-base text-zinc-900 dark:text-zinc-100 outline-none placeholder:text-zinc-400 py-1"
           />
           <button
@@ -350,7 +350,7 @@ export const AiAssistantScreen: React.FC = () => {
           </button>
         </div>
         <div className="flex items-center justify-between text-[11px] text-zinc-400 px-2 mt-2">
-          <span>Askio AI search & assistance engine in English and বাংলা.</span>
+          <span>{language === 'bn' ? 'Askio জিনি স্মার্ট অনুসন্ধান ও সহায়ক ইঞ্জিন' : 'Askio Genie search & assistance engine in English and বাংলা.'}</span>
           <span className="hidden sm:inline">Press Enter to send</span>
         </div>
       </form>

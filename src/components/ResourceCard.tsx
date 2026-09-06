@@ -9,8 +9,9 @@ interface ResourceCardProps {
 }
 
 export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, compact = false }) => {
-  const { openResourceDetail, isBookmarked, toggleBookmark, askAiAboutResource } = useApp();
+  const { openResourceDetail, openPdfReader, isBookmarked, toggleBookmark, askAiAboutResource, language } = useApp();
   const bookmarked = isBookmarked(resource.id);
+  const isBn = language === 'bn';
 
   const getFormatIcon = (format: string) => {
     switch (format) {
@@ -128,14 +129,29 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, compact = 
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
+          {(resource.format === 'PDFs' || resource.format === 'Books' || resource.format === 'Guides') && (
+            <button
+              id={`quick-read-card-${resource.id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                openPdfReader(resource);
+              }}
+              className="px-2 py-1 bg-emerald-500/15 hover:bg-emerald-500 hover:text-zinc-950 text-emerald-600 dark:text-emerald-400 rounded-lg font-bold text-[11px] transition-all flex items-center gap-1 cursor-pointer"
+              title={isBn ? 'সরাসরি পড়ুন' : 'Read Full Document'}
+            >
+              <BookOpen className="w-3 h-3" />
+              <span>{isBn ? 'পড়ুন' : 'Read'}</span>
+            </button>
+          )}
+
           <button
             id={`ask-ai-card-${resource.id}`}
             onClick={(e) => {
               e.stopPropagation();
               askAiAboutResource(resource);
             }}
-            className="p-1.5 text-zinc-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors flex items-center gap-1"
+            className="p-1.5 text-zinc-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
             title="Ask AI about this resource"
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -145,7 +161,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, compact = 
           <button
             id={`share-btn-${resource.id}`}
             onClick={handleShare}
-            className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+            className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
             title="Share"
           >
             <Share2 className="w-3.5 h-3.5" />

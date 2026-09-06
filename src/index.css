@@ -1,3 +1,78 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* ==========================================================================
+   UNIVERSAL CARD HOVER EFFECT & ELEVATED SHADOW SYSTEM
+   Works automatically across Light & Dark screens in both App and Landing Page.
+   Provides a smooth, tactile box-shadow, subtle border highlight, and elevation
+   whenever the user's cursor hovers over any card (including during scrolling).
+   ========================================================================== */
+
+/* 1. Base Smooth Transition for Cards */
+div[class*="rounded-2xl"]:not(input):not(button):not(nav):not(header):not(aside):not(.fixed):not([class*="fixed"]),
+div[class*="rounded-3xl"]:not(input):not(button):not(nav):not(header):not(aside):not(.fixed):not([class*="fixed"]),
+article[class*="rounded-"],
+section[class*="rounded-2xl"]:not(nav):not(header),
+section[class*="rounded-3xl"]:not(nav):not(header),
+[id*="card"]:not(button):not(input):not(.fixed),
+[id*="section"]:not(button):not(input):not(.fixed),
+.app-card {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s ease,
+              background-color 0.22s ease;
+}
+
+/* 2. Light Mode Hover State (Crisp Elevated 3D Depth + Subtle Accent Border) */
+@media (hover: hover) and (pointer: fine), (hover: none) {
+  div[class*="rounded-2xl"]:not(input):not(button):not(nav):not(header):not(aside):not(.fixed):not([class*="fixed"]):not([role="dialog"]):hover,
+  div[class*="rounded-3xl"]:not(input):not(button):not(nav):not(header):not(aside):not(.fixed):not([class*="fixed"]):not([role="dialog"]):hover,
+  article[class*="rounded-"]:hover,
+  section[class*="rounded-2xl"]:not(nav):not(header):hover,
+  section[class*="rounded-3xl"]:not(nav):not(header):hover,
+  [id*="card"]:not(button):not(input):not(.fixed):hover,
+  [id*="section"]:not(button):not(input):not(.fixed):hover,
+  .app-card:hover {
+    box-shadow: 0 14px 30px -4px rgba(0, 0, 0, 0.12),
+                0 6px 14px -3px rgba(0, 0, 0, 0.07),
+                0 0 0 1px rgba(16, 185, 129, 0.25) !important;
+  }
+
+  div[class*="rounded-2xl"]:not(input):not(button):not(nav):not(header):not(aside):not(.fixed):not([class*="fixed"]):not([role="dialog"]):not(:has(input)):not(:has(textarea)):hover,
+  div[class*="rounded-3xl"]:not(input):not(button):not(nav):not(header):not(aside):not(.fixed):not([class*="fixed"]):not([role="dialog"]):not(:has(input)):not(:has(textarea)):hover,
+  article[class*="rounded-"]:hover,
+  section[class*="rounded-2xl"]:not(nav):not(header):not(:has(input)):not(:has(textarea)):hover,
+  section[class*="rounded-3xl"]:not(nav):not(header):not(:has(input)):not(:has(textarea)):hover,
+  [id*="card"]:not(button):not(input):not(.fixed):not(:has(input)):not(:has(textarea)):hover,
+  [id*="section"]:not(button):not(input):not(.fixed):not(:has(input)):not(:has(textarea)):hover,
+  .app-card:not(:has(input)):hover {
+    transform: translateY(-2.5px);
+  }
+}
+
+/* 3. Dark Mode Hover State (Deep Ambient Glow + Luminous Emerald Rim) */
+:where(.dark, .dark *) div[class*="rounded-2xl"]:not(input):not(button):not(nav):not(header):not(aside):not(.fixed):not([class*="fixed"]):not([role="dialog"]):hover,
+:where(.dark, .dark *) div[class*="rounded-3xl"]:not(input):not(button):not(nav):not(header):not(aside):not(.fixed):not([class*="fixed"]):not([role="dialog"]):hover,
+:where(.dark, .dark *) article[class*="rounded-"]:hover,
+:where(.dark, .dark *) section[class*="rounded-2xl"]:not(nav):not(header):hover,
+:where(.dark, .dark *) section[class*="rounded-3xl"]:not(nav):not(header):hover,
+:where(.dark, .dark *) [id*="card"]:not(button):not(input):not(.fixed):hover,
+:where(.dark, .dark *) [id*="section"]:not(button):not(input):not(.fixed):hover,
+:where(.dark, .dark *) .app-card:hover {
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.78),
+              0 0 22px 2px rgba(16, 185, 129, 0.18),
+              0 0 0 1px rgba(16, 185, 129, 0.38) !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+:where(.dark, .dark *) div[class*="rounded-2xl"]:not(input):not(button):not(nav):not(header):not(aside):not(.fixed):not([class*="fixed"]):not([role="dialog"]):not(:has(input)):not(:has(textarea)):hover,
+:where(.dark, .dark *) div[class*="rounded-3xl"]:not(input):not(button):not(nav):not(header):not(aside):not(.fixed):not([class*="fixed"]):not([role="dialog"]):not(:has(input)):not(:has(textarea)):hover,
+:where(.dark, .dark *) article[class*="rounded-"]:hover,
+:where(.dark, .dark *) section[class*="rounded-2xl"]:not(nav):not(header):not(:has(input)):not(:has(textarea)):hover,
+:where(.dark, .dark *) section[class*="rounded-3xl"]:not(nav):not(header):not(:has(input)):not(:has(textarea)):hover,
+:where(.dark, .dark *) [id*="card"]:not(button):not(input):not(.fixed):not(:has(input)):not(:has(textarea)):hover,
+:where(.dark, .dark *) [id*="section"]:not(button):not(input):not(.fixed):not(:has(input)):not(:has(textarea)):hover,
+:where(.dark, .dark *) .app-card:not(:has(input)):hover {
+  transform: translateY(-2.5px);
+}

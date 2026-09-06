@@ -153,7 +153,7 @@ export const HomeScreen: React.FC = () => {
           <div 
             onClick={() => setActiveTab('ai')}
             className="cursor-pointer group flex flex-col items-center justify-center relative select-none"
-            title={isBn ? 'Askio এআই সহকারীর সাথে কথা বলুন' : 'Chat with Askio AI'}
+            title={isBn ? 'Askio জিনি সহকারীর সাথে কথা বলুন' : 'Chat with Askio Genie'}
           >
             {/* Ambient Radial Pulsing Aura */}
             <span className="absolute -inset-3 bg-gradient-to-tr from-emerald-500/30 via-teal-400/25 to-emerald-400/40 dark:from-emerald-500/40 dark:via-teal-400/30 dark:to-emerald-400/50 rounded-full blur-lg group-hover:blur-xl opacity-80 group-hover:opacity-100 transition-all duration-500 animate-pulse pointer-events-none" />
@@ -167,7 +167,7 @@ export const HomeScreen: React.FC = () => {
             <div className="mt-2 px-3 py-1 rounded-full bg-emerald-100/90 dark:bg-emerald-500/20 border border-emerald-300/80 dark:border-emerald-400/40 backdrop-blur-md flex items-center gap-1.5 shadow-xs group-hover:bg-emerald-200/80 dark:group-hover:bg-emerald-500/30 transition-colors">
               <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
               <span className="text-xs text-emerald-800 dark:text-emerald-300 font-bold tracking-wide">
-                {isBn ? 'আস্ক এআই' : 'Askio AI'}
+                {isBn ? 'Ask জিনি' : 'Ask Genie'}
               </span>
             </div>
           </div>

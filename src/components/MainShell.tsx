@@ -31,6 +31,7 @@ import { HealthScreen } from '../screens/HealthScreen';
 import { NotificationScreen } from '../screens/NotificationScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { ResourceDetailModal } from './ResourceDetailModal';
+import { PdfReaderModal } from './PdfReaderModal';
 import { AuthModal } from './AuthModal';
 import { AppLogo } from './AppLogo';
 import { ChatbotAvatar } from './ChatbotAvatar';
@@ -120,15 +121,15 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
                 key={item.id}
                 id={`sidebar-nav-${item.id}`}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all cursor-pointer ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm transition-all duration-200 cursor-pointer group ${
                   isActive
-                    ? 'bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-bold border-l-4 border-emerald-500 shadow-2xs'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border-l-4 border-transparent'
+                    ? 'bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-bold border-l-4 border-emerald-500 shadow-[0_4px_16px_rgba(16,185,129,0.22)]'
+                    : 'text-zinc-600 dark:text-zinc-400 font-semibold hover:font-bold hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/90 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] border-l-4 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600'
                 }`}
                 title={item.label}
               >
-                <Icon className={`w-5 h-5 shrink-0 transition-transform ${isActive ? 'text-emerald-600 dark:text-emerald-400 scale-110' : 'text-zinc-500 dark:text-zinc-400'}`} />
-                <span className="truncate">{item.label}</span>
+                <Icon className={`w-5 h-5 shrink-0 transition-transform ${isActive ? 'text-emerald-600 dark:text-emerald-400 scale-110' : 'text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white group-hover:scale-110'}`} />
+                <span className="truncate group-hover:tracking-tight">{item.label}</span>
                 {item.id === 'notifications' && unreadNotificationsCount > 0 && (
                   <span className="ml-auto px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold">
                     {unreadNotificationsCount}
@@ -146,10 +147,10 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
             <button
               id="sidebar-nav-landing"
               onClick={onOpenLandingPage}
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border-l-4 border-transparent transition-all cursor-pointer"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold hover:font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/90 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] border-l-4 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600 transition-all duration-200 cursor-pointer group"
               title={language === 'bn' ? 'ল্যান্ডিং পেজ' : 'Landing Page'}
             >
-              <Globe className="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <Globe className="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
               <span className="truncate">{language === 'bn' ? 'ল্যান্ডিং পেজ' : 'Landing Page'}</span>
             </button>
           )}
@@ -158,14 +159,14 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
           <button
             id="sidebar-nav-settings"
             onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm transition-all duration-200 cursor-pointer group ${
               activeTab === 'settings'
-                ? 'bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-bold border-l-4 border-emerald-500 shadow-2xs'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border-l-4 border-transparent'
+                ? 'bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-bold border-l-4 border-emerald-500 shadow-[0_4px_16px_rgba(16,185,129,0.22)]'
+                : 'text-zinc-600 dark:text-zinc-400 font-semibold hover:font-bold hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/90 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.05),0_2px_8px_rgba(0,0,0,0.4)] border-l-4 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600'
             }`}
             title={t('nav.settings', language)}
           >
-            <Settings className={`w-5 h-5 shrink-0 transition-transform ${activeTab === 'settings' ? 'text-emerald-600 dark:text-emerald-400 scale-110' : 'text-zinc-500 dark:text-zinc-400'}`} />
+            <Settings className={`w-5 h-5 shrink-0 transition-transform ${activeTab === 'settings' ? 'text-emerald-600 dark:text-emerald-400 scale-110' : 'text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white group-hover:scale-110'}`} />
             <span className="truncate">{t('nav.settings', language)}</span>
           </button>
         </nav>
@@ -175,10 +176,10 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
           <div 
             id="sidebar-bottom-profile"
             onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-3 p-2.5 rounded-2xl cursor-pointer transition-all border ${
+            className={`flex items-center gap-3 p-2.5 rounded-2xl cursor-pointer transition-all duration-200 border group ${
               activeTab === 'profile'
-                ? 'bg-emerald-500/15 dark:bg-emerald-500/25 border-emerald-500/60 shadow-xs'
-                : 'border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/80'
+                ? 'bg-emerald-500/15 dark:bg-emerald-500/25 border-emerald-500/60 shadow-[0_4px_16px_rgba(16,185,129,0.22)]'
+                : 'border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/90 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.05)]'
             }`}
             title={language === 'bn' ? 'প্রোফাইল স্ক্রিনে যান' : 'Go to Profile Screen'}
           >
@@ -187,20 +188,21 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
                 src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'}
                 alt={user.fullName || 'User'}
                 className={`w-9 h-9 rounded-xl object-cover ring-2 transition-all ${
-                  activeTab === 'profile' ? 'ring-emerald-500 shadow-xs' : 'ring-emerald-500/30'
+                  activeTab === 'profile' ? 'ring-emerald-500 shadow-xs' : 'ring-emerald-500/30 group-hover:ring-emerald-500'
                 }`}
               />
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-zinc-900" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-zinc-900 shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
             </div>
             <div className="min-w-0 flex-1">
               <p className={`text-xs font-bold truncate transition-colors ${
-                activeTab === 'profile' ? 'text-emerald-700 dark:text-emerald-300' : 'text-zinc-900 dark:text-zinc-100'
+                activeTab === 'profile' ? 'text-emerald-700 dark:text-emerald-300' : 'text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
               }`}>
                 {user.fullName || (language === 'bn' ? 'ব্যবহারকারী' : 'Askio User')}
               </p>
               <div className="flex items-center justify-between gap-1 mt-0.5">
-                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold truncate">
-                  {user.membershipPlan || (language === 'bn' ? 'সাবস্ক্রাইবড' : 'Subscribed')}
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold truncate flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse shrink-0" />
+                  {language === 'bn' ? 'সাবস্ক্রাইবড' : 'Subscribed'}
                 </span>
                 <span className="text-[10px] text-zinc-400 dark:text-zinc-500 shrink-0 font-medium">
                   {language === 'bn' ? 'প্রোফাইল' : 'Profile'}
@@ -498,14 +500,14 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
         </main>
       </div>
 
-      {/* --- 3D FLOATING AI QUICK ACTION BUTTON (ULTRA-PREMIUM GLASS CAPSULE) --- */}
+      {/* --- 3D FLOATING GENIE QUICK ACTION BUTTON (ULTRA-PREMIUM GLASS CAPSULE) --- */}
       {activeTab !== 'ai' && (
         <button
-          id="floating-3d-ai-btn"
+          id="floating-3d-genie-btn"
           onClick={() => setActiveTab('ai')}
           className="fixed bottom-24 sm:bottom-28 lg:bottom-8 right-4 sm:right-6 z-40 group cursor-pointer"
-          title={language === 'bn' ? 'Askio এআই সহকারীর সাথে কথা বলুন' : 'Open Askio AI Assistant'}
-          aria-label="Open Askio AI Assistant"
+          title={language === 'bn' ? 'Askio জিনি সহকারীর সাথে কথা বলুন' : 'Open Askio Genie'}
+          aria-label="Open Askio Genie"
         >
           {/* Ambient Breathing Glow Behind Capsule */}
           <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 opacity-60 group-hover:opacity-100 blur-md group-hover:blur-lg transition-all duration-500 animate-pulse pointer-events-none" />
@@ -526,7 +528,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
             {/* Label & Sparkle Badge */}
             <div className="flex items-center gap-1.5">
               <span className="font-extrabold text-xs sm:text-sm tracking-wide text-white group-hover:text-emerald-300 transition-colors">
-                {language === 'bn' ? 'আস্ক এআই' : 'Ask AI'}
+                {language === 'bn' ? 'Ask জিনি' : 'Ask Genie'}
               </span>
               <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />
             </div>
@@ -548,15 +550,19 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
               key={item.id}
               id={`floating-nav-${item.id}`}
               onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center justify-center px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-xl sm:rounded-2xl transition-all cursor-pointer ${
+              className={`flex flex-col items-center justify-center px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-xl sm:rounded-2xl transition-all duration-200 cursor-pointer group ${
                 isActive
-                  ? 'bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 font-bold scale-105 shadow-2xs'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/70'
+                  ? 'bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 font-extrabold scale-105 shadow-[0_4px_16px_rgba(16,185,129,0.3)] dark:shadow-[0_4px_16px_rgba(16,185,129,0.25)] border border-emerald-500/30'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:font-bold hover:bg-zinc-100 dark:hover:bg-zinc-800/90 hover:shadow-[0_4px_14px_rgba(0,0,0,0.09)] dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.06),0_2px_8px_rgba(0,0,0,0.4)] hover:scale-105 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700/60'
               }`}
               title={item.label}
             >
-              <Icon className={`w-5 h-5 sm:w-5.5 sm:h-5.5 md:w-6 md:h-6 transition-transform ${isActive ? 'scale-110' : ''}`} />
-              <span className="text-[10px] sm:text-[11px] md:text-xs mt-0.5 sm:mt-1 tracking-tight font-medium whitespace-nowrap">
+              <Icon className={`w-5 h-5 sm:w-5.5 sm:h-5.5 md:w-6 md:h-6 transition-all ${isActive ? 'scale-110 text-emerald-600 dark:text-emerald-400' : 'group-hover:scale-110 group-hover:text-zinc-950 dark:group-hover:text-white'}`} />
+              <span className={`text-[10px] sm:text-[11px] md:text-xs mt-0.5 sm:mt-1 tracking-tight whitespace-nowrap transition-all ${
+                isActive 
+                  ? 'font-extrabold text-emerald-600 dark:text-emerald-400' 
+                  : 'font-medium group-hover:font-extrabold text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-950 dark:group-hover:text-white'
+              }`}>
                 {item.label}
               </span>
             </button>
@@ -565,6 +571,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
       </nav>
 
       {/* --- GLOBAL POPUP MODALS --- */}
+      <PdfReaderModal />
       <ResourceDetailModal />
       <AuthModal />
       <SubscriptionModal />

@@ -60,20 +60,22 @@ export const NotificationScreen: React.FC = () => {
     <div className="space-y-6 pb-12 animate-fade-in max-w-3xl mx-auto">
       {/* Header with Unread Badge & Batch Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
-              Notification Center
-            </h2>
-            {unreadNotificationsCount > 0 && (
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-xs">
-                {unreadNotificationsCount} unread
-              </span>
-            )}
+        <div className="flex items-center gap-3">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+                Notification Center
+              </h2>
+              {unreadNotificationsCount > 0 && (
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-xs">
+                  {unreadNotificationsCount} unread
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+              Real-time updates regarding goals, 20-20-20 alerts, and research handbooks
+            </p>
           </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Real-time updates regarding goals, 20-20-20 alerts, and research handbooks
-          </p>
         </div>
 
         <div className="flex items-center gap-2">

@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { MainShell } from './components/MainShell';
 import { LandingPage } from './components/LandingPage';
 import { APP_LOGO_URL } from './constants/branding';
 
 function AppContent() {
-  const { user, setActiveTab } = useApp();
-  const [previewLandingPage, setPreviewLandingPage] = useState(false);
+  const { user, activeTab, setActiveTab } = useApp();
+  const prevLoggedInRef = useRef(user.isLoggedIn);
 
   useEffect(() => {
     // Ensure favicon is permanently locked to user's specified logo
@@ -25,24 +25,23 @@ function AppContent() {
     link.href = APP_LOGO_URL;
   }, []);
 
-  // When user logs in, strictly redirect directly to the Home screen greeting section
+  // When user fresh-logs-in (transition from false to true), navigate directly to home
   useEffect(() => {
-    if (user.isLoggedIn) {
+    if (!prevLoggedInRef.current && user.isLoggedIn) {
       setActiveTab('home');
-      setPreviewLandingPage(false);
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
+    prevLoggedInRef.current = user.isLoggedIn;
   }, [user.isLoggedIn, setActiveTab]);
 
   const handleEnterApp = () => {
     setActiveTab('home');
-    setPreviewLandingPage(false);
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
-  // When user is not logged in, or when someone explicitly opens the landing page:
-  // Show LandingPage first!
-  if (!user.isLoggedIn || previewLandingPage) {
+  // When user is not logged in, or when activeTab is explicitly 'landing':
+  // Show LandingPage
+  if (!user.isLoggedIn || activeTab === 'landing') {
     return (
       <LandingPage
         onEnterApp={handleEnterApp}
@@ -53,7 +52,7 @@ function AppContent() {
   // When user is logged in, show MainShell
   return (
     <MainShell
-      onOpenLandingPage={() => setPreviewLandingPage(true)}
+      onOpenLandingPage={() => setActiveTab('landing')}
     />
   );
 }

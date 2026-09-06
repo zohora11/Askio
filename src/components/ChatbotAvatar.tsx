@@ -21,7 +21,7 @@ export const ChatbotAvatar: React.FC<ChatbotAvatarProps> = ({
             e.currentTarget.src = AI_CHATBOT_AVATAR_FALLBACK;
           }
         }}
-        alt="Askio AI Assistant"
+        alt="Askio Genie"
         className={`${sizeClassName} object-contain bg-transparent`}
         loading="eager"
       />

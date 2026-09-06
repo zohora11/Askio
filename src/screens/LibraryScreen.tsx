@@ -46,13 +46,15 @@ export const LibraryScreen: React.FC = () => {
     <div className="space-y-6 pb-12 animate-fade-in">
       {/* Header & Sub-Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
-        <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
-            {t('library.title', language)}
-          </h2>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            {t('library.subtitle', language)}
-          </p>
+        <div className="flex items-center gap-3">
+          <div>
+            <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+              {t('library.title', language)}
+            </h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+              {t('library.subtitle', language)}
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-2xl self-start sm:self-auto">

@@ -49,7 +49,8 @@ import {
   MapPin,
   Home,
   BookOpen,
-  UserCheck
+  UserCheck,
+  ArrowLeft
 } from 'lucide-react';
 import { UnsubscribeModal } from '../components/UnsubscribeModal';
 import { LogoutModal } from '../components/LogoutModal';
@@ -405,14 +406,15 @@ export const ProfileScreen: React.FC = () => {
       />
 
       {/* Profile Banner Card */}
-      <div className="relative rounded-3xl border border-emerald-400/40 dark:border-zinc-800 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 dark:from-zinc-900 dark:via-zinc-950 dark:to-black px-6 sm:px-10 py-8 sm:py-12 shadow-lg dark:shadow-2xl overflow-hidden text-white flex flex-col justify-between min-h-[240px] transition-colors">
+      <div id="profile-banner-card" className="relative rounded-3xl border border-emerald-400/40 dark:border-emerald-500/50 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 dark:from-[#062c21] dark:via-[#0a3d2e] dark:to-[#041a14] px-6 sm:px-10 py-8 sm:py-12 shadow-lg dark:shadow-[0_16px_40px_-8px_rgba(5,150,105,0.35)] overflow-hidden text-white flex flex-col justify-between min-h-[240px] transition-colors">
         {/* Soft Ambient Glow Elements */}
-        <div className="absolute -top-12 -right-12 w-56 h-56 bg-teal-400/20 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-12 -left-12 w-56 h-56 bg-emerald-500/20 dark:bg-zinc-800/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-12 -right-12 w-64 h-64 bg-teal-400/20 dark:bg-emerald-400/25 rounded-full blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-emerald-500/20 dark:bg-teal-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-transparent dark:from-emerald-500/15 dark:via-transparent dark:to-transparent pointer-events-none" />
 
         {/* Top Header Navigation Controls */}
         <div className="flex items-center justify-end z-20 mb-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-auto">
             <button
               onClick={handleShareProfile}
               className="p-2 sm:p-2.5 rounded-xl bg-white/15 hover:bg-white/25 dark:bg-white/10 dark:hover:bg-white/15 text-white backdrop-blur-md transition-colors cursor-pointer border border-white/20 dark:border-white/10 shadow-xs"
@@ -510,7 +512,7 @@ export const ProfileScreen: React.FC = () => {
       </div>
 
       {/* 0. Personal Details Section (পার্সোনাল ডিটেইলস - হাফ-শো এবং ড্রপডাউন এক্সপ্যান্ড) */}
-      <div id="personal-details-section" className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 sm:p-7 shadow-sm space-y-4 sm:space-y-5 transition-all">
+      <div id="personal-details-section" className="bg-white dark:bg-zinc-900/90 border border-zinc-200 dark:border-emerald-900/40 rounded-3xl p-5 sm:p-7 shadow-sm space-y-4 sm:space-y-5 transition-all">
         {/* Header with Title on Left, Edit Details and Dropdown Arrow Button on Right */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-zinc-100 dark:border-zinc-800/80">
           <div className="flex items-center gap-2.5">
@@ -857,7 +859,7 @@ export const ProfileScreen: React.FC = () => {
       </div>
 
       {/* 1. Real Profile Analytics & Overview */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm space-y-5">
+      <div id="profile-analytics-section" className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
@@ -919,7 +921,7 @@ export const ProfileScreen: React.FC = () => {
       </div>
 
       {/* 2. Real Recent Activities & Update History */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm space-y-5">
+      <div id="profile-activity-section" className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
@@ -1030,7 +1032,7 @@ export const ProfileScreen: React.FC = () => {
       </div>
 
       {/* 3. Achievements & Badges (Functional System) */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm space-y-4">
+      <div id="profile-achievements-section" className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
@@ -1112,7 +1114,7 @@ export const ProfileScreen: React.FC = () => {
       </div>
 
       {/* 4. Active Subscription Plan Details (No "Micro" terms) */}
-      <div className="bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm text-zinc-900 dark:text-white space-y-4 transition-colors">
+      <div id="profile-subscription-card" className="bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm text-zinc-900 dark:text-white space-y-4 transition-colors">
         <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">

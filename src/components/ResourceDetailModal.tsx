@@ -15,12 +15,22 @@ import {
 } from 'lucide-react';
 
 export const ResourceDetailModal: React.FC = () => {
-  const { selectedResource, setSelectedResource, isBookmarked, toggleBookmark, askAiAboutResource } = useApp();
+  const { 
+    selectedResource, 
+    setSelectedResource, 
+    isBookmarked, 
+    toggleBookmark, 
+    askAiAboutResource,
+    goBack,
+    openPdfReader,
+    language
+  } = useApp();
   const [isExpanded, setIsExpanded] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   if (!selectedResource) return null;
 
+  const isBn = language === 'bn';
   const bookmarked = isBookmarked(selectedResource.id);
 
   const handleShare = () => {
@@ -40,21 +50,21 @@ export const ResourceDetailModal: React.FC = () => {
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md animate-fade-in cursor-pointer overflow-hidden"
-      onClick={() => setSelectedResource(null)}
+      onClick={goBack}
     >
       <div 
         id="resource-detail-modal"
         className="relative w-full max-w-3xl max-h-[90vh] sm:max-h-[85vh] my-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl transition-all cursor-default flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Always Visible Fixed Floating Close Button for Mobile & Desktop */}
+        {/* Top Floating Controls: Close on Right */}
         <button
           id="close-detail-modal-btn"
-          onClick={() => setSelectedResource(null)}
+          onClick={goBack}
           className="absolute top-3 right-3 sm:top-4 sm:right-4 z-50 p-2.5 sm:p-2.5 rounded-full bg-black/70 hover:bg-black/90 active:bg-black text-white shadow-2xl border border-white/20 transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center justify-center"
           title="Close (কাট অপশন)"
         >
-          <X className="w-5 h-5 sm:w-5 sm:h-5 stroke-[2.5]" />
+          <X className="w-5 h-5 stroke-[2.5]" />
         </button>
 
         {/* Scrollable Container */}
@@ -121,27 +131,41 @@ export const ResourceDetailModal: React.FC = () => {
               </div>
 
               {/* CTAs */}
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  id="open-reader-btn"
+                  onClick={() => openPdfReader(selectedResource)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-zinc-950 shadow-md transition-all active:scale-95 cursor-pointer"
+                  title={isBn ? 'সম্পূর্ণ বই বা পিডিএফ পড়ুন' : 'Read Full PDF / Document'}
+                >
+                  <BookOpen className="w-4 h-4 stroke-[2.5]" />
+                  <span>
+                    {selectedResource.format === 'PDFs' 
+                      ? (isBn ? 'পিডিএফ পড়ুন' : 'Read PDF') 
+                      : (isBn ? 'বই/গাইড পড়ুন' : 'Read Book/Guide')}
+                  </span>
+                </button>
+
                 <button
                   id="modal-bookmark-btn"
                   onClick={() => toggleBookmark(selectedResource.id)}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
                     bookmarked
                       ? 'bg-amber-500 text-white shadow-sm'
                       : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
                   }`}
                 >
                   <Bookmark className="w-4 h-4 fill-current" />
-                  <span>{bookmarked ? 'Saved' : 'Save'}</span>
+                  <span>{bookmarked ? (isBn ? 'সংরক্ষিত' : 'Saved') : (isBn ? 'সংরক্ষণ' : 'Save')}</span>
                 </button>
 
                 <button
                   id="modal-share-btn"
                   onClick={handleShare}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all cursor-pointer"
                 >
                   {copiedLink ? <Check className="w-4 h-4 text-emerald-500" /> : <Share2 className="w-4 h-4" />}
-                  <span>{copiedLink ? 'Copied' : 'Share'}</span>
+                  <span>{copiedLink ? (isBn ? 'কপি হয়েছে' : 'Copied') : (isBn ? 'শেয়ার' : 'Share')}</span>
                 </button>
               </div>
             </div>

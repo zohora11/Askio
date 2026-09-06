@@ -72,8 +72,8 @@ export const SearchScreen: React.FC = () => {
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
       {/* Live Search Bar */}
-      <form onSubmit={handleSearchSubmit} className="relative">
-        <div className="relative flex items-center bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm focus-within:border-emerald-500 dark:focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10 transition-all overflow-hidden">
+      <form onSubmit={handleSearchSubmit} className="relative flex items-center gap-2">
+        <div className="relative flex-1 flex items-center bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm focus-within:border-emerald-500 dark:focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10 transition-all overflow-hidden">
           <div className="pl-4 text-zinc-400">
             <Search className="w-5 h-5" />
           </div>

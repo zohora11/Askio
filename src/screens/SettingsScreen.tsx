@@ -78,13 +78,15 @@ export const SettingsScreen: React.FC = () => {
   return (
     <div className="space-y-6 pb-12 animate-fade-in max-w-3xl mx-auto">
       {/* Header */}
-      <div className="border-b border-zinc-200 dark:border-zinc-800 pb-4">
-        <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
-          {t('settings.title', language)}
-        </h2>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-          {t('settings.subtitle', language)}
-        </p>
+      <div className="flex items-center gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-4">
+        <div>
+          <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+            {t('settings.title', language)}
+          </h2>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+            {t('settings.subtitle', language)}
+          </p>
+        </div>
       </div>
 
       {/* 1. Appearance Control (Light, Dark, System) */}

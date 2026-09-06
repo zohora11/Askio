@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Resource, 
   Goal, 
@@ -45,10 +45,23 @@ interface UndoState {
   index: number;
 }
 
+export type NavigationStackEntry = 
+  | { type: 'tab'; tab: string }
+  | { type: 'resource'; resource: Resource; fromTab: string }
+  | { type: 'reader'; resource: Resource; fromTab: string };
+
 interface AppContextType {
-  // Navigation
+  // Navigation & History
   activeTab: string;
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: string, replace?: boolean) => void;
+  navigationStack: NavigationStackEntry[];
+  canGoBack: boolean;
+  goBack: () => void;
+
+  // PDF & Document Reader
+  readingResource: Resource | null;
+  openPdfReader: (resource: Resource) => void;
+  closePdfReader: () => void;
   
   // User & Auth
   user: UserProfile;
@@ -144,17 +157,28 @@ export const getAiWelcomeGreeting = (fullName?: string, lang: AppLanguage = 'en'
   const firstName = trimmed ? trimmed.split(' ')[0] : '';
   if (lang === 'bn') {
     return firstName
-      ? `হ্যালো ${firstName}! 👋 আমি Askio AI, আপনার ব্যক্তিগত লার্নিং ও গাইডেন্স সহকারী। আজ আপনাকে কীভাবে সহায়তা করতে পারি?`
-      : `হ্যালো! 👋 আমি Askio AI, আপনার ব্যক্তিগত লার্নিং ও গাইডেন্স সহকারী। আজ আপনাকে কীভাবে সহায়তা করতে পারি?`;
+      ? `হ্যালো ${firstName}! 👋 আমি Askio জিনি, আপনার ব্যক্তিগত লার্নিং ও গাইডেন্স সহকারী। আজ আপনাকে কীভাবে সহায়তা করতে পারি?`
+      : `হ্যালো! 👋 আমি Askio জিনি, আপনার ব্যক্তিগত লার্নিং ও গাইডেন্স সহকারী। আজ আপনাকে কীভাবে সহায়তা করতে পারি?`;
   }
   return firstName
-    ? `Hello ${firstName}! 👋 I am Askio AI, your personal guidance engine. How can I support your eye care, learning, or career growth today?`
-    : `Hello! 👋 I am Askio AI, your personal guidance engine. How can I support your eye care, learning, or career growth today?`;
+    ? `Hello ${firstName}! 👋 I am Askio Genie, your personal guidance engine. How can I support your eye care, learning, or career growth today?`
+    : `Hello! 👋 I am Askio Genie, your personal guidance engine. How can I support your eye care, learning, or career growth today?`;
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Navigation
-  const [activeTab, setActiveTab] = useState<string>('home');
+  // Navigation & History
+  const [activeTab, setActiveTabState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '');
+      const validTabs = ['home', 'search', 'ai', 'goals', 'health', 'library', 'profile', 'notifications', 'settings', 'landing'];
+      if (validTabs.includes(hash)) return hash;
+    }
+    return 'home';
+  });
+  const [navigationStack, setNavigationStack] = useState<NavigationStackEntry[]>([]);
+  const [readingResource, setReadingResource] = useState<Resource | null>(null);
+  const ignoreNextPopStateRef = useRef<boolean>(false);
+  const isExecutingGoBackRef = useRef<boolean>(false);
   
   // User Profile
   const [user, setUser] = useState<UserProfile>(() => {
@@ -170,10 +194,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           ? parsed.avatar
           : (isCustomAvatar(cachedCustomAvatar || '') ? cachedCustomAvatar! : (parsed.avatar || DEFAULT_AVATAR));
 
+        const loggedIn = parsed.isLoggedIn ?? false;
+        const cleanPlan = (loggedIn && (!parsed.membershipPlan || parsed.membershipPlan.toLowerCase().includes('unsub') || parsed.membershipPlan.toLowerCase().includes('free')))
+          ? 'BDApps Daily (৳2.78/day)'
+          : (parsed.membershipPlan || (loggedIn ? 'BDApps Daily (৳2.78/day)' : 'Free Tier'));
+
         return {
           ...parsed,
           avatar: initialAvatar,
-          isLoggedIn: parsed.isLoggedIn ?? false
+          isLoggedIn: loggedIn,
+          isPremium: loggedIn ? true : (parsed.isPremium ?? false),
+          membershipPlan: cleanPlan
         };
       } catch (e) { /* ignore */ }
     }
@@ -691,10 +722,242 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setRecentlyViewedIds([]);
   };
 
-  const openResourceDetail = (resource: Resource) => {
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+
+  const selectedResourceRef = useRef(selectedResource);
+  selectedResourceRef.current = selectedResource;
+
+  const readingResourceRef = useRef(readingResource);
+  readingResourceRef.current = readingResource;
+
+  // Initialize browser history state on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const currentHash = window.location.hash;
+    const tabName = currentHash.replace('#', '');
+    const validTabs = ['home', 'search', 'ai', 'goals', 'health', 'library', 'profile', 'notifications', 'settings', 'landing'];
+
+    if (currentHash.startsWith('#reader-')) {
+      const id = currentHash.replace('#reader-', '');
+      const res = MOCK_RESOURCES.find(r => r.id === id);
+      if (res) {
+        setReadingResource(res);
+        window.history.replaceState({ type: 'reader', resourceId: id, tab: 'library', timestamp: Date.now() }, '', currentHash);
+        return;
+      }
+    } else if (currentHash.startsWith('#resource-')) {
+      const id = currentHash.replace('#resource-', '');
+      const res = MOCK_RESOURCES.find(r => r.id === id);
+      if (res) {
+        setSelectedResource(res);
+        window.history.replaceState({ type: 'resource', resourceId: id, tab: 'library', timestamp: Date.now() }, '', currentHash);
+        return;
+      }
+    }
+
+    const initialTab = validTabs.includes(tabName) ? tabName : 'home';
+    if (!window.history.state) {
+      window.history.replaceState(
+        { type: 'tab', tab: initialTab, timestamp: Date.now() },
+        '',
+        currentHash && validTabs.includes(tabName) ? currentHash : `#${initialTab}`
+      );
+    }
+  }, []);
+
+  const openResourceDetail = useCallback((resource: Resource) => {
     setSelectedResource(resource);
     addToRecentlyViewed(resource.id);
-  };
+    const hash = `#resource-${resource.id}`;
+    try {
+      window.history.pushState(
+        { 
+          type: 'resource', 
+          resourceId: resource.id, 
+          tab: activeTabRef.current, 
+          timestamp: Date.now() 
+        }, 
+        '', 
+        hash
+      );
+    } catch (e) {}
+  }, [addToRecentlyViewed]);
+
+  const openPdfReader = useCallback((resource: Resource) => {
+    setReadingResource(resource);
+    addToRecentlyViewed(resource.id);
+    const hash = `#reader-${resource.id}`;
+    try {
+      window.history.pushState(
+        { 
+          type: 'reader', 
+          resourceId: resource.id, 
+          tab: activeTabRef.current, 
+          timestamp: Date.now() 
+        }, 
+        '', 
+        hash
+      );
+    } catch (e) {}
+  }, [addToRecentlyViewed]);
+
+  const closePdfReader = useCallback(() => {
+    if (typeof window !== 'undefined' && window.location.hash.startsWith('#reader-')) {
+      window.history.back();
+    } else {
+      setReadingResource(null);
+    }
+  }, []);
+
+  const closeResourceDetail = useCallback(() => {
+    if (typeof window !== 'undefined' && window.location.hash.startsWith('#resource-')) {
+      window.history.back();
+    } else {
+      setSelectedResource(null);
+    }
+  }, []);
+
+  const setActiveTab = useCallback((tab: string, replace = false) => {
+    // If target tab is already active and no modal/reader is open, do nothing
+    if (tab === activeTabRef.current && !selectedResourceRef.current && !readingResourceRef.current) {
+      return;
+    }
+
+    if (selectedResourceRef.current) setSelectedResource(null);
+    if (readingResourceRef.current) setReadingResource(null);
+
+    setActiveTabState(tab);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    const hash = `#${tab}`;
+    try {
+      if (replace) {
+        window.history.replaceState({ type: 'tab', tab, timestamp: Date.now() }, '', hash);
+      } else {
+        if (window.location.hash !== hash) {
+          window.history.pushState({ type: 'tab', tab, timestamp: Date.now() }, '', hash);
+        }
+      }
+    } catch (e) {}
+  }, []);
+
+  const canGoBack = Boolean(
+    readingResource !== null ||
+    selectedResource !== null ||
+    isSubscriptionModalOpen ||
+    isWellnessModalOpen ||
+    isAuthModalOpen ||
+    activeTab !== 'home'
+  );
+
+  const goBack = useCallback(() => {
+    try {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        if (readingResourceRef.current) {
+          setReadingResource(null);
+        } else if (selectedResourceRef.current) {
+          setSelectedResource(null);
+        } else if (activeTabRef.current !== 'home') {
+          setActiveTab('home');
+        }
+      }
+    } catch (e) {
+      if (readingResourceRef.current) {
+        setReadingResource(null);
+      } else if (selectedResourceRef.current) {
+        setSelectedResource(null);
+      } else if (activeTabRef.current !== 'home') {
+        setActiveTab('home');
+      }
+    }
+  }, [setActiveTab]);
+
+  // Popstate listener to handle browser back button, Android/iOS back gesture and hardware button
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      const hash = window.location.hash;
+
+      // 1. If history state object exists:
+      if (state && typeof state === 'object') {
+        if (state.type === 'reader') {
+          const res = MOCK_RESOURCES.find(r => r.id === state.resourceId);
+          if (res) {
+            setReadingResource(res);
+          }
+          if (state.tab && state.tab !== activeTabRef.current) {
+            setActiveTabState(state.tab);
+          }
+          return;
+        }
+
+        if (state.type === 'resource') {
+          setReadingResource(null);
+          const res = MOCK_RESOURCES.find(r => r.id === state.resourceId);
+          if (res) {
+            setSelectedResource(res);
+          }
+          if (state.tab && state.tab !== activeTabRef.current) {
+            setActiveTabState(state.tab);
+          }
+          return;
+        }
+
+        if (state.type === 'tab') {
+          setReadingResource(null);
+          setSelectedResource(null);
+          setSubscriptionModalOpen(false);
+          setWellnessModalOpen(false);
+          setAuthModalOpen(false);
+          if (state.tab && state.tab !== activeTabRef.current) {
+            setActiveTabState(state.tab);
+            window.scrollTo({ top: 0, behavior: 'instant' });
+          }
+          return;
+        }
+      }
+
+      // 2. Fallback: Parse URL hash if state was not populated
+      if (hash.startsWith('#reader-')) {
+        const id = hash.replace('#reader-', '');
+        const res = MOCK_RESOURCES.find(r => r.id === id);
+        if (res) setReadingResource(res);
+        return;
+      }
+
+      if (hash.startsWith('#resource-')) {
+        setReadingResource(null);
+        const id = hash.replace('#resource-', '');
+        const res = MOCK_RESOURCES.find(r => r.id === id);
+        if (res) setSelectedResource(res);
+        return;
+      }
+
+      // Normal tab hash
+      setReadingResource(null);
+      setSelectedResource(null);
+      setSubscriptionModalOpen(false);
+      setWellnessModalOpen(false);
+      setAuthModalOpen(false);
+      const tabName = hash.replace('#', '');
+      const validTabs = ['home', 'search', 'ai', 'goals', 'health', 'library', 'profile', 'notifications', 'settings', 'landing'];
+      const targetTab = validTabs.includes(tabName) ? tabName : 'home';
+
+      if (targetTab !== activeTabRef.current) {
+        setActiveTabState(targetTab);
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   // Search History
   const addRecentSearch = (query: string) => {
@@ -1003,6 +1266,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         activeTab,
         setActiveTab,
+        navigationStack,
+        canGoBack,
+        goBack,
+        readingResource,
+        openPdfReader,
+        closePdfReader,
         user,
         updateProfile,
         loginWithPhone,

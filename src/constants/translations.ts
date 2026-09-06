@@ -51,7 +51,7 @@ export const UI_TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     // Navigation
     'nav.home': 'Home',
     'nav.search': 'Search',
-    'nav.ai': 'Ask AI',
+    'nav.ai': 'Ask Genie',
     'nav.goals': 'Goals',
     'nav.health': 'Discover',
     'nav.library': 'Library',
@@ -155,7 +155,7 @@ export const UI_TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     // Navigation
     'nav.home': 'হোম',
     'nav.search': 'সার্চ',
-    'nav.ai': 'আস্ক এআই',
+    'nav.ai': 'আস্ক জিনি',
     'nav.goals': 'গোলস',
     'nav.health': 'ডিসকভার',
     'nav.library': 'লাইব্রেরি',
