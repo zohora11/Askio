@@ -340,9 +340,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       // 3A: Check if device is trusted for this phone number
       const trustedUser = getTrustedDeviceUser(cleanMobile);
       if (trustedUser) {
-        const trustedAvatar = isCustomAvatar(trustedUser.avatar)
-          ? trustedUser.avatar
-          : (localStorage.getItem(`askio_avatar_phone_${cleanMobile}`) || localStorage.getItem('askio_custom_avatar') || undefined);
+        const trustedAvatar = trustedUser.avatar || undefined;
 
         updateProfile({
           uid: trustedUser.uid || 'user_' + cleanMobile,
@@ -756,8 +754,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                       {isBn ? 'নিরাপদ প্রবেশ' : 'Secure Entry'}
                     </span>
                   </label>
-                  <div className="relative flex items-center">
-                    <div className="absolute left-3 flex items-center gap-1.5 text-zinc-400 font-mono text-xs border-r border-zinc-200 dark:border-zinc-700 pr-2">
+                  <div className="flex gap-2">
+                    <div className="flex-none px-4 py-3 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl flex items-center gap-2 text-zinc-700 dark:text-zinc-300 font-mono text-sm font-bold">
                       <span>🇧🇩</span>
                       <span>+880</span>
                     </div>
@@ -765,9 +763,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                       type="tel"
                       id="user-mobile-input"
                       value={mobileInput}
-                      onChange={(e) => setMobileInput(e.target.value)}
+                      onChange={(e) => setMobileInput(e.target.value.replace(/\D/g, '').slice(0, 11))}
                       placeholder="018XXXXXXXX or 016XXXXXXXX"
-                      className="w-full pl-24 pr-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-sm font-mono text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500 transition-colors"
+                      className="flex-1 px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-sm font-mono text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500 transition-colors"
                       required
                     />
                   </div>

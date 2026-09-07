@@ -92,7 +92,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col font-sans selection:bg-emerald-500/20">
+    <div className="h-[100dvh] w-full overflow-hidden relative bg-[#F8F9FA] dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col font-sans selection:bg-emerald-500/20">
       {/* --- LAPTOP/DESKTOP LEFT SIDEBAR NAVIGATION (FIXED ON LEFT) --- */}
       <aside
         id="desktop-left-sidebar"
@@ -191,7 +191,6 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
                   activeTab === 'profile' ? 'ring-emerald-500 shadow-xs' : 'ring-emerald-500/30 group-hover:ring-emerald-500'
                 }`}
               />
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-zinc-900 shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
             </div>
             <div className="min-w-0 flex-1">
               <p className={`text-xs font-bold truncate transition-colors ${
@@ -339,30 +338,6 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
               </span>
             </div>
 
-            {/* 2. BDApps Subscription Status */}
-            <div 
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                setSubscriptionModalOpen(true);
-              }}
-              className="p-2.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-between cursor-pointer hover:bg-emerald-100/70 dark:hover:bg-emerald-900/40 transition-all"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-                  <Sparkles className="w-3.5 h-3.5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-emerald-900 dark:text-emerald-200 truncate">
-                    {language === 'bn' ? 'BDApps সাবস্ক্রিপশন' : 'BDApps Subscription'}
-                  </p>
-                  <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
-                    {user.membershipPlan || '৳২.৭৮/দিন (সক্রিয়)'}
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            </div>
-
             {/* 3. Notifications Option */}
             <button
               id="menu-notifications-btn"
@@ -485,9 +460,10 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
       )}
 
       {/* --- MAIN CONTENT CONTAINER (SCROLLS UNDERNEATH FIXED FLOATING BARS) --- */}
-      <div className="flex-1 flex max-w-7xl w-full mx-auto px-3 sm:px-6 md:px-8 lg:pl-70 lg:pr-8 pt-20 sm:pt-24 pb-28 sm:pb-32 lg:pb-12 transition-all">
-        {/* Dynamic Route View Render */}
-        <main className="flex-1 w-full min-w-0">
+      <div id="main-scroll-container" className="flex-1 overflow-y-auto flex flex-col w-full">
+        <div className="flex-1 flex max-w-7xl w-full mx-auto px-3 sm:px-6 md:px-8 lg:pl-70 lg:pr-8 pt-20 sm:pt-24 pb-28 sm:pb-32 lg:pb-12 transition-all">
+          {/* Dynamic Route View Render */}
+          <main className="flex-1 w-full min-w-0">
           {activeTab === 'home' && <HomeScreen />}
           {activeTab === 'search' && <SearchScreen />}
           {activeTab === 'ai' && <AiAssistantScreen />}
@@ -498,6 +474,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
           {activeTab === 'notifications' && <NotificationScreen />}
           {activeTab === 'settings' && <SettingsScreen />}
         </main>
+        </div>
       </div>
 
       {/* --- 3D FLOATING GENIE QUICK ACTION BUTTON (ULTRA-PREMIUM GLASS CAPSULE) --- */}
@@ -505,7 +482,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
         <button
           id="floating-3d-genie-btn"
           onClick={() => setActiveTab('ai')}
-          className="fixed bottom-24 sm:bottom-28 lg:bottom-8 right-4 sm:right-6 z-40 group cursor-pointer"
+          className="absolute bottom-24 sm:bottom-28 lg:bottom-8 right-4 sm:right-6 z-40 group cursor-pointer"
           title={language === 'bn' ? 'Askio জিনি সহকারীর সাথে কথা বলুন' : 'Open Askio Genie'}
           aria-label="Open Askio Genie"
         >
@@ -539,7 +516,7 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
       {/* --- FLOATING GLASS BOTTOM NAVIGATION BAR (FIXED FOR TABLET & MOBILE, HIDDEN ON LAPTOP) --- */}
       <nav 
         id="floating-bottom-nav"
-        className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-40 lg:hidden bg-white/75 dark:bg-zinc-900/75 backdrop-blur-2xl backdrop-saturate-150 border border-zinc-200/80 dark:border-zinc-800/80 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.12),0_4px_16px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl sm:rounded-3xl px-3 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 flex items-center justify-between sm:justify-center gap-1.5 xs:gap-2.5 sm:gap-4 md:gap-6 w-[calc(100%-24px)] xs:w-auto max-w-lg sm:max-w-xl md:max-w-2xl transition-all select-none"
+        className="absolute bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-0 sm:mx-auto z-40 lg:hidden bg-white/75 dark:bg-zinc-900/75 backdrop-blur-2xl backdrop-saturate-150 border border-zinc-200/80 dark:border-zinc-800/80 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.12),0_4px_16px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl sm:rounded-3xl px-2 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 flex items-center justify-between sm:justify-center gap-1 sm:gap-4 md:gap-6 w-[calc(100%-24px)] sm:w-fit max-w-lg sm:max-w-xl md:max-w-2xl transition-all select-none"
         aria-label="Main Navigation"
       >
         {navItems.map((item) => {
@@ -550,15 +527,15 @@ export const MainShell: React.FC<MainShellProps> = ({ onOpenLandingPage }) => {
               key={item.id}
               id={`floating-nav-${item.id}`}
               onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center justify-center px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-xl sm:rounded-2xl transition-all duration-200 cursor-pointer group ${
+              className={`${item.id === 'ai' ? 'hidden sm:flex' : 'flex'} flex-col items-center justify-center px-1.5 min-[375px]:px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-xl sm:rounded-2xl transition-all duration-200 cursor-pointer group ${
                 isActive
                   ? 'bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 font-extrabold scale-105 shadow-[0_4px_16px_rgba(16,185,129,0.3)] dark:shadow-[0_4px_16px_rgba(16,185,129,0.25)] border border-emerald-500/30'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:font-bold hover:bg-zinc-100 dark:hover:bg-zinc-800/90 hover:shadow-[0_4px_14px_rgba(0,0,0,0.09)] dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.06),0_2px_8px_rgba(0,0,0,0.4)] hover:scale-105 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700/60'
               }`}
               title={item.label}
             >
-              <Icon className={`w-5 h-5 sm:w-5.5 sm:h-5.5 md:w-6 md:h-6 transition-all ${isActive ? 'scale-110 text-emerald-600 dark:text-emerald-400' : 'group-hover:scale-110 group-hover:text-zinc-950 dark:group-hover:text-white'}`} />
-              <span className={`text-[10px] sm:text-[11px] md:text-xs mt-0.5 sm:mt-1 tracking-tight whitespace-nowrap transition-all ${
+              <Icon className={`w-4 h-4 min-[375px]:w-5 min-[375px]:h-5 sm:w-5.5 sm:h-5.5 md:w-6 md:h-6 transition-all ${isActive ? 'scale-110 text-emerald-600 dark:text-emerald-400' : 'group-hover:scale-110 group-hover:text-zinc-950 dark:group-hover:text-white'}`} />
+              <span className={`text-[9px] min-[375px]:text-[10px] sm:text-[11px] md:text-xs mt-0.5 sm:mt-1 tracking-tight whitespace-nowrap transition-all ${
                 isActive 
                   ? 'font-extrabold text-emerald-600 dark:text-emerald-400' 
                   : 'font-medium group-hover:font-extrabold text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-950 dark:group-hover:text-white'

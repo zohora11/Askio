@@ -125,9 +125,7 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
 
       if (trustedUser) {
         // Direct entry
-        const trustedAvatar = isCustomAvatar(trustedUser.avatar) 
-          ? trustedUser.avatar 
-          : (localStorage.getItem(`askio_avatar_phone_${cleanMobile}`) || localStorage.getItem('askio_custom_avatar') || undefined);
+        const trustedAvatar = trustedUser.avatar || undefined;
 
         updateProfile({
           uid: trustedUser.uid || 'user_' + cleanMobile,

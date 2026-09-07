@@ -62,7 +62,7 @@ export interface ActivityLogItem {
   id: string;
   type: 'search' | 'bookmark' | 'view' | 'goal' | 'ai';
   title: string;
-  timestamp: string;
+  timestamp: string | number;
   category?: string;
 }
 

@@ -43,6 +43,7 @@ import {
 import { clearDeviceTrustForPhone } from '../services/deviceTrust';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import { saveActivitiesToFirestore, loadActivitiesFromFirestore } from '../services/firebase';
 
 interface UndoState {
   item: NotificationItem;
@@ -186,13 +187,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (saved) {
       try { 
         const parsed = JSON.parse(saved);
-        const cachedCustomAvatar = localStorage.getItem('askio_custom_avatar') ||
-          (parsed.email ? localStorage.getItem(`askio_avatar_email_${parsed.email.toLowerCase()}`) : null) ||
-          (parsed.phone ? localStorage.getItem(`askio_avatar_phone_${parsed.phone}`) : null);
-
-        const initialAvatar = isCustomAvatar(parsed.avatar)
-          ? parsed.avatar
-          : (isCustomAvatar(cachedCustomAvatar || '') ? cachedCustomAvatar! : (parsed.avatar || DEFAULT_AVATAR));
+        const initialAvatar = parsed.avatar || DEFAULT_AVATAR;
 
         const loggedIn = parsed.isLoggedIn ?? false;
         const cleanPlan = (loggedIn && (!parsed.membershipPlan || parsed.membershipPlan.toLowerCase().includes('unsub') || parsed.membershipPlan.toLowerCase().includes('free')))
@@ -214,7 +209,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         const session = JSON.parse(sessionRaw);
         if (session && session.subscribed && session.mobileNumber) {
-          const cachedAvatar = localStorage.getItem(`askio_avatar_phone_${session.mobileNumber}`) || localStorage.getItem('askio_custom_avatar') || DEFAULT_AVATAR;
+          const cachedAvatar = DEFAULT_AVATAR;
           return {
             fullName: '',
             email: 'user@askio.ai',
@@ -235,7 +230,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       email: '',
       phone: '',
       password: '',
-      avatar: localStorage.getItem('askio_custom_avatar') || DEFAULT_AVATAR,
+      avatar: DEFAULT_AVATAR,
       isLoggedIn: false,
       isPremium: false,
       membershipPlan: 'Free Tier',
@@ -276,22 +271,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
 
         // 2. Lookup by email or phone if needed
-        if (!fsUser || !isCustomAvatar(fsUser.avatar)) {
+        if (!fsUser) {
           const byIdent = await findUserByPhoneOrEmail(identifier);
           if (byIdent) {
-            fsUser = fsUser ? { ...fsUser, ...byIdent, avatar: isCustomAvatar(byIdent.avatar) ? byIdent.avatar : fsUser.avatar } : byIdent;
+            fsUser = byIdent;
           }
         }
 
         if (fsUser) {
           setUser(prev => {
-            const finalAvatar = isCustomAvatar(fsUser?.avatar)
-              ? fsUser!.avatar!
-              : (isCustomAvatar(prev.avatar) ? prev.avatar : (fsUser?.avatar || prev.avatar));
-
             return {
               ...prev,
-              avatar: finalAvatar,
+              avatar: fsUser?.avatar || prev.avatar,
               uid: fsUser?.uid || prev.uid,
               fullName: fsUser?.fullName || prev.fullName,
               email: fsUser?.email || prev.email,
@@ -306,15 +297,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             };
           });
 
-          // If local state has a custom avatar but Firestore had a default, save it back to Firestore
-          if (isCustomAvatar(user.avatar) && (!fsUser.avatar || !isCustomAvatar(fsUser.avatar))) {
-            saveUserProfileToFirestore(
-              identifier,
-              { avatar: user.avatar },
-              { uid: fsUser.uid || user.uid, email: fsUser.email || user.email, phone: fsUser.phone || user.phone }
-            ).catch(() => {});
-          }
-
           // 3. Start real-time listener if we have a UID
           const listenUid = fsUser.uid || user.uid;
           if (listenUid) {
@@ -322,10 +304,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               if (docSnap.exists()) {
                 const liveData = docSnap.data() as FirestoreUserData;
                 setUser(prev => {
-                  const newAvatar = isCustomAvatar(liveData.avatar) ? liveData.avatar! : prev.avatar;
                   return {
                     ...prev,
-                    avatar: newAvatar,
+                    avatar: liveData.avatar || prev.avatar,
                     fullName: liveData.fullName || prev.fullName,
                     email: liveData.email || prev.email,
                     phone: liveData.phone || prev.phone,
@@ -414,14 +395,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             uData = await findUserByPhoneOrEmail(firebaseUser.email);
           }
 
-          let resolvedAvatar = isCustomAvatar(uData?.avatar)
-            ? uData!.avatar!
-            : (isCustomAvatar(firebaseUser.photoURL || '')
-              ? firebaseUser.photoURL!
-              : (localStorage.getItem(`askio_avatar_email_${(firebaseUser.email || '').toLowerCase()}`) ||
-                 (uData?.phone ? localStorage.getItem(`askio_avatar_phone_${uData.phone}`) : null) ||
-                 localStorage.getItem('askio_custom_avatar') ||
-                 DEFAULT_AVATAR));
+          let resolvedAvatar = uData?.avatar || firebaseUser.photoURL || DEFAULT_AVATAR;
 
           setUser(prev => ({
             ...prev,
@@ -566,7 +540,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     localStorage.setItem('askio_activities', JSON.stringify(activities));
-  }, [activities]);
+    if (user.uid) {
+      saveActivitiesToFirestore(user.uid, activities);
+    }
+  }, [activities, user.uid]);
+
+  // Load activities from Firestore when user logs in
+  useEffect(() => {
+    if (user.uid) {
+      loadActivitiesFromFirestore(user.uid).then(remoteActs => {
+        if (remoteActs && remoteActs.length > 0) {
+          setActivities(remoteActs);
+        }
+      });
+    } else {
+      const saved = localStorage.getItem('askio_activities');
+      setActivities(saved ? JSON.parse(saved) : INITIAL_ACTIVITIES);
+    }
+  }, [user.uid]);
 
   // Apply Theme with system preference listener
   useEffect(() => {
@@ -615,7 +606,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: 'act-' + Date.now(),
       type,
       title,
-      timestamp: 'Just now',
+      timestamp: Date.now(),
       category
     };
     setActivities(prev => [newItem, ...prev.slice(0, 49)]);

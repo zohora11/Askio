@@ -341,13 +341,8 @@ export async function loginFirebaseUser(
     const uid = firebaseUser?.uid || uData?.uid || ('user_' + cleanEmail.replace(/[^a-zA-Z0-9]/g, ''));
     const resolvedPhone = uData?.phone || uData?.phoneNumber || (expectedPhone?.trim() || '');
 
-    // 5. Resolve avatar
-    const resolvedAvatar = isCustomAvatar(uData?.avatar)
-      ? uData!.avatar!
-      : (localStorage.getItem(`askio_avatar_email_${cleanEmail}`) ||
-         (resolvedPhone ? localStorage.getItem(`askio_avatar_phone_${resolvedPhone}`) : null) ||
-         localStorage.getItem('askio_custom_avatar') ||
-         DEFAULT_AVATAR);
+    // 5. Resolve avatar strictly from the Firestore document or default
+    const resolvedAvatar = uData?.avatar || DEFAULT_AVATAR;
 
     const finalUserData: FirestoreUserData = {
       uid,
@@ -441,11 +436,7 @@ export async function loginFirebaseUser(
 
     const profile = uData || userByPhone;
     const uid = firebaseUser?.uid || profile.uid || ('user_' + cleanPhone.replace(/\D/g, ''));
-    const resolvedAvatar = isCustomAvatar(profile.avatar)
-      ? profile.avatar!
-      : (localStorage.getItem(`askio_avatar_phone_${cleanPhone}`) ||
-         (boundEmail ? localStorage.getItem(`askio_avatar_email_${boundEmail}`) : null) ||
-         DEFAULT_AVATAR);
+    const resolvedAvatar = profile.avatar || DEFAULT_AVATAR;
 
     const finalUserData: FirestoreUserData = {
       ...profile,
@@ -563,12 +554,6 @@ export async function loginWithGoogle(): Promise<FirestoreUserData> {
   try {
     const cleanedGoogleData = cleanFirestoreData(userData);
     await setDoc(doc(db, 'users', user.uid), cleanedGoogleData, { merge: true });
-    if (user.email) {
-      localStorage.setItem(`askio_avatar_email_${user.email.toLowerCase()}`, finalAvatar);
-    }
-    if (isCustomAvatar(finalAvatar)) {
-      localStorage.setItem('askio_custom_avatar', finalAvatar);
-    }
   } catch (err) {
     console.warn('Google user profile write notice:', err);
   }
@@ -767,6 +752,28 @@ export async function logoutFirebaseUser(): Promise<void> {
   } catch (err) {
     console.warn('Firebase sign out error:', err);
   }
+}
+
+export async function saveActivitiesToFirestore(uid: string, activities: any[]) {
+  if (!uid || !db) return;
+  try {
+    await setDoc(doc(db, 'users', uid, 'private_data', 'activities'), { list: activities });
+  } catch (err) {
+    console.error('Failed to save activities to Firestore:', err);
+  }
+}
+
+export async function loadActivitiesFromFirestore(uid: string): Promise<any[]> {
+  if (!uid || !db) return [];
+  try {
+    const snap = await getDoc(doc(db, 'users', uid, 'private_data', 'activities'));
+    if (snap.exists()) {
+      return snap.data().list || [];
+    }
+  } catch (err) {
+    console.error('Failed to load activities from Firestore:', err);
+  }
+  return [];
 }
 
 /**

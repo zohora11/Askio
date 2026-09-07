@@ -259,7 +259,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         fullName: createdUser.fullName,
         email: createdUser.email,
         phone: activePhone,
-        avatar: isCustomAvatar(createdUser.avatar) ? createdUser.avatar : (localStorage.getItem('askio_custom_avatar') || DEFAULT_AVATAR),
+        avatar: createdUser.avatar || DEFAULT_AVATAR,
         isLoggedIn: true,
         isPremium: true,
         membershipPlan: 'BDApps Daily (৳2.78/day)'
@@ -333,12 +333,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       }
 
       // 3. Update global App Context (including avatar!)
-      const resolvedAvatar = isCustomAvatar(loggedInUser.avatar)
-        ? loggedInUser.avatar!
-        : (localStorage.getItem(`askio_avatar_email_${(loggedInUser.email || loginInput).toLowerCase()}`) ||
-           (userPhone ? localStorage.getItem(`askio_avatar_phone_${userPhone}`) : null) ||
-           localStorage.getItem('askio_custom_avatar') ||
-           DEFAULT_AVATAR);
+      const resolvedAvatar = loggedInUser.avatar || DEFAULT_AVATAR;
 
       updateProfile({
         uid: loggedInUser.uid,
@@ -718,8 +713,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
                   BDApps ৳2.78/day
                 </span>
               </label>
-              <div className="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500 bg-zinc-50 dark:bg-zinc-800">
-                <div className="px-3.5 py-3 bg-zinc-100 dark:bg-zinc-700/60 border-r border-zinc-300 dark:border-zinc-700 text-xs font-bold text-zinc-700 dark:text-zinc-200 flex items-center gap-1.5 font-mono">
+              <div className="flex gap-2">
+                <div className="flex-none px-4 py-3 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl flex items-center gap-2 text-zinc-700 dark:text-zinc-300 font-mono text-sm font-bold">
                   <span>🇧🇩</span>
                   <span>+880</span>
                 </div>
@@ -729,7 +724,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, '').slice(0, 11))}
                   placeholder="018XXXXXXXX or 016XXXXXXXX"
-                  className="w-full px-3.5 py-3 text-sm font-mono bg-transparent outline-none text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                  className="flex-1 px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-sm font-mono text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500 transition-colors"
                   required
                 />
               </div>
@@ -778,8 +773,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
                   {isBn ? 'অথবা ইমেইল দিয়ে লগইন' : 'Or via Email'}
                 </button>
               </label>
-              <div className="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500 bg-zinc-50 dark:bg-zinc-800">
-                <div className="px-3.5 py-3 bg-zinc-100 dark:bg-zinc-700/60 border-r border-zinc-300 dark:border-zinc-700 text-xs font-bold text-zinc-700 dark:text-zinc-200 flex items-center gap-1.5 font-mono">
+              <div className="flex gap-2">
+                <div className="flex-none px-4 py-3 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl flex items-center gap-2 text-zinc-700 dark:text-zinc-300 font-mono text-sm font-bold">
                   <span>🇧🇩</span>
                   <span>+880</span>
                 </div>
@@ -789,7 +784,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, '').slice(0, 11))}
                   placeholder="018XXXXXXXX or 016XXXXXXXX"
-                  className="w-full px-3.5 py-3 text-sm font-mono bg-transparent outline-none text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                  className="flex-1 px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-sm font-mono text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-500 transition-colors"
                   required
                 />
               </div>

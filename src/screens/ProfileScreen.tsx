@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../services/firebase';
+import { FirestoreUserData } from '../services/firebase';
 import { 
   Edit3, 
   Camera, 
-  Crown, 
+  Crown,
   Search, 
   Bookmark, 
   Eye, 
@@ -63,6 +66,55 @@ import { clearDeviceTrustForPhone } from '../services/deviceTrust';
 import { t } from '../constants/translations';
 import { optimizeAvatarImage, optimizeAvatarImageAsFile } from '../utils/imageOptimizer';
 import { UserProfile } from '../types';
+
+const getTimeAgo = (timestamp: string | number, isBn: boolean): string => {
+  if (!timestamp) return isBn ? 'এইমাত্র' : 'Just now';
+  
+  if (typeof timestamp === 'string') {
+    // If it's already a relative string from mock data (e.g., '10 mins ago'), return it
+    if (timestamp.includes('ago') || timestamp.includes('Today') || timestamp.includes('Yesterday')) {
+      return timestamp;
+    }
+    // If it's literally 'Just now' or something else
+    if (timestamp.toLowerCase() === 'just now') return isBn ? 'এইমাত্র' : 'Just now';
+  }
+
+  // Parse ISO string or timestamp
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) {
+    return String(timestamp);
+  }
+
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) {
+    return isBn ? 'এইমাত্র' : 'Just now';
+  }
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) {
+    return isBn ? `${diffInMinutes} মিনিট আগে` : `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return isBn ? `${diffInHours} ঘণ্টা আগে` : `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) {
+    return isBn ? `${diffInDays} দিন আগে` : `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+  }
+  
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  if (diffInWeeks < 4) {
+    return isBn ? `${diffInWeeks} সপ্তাহ আগে` : `${diffInWeeks} week${diffInWeeks > 1 ? 's' : ''} ago`;
+  }
+
+  const diffInMonths = Math.floor(diffInDays / 30);
+  return isBn ? `${diffInMonths} মাস আগে` : `${diffInMonths} month${diffInMonths > 1 ? 's' : ''} ago`;
+};
 
 const AVATAR_PRESETS = [
   { id: 'av1', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80', label: 'Default' },
@@ -153,6 +205,13 @@ export const ProfileScreen: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeActivityTab, setActiveActivityTab] = useState<'all' | 'ai' | 'search' | 'bookmark'>('all');
   const [isPersonalDetailsExpanded, setIsPersonalDetailsExpanded] = useState<boolean>(false);
+
+  // Force re-render periodically so that relative timestamps (e.g. "Just now", "5 minutes ago") update automatically
+  const [, setTick] = useState(Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setTick(Date.now()), 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Real-time Profile Views tracking in localStorage
   const [profileViews, setProfileViews] = useState<number>(() => {
@@ -251,7 +310,7 @@ export const ProfileScreen: React.FC = () => {
     setPhoneInput(user.phone || '');
     setPasswordInput(user.password || '');
     setAvatarInput(user.avatar || '');
-    setAgeInput(user.age !== undefined ? user.age.toString() : '');
+    setAgeInput(user.age !== undefined && user.age !== null ? user.age.toString() : '');
     setGenderInput(user.gender || '');
     setReligionInput(user.religion || '');
     setBloodGroupInput(user.bloodGroup || '');
@@ -273,6 +332,29 @@ export const ProfileScreen: React.FC = () => {
     user.city
   ]);
 
+  // Load persistent profile details from Firestore directly on mount
+  useEffect(() => {
+    const fetchPersistentData = async () => {
+      if (!user.isLoggedIn || !user.uid) return;
+      try {
+        const userSnap = await getDoc(doc(db, 'users', user.uid));
+        if (userSnap.exists()) {
+          const uData = userSnap.data() as FirestoreUserData;
+          if (uData.age !== undefined && uData.age !== null) setAgeInput(uData.age.toString());
+          if (uData.gender) setGenderInput(uData.gender);
+          if (uData.religion) setReligionInput(uData.religion);
+          if (uData.bloodGroup) setBloodGroupInput(uData.bloodGroup);
+          if (uData.profession) setProfessionInput(uData.profession);
+          if (uData.address) setAddressInput(uData.address);
+          if (uData.city) setCityInput(uData.city);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch persistent profile details', err);
+      }
+    };
+    fetchPersistentData();
+  }, [user.isLoggedIn, user.uid]);
+
   // Real user stats
   const totalSearches = recentSearches.length;
   const totalBookmarks = bookmarkedIds.length;
@@ -280,15 +362,16 @@ export const ProfileScreen: React.FC = () => {
   const userAiPromptsCount = chatMessages ? chatMessages.filter(m => m.sender === 'user').length : 0;
 
   // Real Achievements
+  const isPremiumUnlocked = Boolean(user.isPremium || user.membershipPlan?.toLowerCase().includes('bd') || user.membershipPlan?.toLowerCase().includes('premium'));
   const achievements = [
     {
       id: 'bdapps_subscriber',
       titleBn: 'বিডি অ্যাপস সাবস্ক্রাইবার',
-      titleEn: 'BDApps Subscriber',
+      titleEn: 'BDF Subscriber',
       descBn: 'বিডি অ্যাপস পেমেন্ট সম্পন্ন করে আস্কিও প্রিমিয়াম অ্যাক্সেস সক্রিয় করা',
       descEn: 'Active BDApps payment & premium access',
-      unlocked: Boolean(user.isPremium),
-      current: user.isPremium ? 1 : 0,
+      unlocked: isPremiumUnlocked,
+      current: isPremiumUnlocked ? 1 : 0,
       target: 1,
       icon: ShieldCheck,
       color: 'emerald'
@@ -1081,7 +1164,7 @@ export const ProfileScreen: React.FC = () => {
                     </p>
                     <span className="text-[10px] font-medium text-zinc-400 shrink-0 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {act.timestamp}
+                      {getTimeAgo(act.timestamp, isBn)}
                     </span>
                   </div>
 
@@ -1186,7 +1269,7 @@ export const ProfileScreen: React.FC = () => {
       </div>
 
       {/* 4. Active Subscription Plan Details (No "Micro" terms) */}
-      <div id="profile-subscription-card" className="bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm text-zinc-900 dark:text-white space-y-4 transition-colors">
+      <div id="profile-subscription-card" className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-sm text-zinc-900 dark:text-white space-y-4 transition-colors">
         <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
