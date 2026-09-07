@@ -50,15 +50,18 @@ import {
   Home,
   BookOpen,
   UserCheck,
-  ArrowLeft
+  ArrowLeft,
+  KeyRound,
+  EyeOff,
+  Loader2
 } from 'lucide-react';
 import { UnsubscribeModal } from '../components/UnsubscribeModal';
 import { LogoutModal } from '../components/LogoutModal';
 import { unsubscribe, clearSubscriptionSession, unmarkLocalSubscriber } from '../services/bdapps';
-import { logoutFirebaseUser, isCustomAvatar, DEFAULT_AVATAR } from '../services/firebase';
+import { logoutFirebaseUser, isCustomAvatar, DEFAULT_AVATAR, uploadAvatarToStorage, changeUserPassword } from '../services/firebase';
 import { clearDeviceTrustForPhone } from '../services/deviceTrust';
 import { t } from '../constants/translations';
-import { optimizeAvatarImage } from '../utils/imageOptimizer';
+import { optimizeAvatarImage, optimizeAvatarImageAsFile } from '../utils/imageOptimizer';
 
 const AVATAR_PRESETS = [
   { id: 'av1', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80', label: 'Default' },
@@ -182,6 +185,63 @@ export const ProfileScreen: React.FC = () => {
   const [addressInput, setAddressInput] = useState(user.address || '');
   const [cityInput, setCityInput] = useState(user.city || '');
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Change Password state
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [passLoading, setPassLoading] = useState(false);
+  const [passError, setPassError] = useState('');
+  const [passSuccess, setPassSuccess] = useState('');
+
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassError('');
+    setPassSuccess('');
+
+    if (!currentPassword) {
+      setPassError(isBn ? 'বর্তমান পাসওয়ার্ড লিখুন।' : 'Please enter your current password.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPassError(isBn ? 'নতুন পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।' : 'New password must be at least 6 characters.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPassError(isBn ? 'নতুন পাসওয়ার্ড দুটি মিলছে না।' : 'New passwords do not match.');
+      return;
+    }
+
+    setPassLoading(true);
+    try {
+      await changeUserPassword({
+        currentPassword,
+        newPassword
+      });
+      setPassSuccess(isBn ? 'পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!' : 'Password changed successfully!');
+      setTimeout(() => {
+        setIsChangePasswordModalOpen(false);
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setPassSuccess('');
+      }, 1500);
+    } catch (err: any) {
+      console.warn('Change password error:', err);
+      if (err.code === 'auth/wrong-password' || err.message?.includes('Current password is incorrect')) {
+        setPassError(isBn ? 'বর্তমান পাসওয়ার্ডটি ভুল।' : 'Current password is incorrect.');
+      } else {
+        setPassError(err.message || (isBn ? 'পাসওয়ার্ড পরিবর্তন করা যায়নি।' : 'Failed to change password.'));
+      }
+    } finally {
+      setPassLoading(false);
+    }
+  };
 
   // Keep form inputs synchronized when logged-in user profile updates
   useEffect(() => {
@@ -326,13 +386,16 @@ export const ProfileScreen: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        setToastMessage(isBn ? 'ছবি প্রসেস ও ক্লাউডে সেভ করা হচ্ছে...' : 'Optimizing and syncing photo...');
-        const optimized = await optimizeAvatarImage(file, 320, 0.85);
-        if (optimized) {
-          updateProfile({ avatar: optimized });
-          setAvatarInput(optimized);
+        setToastMessage(isBn ? 'ছবি প্রসেস ও ক্লাউডে সেভ করা হচ্ছে...' : 'Uploading and syncing photo...');
+        const optimizedFile = await optimizeAvatarImageAsFile(file, 320, 0.85);
+        if (user.uid) {
+          const downloadUrl = await uploadAvatarToStorage(user.uid, optimizedFile);
+          await updateProfile({ avatar: downloadUrl });
+          setAvatarInput(downloadUrl);
           setToastMessage(isBn ? 'প্রোফাইল ছবি সফলভাবে ক্লাউডে সেভ হয়েছে!' : 'Profile picture saved across devices!');
           setTimeout(() => setToastMessage(null), 3500);
+        } else {
+           throw new Error("User UID not found");
         }
       } catch (err) {
         console.error('Avatar upload optimization error:', err);
@@ -361,12 +424,18 @@ export const ProfileScreen: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const optimized = await optimizeAvatarImage(file, 320, 0.85);
-        if (optimized) {
-          setAvatarInput(optimized);
+        setToastMessage(isBn ? 'ছবি আপলোড করা হচ্ছে...' : 'Uploading photo...');
+        const optimizedFile = await optimizeAvatarImageAsFile(file, 320, 0.85);
+        if (user.uid) {
+          const downloadUrl = await uploadAvatarToStorage(user.uid, optimizedFile);
+          setAvatarInput(downloadUrl);
+          setToastMessage(isBn ? 'আপলোড সম্পন্ন!' : 'Upload complete!');
+          setTimeout(() => setToastMessage(null), 3500);
         }
       } catch (err) {
         console.error('Modal avatar select error:', err);
+        setToastMessage(isBn ? 'আপলোড ব্যর্থ হয়েছে।' : 'Upload failed.');
+        setTimeout(() => setToastMessage(null), 3500);
       }
     }
     if (e.target) e.target.value = '';
@@ -1285,6 +1354,23 @@ export const ProfileScreen: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto shrink-0">
+            {/* Change Password Option */}
+            <button
+              id="profile-main-change-password-btn"
+              onClick={() => {
+                setPassError('');
+                setPassSuccess('');
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+                setIsChangePasswordModalOpen(true);
+              }}
+              className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+            >
+              <KeyRound className="w-4 h-4 text-emerald-500" />
+              <span>{isBn ? 'পাসওয়ার্ড পরিবর্তন' : 'Change Password'}</span>
+            </button>
+
             {/* Logout Option */}
             <button
               id="profile-main-logout-btn"
@@ -1307,6 +1393,165 @@ export const ProfileScreen: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      {isChangePasswordModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in cursor-pointer"
+          onClick={() => setIsChangePasswordModalOpen(false)}
+        >
+          <div
+            id="change-password-modal"
+            className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl transition-all my-auto cursor-default space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              id="close-change-password-modal-btn"
+              onClick={() => setIsChangePasswordModalOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                <KeyRound className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-extrabold text-zinc-900 dark:text-zinc-100">
+                  {isBn ? 'পাসওয়ার্ড পরিবর্তন করুন' : 'Change Password'}
+                </h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {isBn ? 'আপনার অ্যাকাউন্টের নিরাপত্তা নিশ্চিত করুন' : 'Secure your Askio account'}
+                </p>
+              </div>
+            </div>
+
+            {passError && (
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
+                <span>{passError}</span>
+              </div>
+            )}
+
+            {passSuccess && (
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 rounded-xl text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
+                <span>{passSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleChangePasswordSubmit} className="space-y-4">
+              {/* Current Password */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  {isBn ? 'বর্তমান পাসওয়ার্ড (Current Password)' : 'Current Password'}
+                </label>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3 text-zinc-400">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    id="current-password-input"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-10 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                  >
+                    {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* New Password */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  {isBn ? 'নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)' : 'New Password (Min. 6 characters)'}
+                </label>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3 text-zinc-400">
+                    <KeyRound className="w-4 h-4" />
+                  </div>
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    id="new-password-input"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-10 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm New Password */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  {isBn ? 'নতুন পাসওয়ার্ড পুনরায় লিখুন' : 'Confirm New Password'}
+                </label>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3 text-zinc-400">
+                    <Check className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="password"
+                    id="confirm-new-password-input"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-3.5 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    required
+                    minLength={6}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setIsChangePasswordModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                >
+                  {isBn ? 'বাতিল' : 'Cancel'}
+                </button>
+                <button
+                  type="submit"
+                  id="submit-change-password-btn"
+                  disabled={passLoading || !currentPassword || newPassword.length < 6 || newPassword !== confirmPassword}
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+                >
+                  {passLoading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>{isBn ? 'পরিবর্তন হচ্ছে...' : 'Updating...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>{isBn ? 'পাসওয়ার্ড আপডেট করুন' : 'Update Password'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Logout Confirmation Modal */}
       <LogoutModal

@@ -23,6 +23,7 @@ import {
   isCustomAvatar, 
   DEFAULT_AVATAR,
   logoutFirebaseUser,
+  cleanupLegacyOtpStorage,
   auth,
   db,
   FirestoreUserData
@@ -34,10 +35,13 @@ import {
   isSubscriptionUnregistered,
   isInitialChargingPending,
   unmarkLocalSubscriber,
-  clearSubscriptionSession
+  markLocalSubscriber,
+  clearSubscriptionSession,
+  recordSubscriptionCheckTimestamp,
+  isSubscriptionRecheckDue
 } from '../services/bdapps';
 import { clearDeviceTrustForPhone } from '../services/deviceTrust';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 interface UndoState {
@@ -65,7 +69,7 @@ interface AppContextType {
   
   // User & Auth
   user: UserProfile;
-  updateProfile: (updated: Partial<UserProfile>) => void;
+  updateProfile: (updated: Partial<UserProfile>) => Promise<void>;
   loginWithPhone: (phone: string) => void;
   verifyOtp: (otp: string) => boolean;
   loginWithEmail: (email: string, pass: string) => boolean;
@@ -240,13 +244,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   useEffect(() => {
+    // Purge any legacy stored OTPs or temporary reset keys on startup
+    cleanupLegacyOtpStorage();
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('askio_user', JSON.stringify(user));
   }, [user]);
 
   // Sync user profile (including avatar) from Firestore whenever user logs in or on mount
   useEffect(() => {
+    let unsubscribe: () => void;
+
     const syncUserProfile = async () => {
       if (!user.isLoggedIn) return;
+      
       const identifier = user.email || user.phone || user.uid;
       if (!identifier) return;
 
@@ -273,7 +285,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         if (fsUser) {
           setUser(prev => {
-            // NEVER replace a custom avatar with a default placeholder!
             const finalAvatar = isCustomAvatar(fsUser?.avatar)
               ? fsUser!.avatar!
               : (isCustomAvatar(prev.avatar) ? prev.avatar : (fsUser?.avatar || prev.avatar));
@@ -281,6 +292,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return {
               ...prev,
               avatar: finalAvatar,
+              uid: fsUser?.uid || prev.uid,
               fullName: fsUser?.fullName || prev.fullName,
               email: fsUser?.email || prev.email,
               phone: fsUser?.phone || prev.phone,
@@ -299,8 +311,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             saveUserProfileToFirestore(
               identifier,
               { avatar: user.avatar },
-              { uid: user.uid, email: user.email, phone: user.phone }
+              { uid: fsUser.uid || user.uid, email: fsUser.email || user.email, phone: fsUser.phone || user.phone }
             ).catch(() => {});
+          }
+
+          // 3. Start real-time listener if we have a UID
+          const listenUid = fsUser.uid || user.uid;
+          if (listenUid) {
+            unsubscribe = onSnapshot(doc(db, 'users', listenUid), (docSnap) => {
+              if (docSnap.exists()) {
+                const liveData = docSnap.data() as FirestoreUserData;
+                setUser(prev => {
+                  const newAvatar = isCustomAvatar(liveData.avatar) ? liveData.avatar! : prev.avatar;
+                  return {
+                    ...prev,
+                    avatar: newAvatar,
+                    fullName: liveData.fullName || prev.fullName,
+                    email: liveData.email || prev.email,
+                    phone: liveData.phone || prev.phone,
+                    age: liveData.age !== undefined ? liveData.age : prev.age,
+                    gender: liveData.gender || prev.gender,
+                    religion: liveData.religion || prev.religion,
+                    bloodGroup: liveData.bloodGroup || prev.bloodGroup,
+                    profession: liveData.profession || prev.profession,
+                    address: liveData.address || prev.address,
+                    city: liveData.city || prev.city
+                  };
+                });
+              }
+            }, (err) => {
+               console.warn("Realtime listener error:", err);
+            });
           }
         }
       } catch (err) {
@@ -309,10 +350,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     syncUserProfile();
-  }, [user.isLoggedIn, user.email, user.phone, user.uid]);
 
-  // Active BDApps Subscription Guard:
-  // If user is logged in, verify their subscription. If unsubscribed, immediately log them out!
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [user.isLoggedIn, user.uid]);
+
+  // Active BDApps Subscription Guard & Periodic 2-Day Re-check:
+  // Verifies subscription status against the real-time BDApps API. If unsubscribed/expired, updates state.
   useEffect(() => {
     if (!user.isLoggedIn || !user.phone) return;
 
@@ -321,7 +368,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const cleanMobile = validateMobileNumber(user.phone).cleaned || user.phone;
         const res = await checkSubscription(cleanMobile);
         if (isSubscriptionUnregistered(res)) {
-          // Immediately kick out unsubscribed user
+          // Subscription expired or unregistered -> revoke premium access
           console.warn('Subscription is no longer active. Revoking access.');
           unmarkLocalSubscriber(cleanMobile);
           clearSubscriptionSession();
@@ -340,6 +387,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           });
           localStorage.removeItem('askio_user');
           setActiveTab('home');
+        } else if (isSubscriptionRegistered(res)) {
+          // Subscription verified active in real-time -> record check timestamp and confirm premium status
+          markLocalSubscriber(cleanMobile);
+          recordSubscriptionCheckTimestamp(cleanMobile);
+          setUser(prev => prev.isPremium ? prev : { ...prev, isPremium: true, membershipPlan: 'BDApps Daily (৳2.78/day)' });
         }
       } catch (err) {
         // Transient network error
@@ -348,6 +400,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Check after brief delay to avoid race on initial mount
     const timeout = setTimeout(checkActiveSubscription, 1500);
+    // Periodic check interval (checks active state and handles 2-day re-verification)
     const interval = setInterval(checkActiveSubscription, 45000);
     return () => {
       clearTimeout(timeout);
@@ -570,24 +623,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // User Profile
-  const updateProfile = (updated: Partial<UserProfile>) => {
+  const updateProfile = async (updated: Partial<UserProfile>) => {
     if (updated.isLoggedIn) {
       setActiveTab('home');
     }
-    setUser(prev => {
-      const next = { ...prev, ...updated };
-      // Secure local caching for custom avatar across sessions
-      if (next.avatar && isCustomAvatar(next.avatar)) {
-        try {
-          localStorage.setItem('askio_custom_avatar', next.avatar);
-          if (next.phone) localStorage.setItem(`askio_avatar_phone_${next.phone}`, next.avatar);
-          if (next.email) localStorage.setItem(`askio_avatar_email_${next.email.toLowerCase()}`, next.avatar);
-        } catch { /* ignore storage quota */ }
-      }
-      // Save to Firestore asynchronously with full UID, email, and phone resolution
-      const identifier = next.email || next.phone || next.uid || auth.currentUser?.uid;
-      if (identifier) {
-        saveUserProfileToFirestore(
+    
+    // Save to Firestore asynchronously with full UID, email, and phone resolution
+    const identifier = user.email || user.phone || user.uid || auth.currentUser?.uid;
+    if (identifier) {
+      const next = { ...user, ...updated };
+      try {
+        await saveUserProfileToFirestore(
           identifier,
           {
             uid: next.uid || auth.currentUser?.uid,
@@ -606,11 +652,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             city: next.city
           },
           { uid: next.uid || auth.currentUser?.uid, email: next.email, phone: next.phone }
-        ).catch(err => console.warn('Save to Firestore error:', err));
+        );
+        addActivity('bookmark', `Updated profile information`);
+      } catch (err) {
+        console.warn('Save to Firestore error:', err);
       }
-      return next;
-    });
-    addActivity('bookmark', `Updated profile information`);
+      
+      // Update local state after write (onSnapshot will also trigger, this ensures non-Firestore fields like isLoggedIn update)
+      setUser(prev => ({ ...prev, ...updated }));
+    } else {
+       // If not logged in, just update local state
+       setUser(prev => ({ ...prev, ...updated }));
+    }
   };
 
   const loginWithPhone = (phone: string) => {
@@ -618,18 +671,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAuthView('otp');
   };
 
-  const verifyOtp = (otp: string): boolean => {
-    if (otp.length >= 4) {
-      setUser(prev => ({
-        ...prev,
-        isLoggedIn: true,
-        phone: pendingPhone
-      }));
-      setActiveTab('home');
-      setAuthModalOpen(false);
-      addActivity('search', `Signed in via Phone verification (${pendingPhone})`);
-      return true;
-    }
+  const verifyOtp = (_otp: string): boolean => {
+    // OTP verification is performed strictly and directly via real-time BDApps API in OtpVerificationModal
     return false;
   };
 

@@ -30,7 +30,8 @@ import {
   isLocalSubscriber,
   checkSubscription,
   isSubscriptionRegistered,
-  sendOTP
+  sendOTP,
+  verifyOTP
 } from '../services/bdapps';
 import { 
   registerFirebaseUser, 
@@ -38,8 +39,7 @@ import {
   loginWithGoogle,
   findUserByPhone,
   logoutFirebaseUser,
-  sendPasswordResetOtp,
-  verifyPasswordResetOtp,
+  sendFirebasePasswordResetEmail,
   resetUserPassword,
   DEFAULT_AVATAR,
   isCustomAvatar
@@ -317,9 +317,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
     setLoading(true);
     try {
       // 1. Sign in via Firebase Auth / Firestore lookup with Email or Phone Number
-      const loggedInUser = await loginFirebaseUser(loginInput, password);
+      const expectedPhone = phoneInput.trim() || pendingPhone.trim();
+      const loggedInUser = await loginFirebaseUser(loginInput, password, expectedPhone || undefined);
 
-      const userPhone = loggedInUser.phone || (loginInput.startsWith('01') ? loginInput : (phoneInput.trim() || pendingPhone.trim()));
+      const userPhone = loggedInUser.phone || (loginInput.startsWith('01') ? loginInput : expectedPhone);
 
       // 2. STRICT SUBSCRIPTION CHECK: Ensure active BDApps subscription
       if (userPhone) {
@@ -398,7 +399,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         err.code === 'auth/invalid-login-credentials' ||
         err.message?.toLowerCase().includes('password')
       ) {
-        msg = isBn ? 'ভুল পাসওয়ার্ড! সঠিক পাসওয়ার্ড লিখুন।' : 'Incorrect password. Please try again.';
+        msg = isBn ? 'ভুল তথ্য! আপনার ইমেইল/ফোন ও পাসওয়ার্ড সঠিকভাবে দিন।' : 'Invalid credentials. Please check your email/phone and password.';
       }
       setErrorMsg(msg);
       setLoading(false);
@@ -443,7 +444,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  // STEP 4: Send Password Reset OTP
+  // STEP 4: Send Password Reset OTP / Email
   const handleSendResetOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMsg('');
@@ -455,8 +456,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       return;
     }
 
-    if (resetMethod === 'email' && !targetVal.includes('@')) {
-      setErrorMsg(isBn ? 'সঠিক ইমেইল ঠিকানা প্রদান করুন।' : 'Please enter a valid email address.');
+    if (resetMethod === 'email') {
+      if (!targetVal.includes('@')) {
+        setErrorMsg(isBn ? 'সঠিক ইমেইল ঠিকানা প্রদান করুন।' : 'Please enter a valid email address.');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const cleanedTarget = targetVal.toLowerCase();
+        await sendFirebasePasswordResetEmail(cleanedTarget);
+        setSuccessMsg(isBn 
+          ? `পাসওয়ার্ড রিসেট লিংক আপনার ইমেইলে (${cleanedTarget}) পাঠানো হয়েছে! অনুগ্রহ করে ইনবক্স চেক করুন।` 
+          : `Password reset link has been sent to ${cleanedTarget}! Please check your email inbox.`);
+      } catch (err: any) {
+        console.warn('Firebase reset email error:', err);
+        setErrorMsg(isBn ? 'পাসওয়ার্ড রিসেট লিংক পাঠানো সম্ভব হয়নি। ইমেইলটি সঠিক কিনা যাচাই করুন।' : 'Could not send password reset email. Please verify the email address.');
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -466,31 +484,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         setErrorMsg(val.errorMessage || (isBn ? 'সঠিক ১১-সংখ্যার রবি/সার্কেল নম্বর দিন।' : 'Please enter a valid 11-digit mobile number.'));
         return;
       }
-    }
 
-    setLoading(true);
-    try {
-      const cleanedTarget = resetMethod === 'phone' 
-        ? validateMobileNumber(targetVal).cleaned 
-        : targetVal.toLowerCase();
+      setLoading(true);
+      try {
+        const cleanedPhone = val.cleaned;
+        // Verify that this phone number is registered to an existing account
+        const existingUser = await findUserByPhone(cleanedPhone);
+        if (!existingUser) {
+          setErrorMsg(isBn ? 'এই নম্বরে কোনো নিবন্ধিত অ্যাকাউন্ট পাওয়া যায়নি।' : 'No registered account found for this mobile number.');
+          setLoading(false);
+          return;
+        }
 
-      const result = await sendPasswordResetOtp({
-        type: resetMethod,
-        value: cleanedTarget
-      });
-
-      setResendTimer(30);
-      setResetOtpDigits(['', '', '', '', '', '']);
-      setSuccessMsg(isBn 
-        ? `${resetMethod === 'email' ? 'ইমেইলে' : 'মোবাইল নম্বরে'} ৬-সংখ্যার ভেরিফিকেশন কোড পাঠানো হয়েছে!` 
-        : `6-digit verification code sent to ${cleanedTarget}!`);
-      
-      setAuthView('verify_reset_otp');
-    } catch (err: any) {
-      console.warn('Send reset OTP err:', err);
-      setErrorMsg(isBn ? 'ভেরিফিকেশন কোড পাঠানো সম্ভব হয়নি। আবার চেষ্টা করুন।' : 'Could not send verification code. Please try again.');
-    } finally {
-      setLoading(false);
+        // Send real-time OTP via BDApps SMS gateway
+        const otpRes = await sendOTP(cleanedPhone);
+        const ref = otpRes.referenceNo || otpRes.subscriberId || 'REF-' + Date.now();
+        setOtpRefNo(ref);
+        setResendTimer(30);
+        setResetOtpDigits(['', '', '', '', '', '']);
+        setSuccessMsg(isBn 
+          ? `রবি/সার্কেল নম্বরে (${cleanedPhone}) ৬-সংখ্যার এসএমএস ওটিপি কোড পাঠানো হয়েছে!` 
+          : `6-digit verification OTP sent to ${cleanedPhone} via SMS!`);
+        
+        setAuthView('verify_reset_otp');
+      } catch (err: any) {
+        console.warn('Send reset OTP err:', err);
+        setErrorMsg(err?.message || (isBn ? 'ভেরিফিকেশন কোড পাঠানো সম্ভব হয়নি। আবার চেষ্টা করুন।' : 'Could not send verification code. Please try again.'));
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -526,7 +548,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
     otpInputRefs.current[nextIdx]?.focus();
   };
 
-  // STEP 5: Verify Reset OTP
+  // STEP 5: Verify Reset OTP (Real-Time directly with BDApps gateway)
   const handleVerifyResetOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = resetOtpDigits.join('');
@@ -540,20 +562,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
     setSuccessMsg('');
 
     try {
-      const cleanedTarget = resetMethod === 'phone' 
-        ? validateMobileNumber(resetIdentifier).cleaned 
-        : resetIdentifier.trim().toLowerCase();
-
-      const isValid = await verifyPasswordResetOtp(cleanedTarget, code);
-      if (isValid) {
-        setSuccessMsg(isBn ? 'কোড সফলভাবে যাচাই হয়েছে! এখন নতুন পাসওয়ার্ড সেট করুন।' : 'Code verified successfully! Now set your new password.');
-        setAuthView('reset_password');
-      } else {
-        setErrorMsg(isBn ? 'ভুল বা মেয়াদোত্তীর্ণ ভেরিফিকেশন কোড। পুনরায় চেষ্টা করুন।' : 'Invalid or expired verification code. Please try again.');
-      }
+      const cleanPhone = validateMobileNumber(resetIdentifier).cleaned;
+      await verifyOTP(cleanPhone, code, otpRefNo);
+      
+      setSuccessMsg(isBn ? 'ওটিপি সফলভাবে যাচাই হয়েছে! এখন নতুন পাসওয়ার্ড সেট করুন।' : 'OTP verified successfully! Now set your new password.');
+      setAuthView('reset_password');
     } catch (err: any) {
       console.warn('Verify reset OTP err:', err);
-      setErrorMsg(isBn ? 'কোড যাচাই করা যায়নি।' : 'Failed to verify code.');
+      setErrorMsg(err?.message || (isBn ? 'ভুল বা মেয়াদোত্তীর্ণ ভেরিফিকেশন কোড। পুনরায় চেষ্টা করুন।' : 'Invalid or expired verification code. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -1118,12 +1134,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>{isBn ? 'কোড পাঠানো হচ্ছে...' : 'Sending Code...'}</span>
+                  <span>{isBn ? 'অনুরোধ পাঠানো হচ্ছে...' : 'Processing...'}</span>
                 </>
               ) : (
                 <>
-                  <KeyRound className="w-4 h-4" />
-                  <span>{isBn ? 'ভেরিফিকেশন কোড পাঠান' : 'Send Verification Code'}</span>
+                  {resetMethod === 'email' ? <Mail className="w-4 h-4" /> : <KeyRound className="w-4 h-4" />}
+                  <span>
+                    {resetMethod === 'email' 
+                      ? (isBn ? 'পাসওয়ার্ড রিসেট লিংক পাঠান' : 'Send Reset Link') 
+                      : (isBn ? 'এসএমএস ওটিপি পাঠান' : 'Send SMS OTP')}
+                  </span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

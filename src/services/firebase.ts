@@ -9,6 +9,9 @@ import {
   GoogleAuthProvider,
   sendPasswordResetEmail,
   onAuthStateChanged,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
   User as FirebaseUser
 } from 'firebase/auth';
 import { 
@@ -20,8 +23,10 @@ import {
   query, 
   where, 
   getDocs,
-  serverTimestamp 
+  serverTimestamp,
+  onSnapshot 
 } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import firebaseConfig from '../../firebase-applet-config.json';
 import { saveDeviceTrustForPhone, getTrustedDeviceUser } from './deviceTrust';
 
@@ -32,9 +37,17 @@ export const auth = getAuth(app);
 export const db = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)'
   ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
   : getFirestore(app);
+export const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
 export const DEFAULT_AVATAR = `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80`;
+
+export async function uploadAvatarToStorage(uid: string, file: File): Promise<string> {
+  const storageRef = ref(storage, `avatars/${uid}_${Date.now()}`);
+  await uploadBytes(storageRef, file);
+  const downloadUrl = await getDownloadURL(storageRef);
+  return downloadUrl;
+}
 
 /**
  * Checks whether an avatar string represents a user's customized upload
@@ -44,7 +57,6 @@ export function isCustomAvatar(avatarUrl?: string): boolean {
   if (!avatarUrl || typeof avatarUrl !== 'string') return false;
   const trimmed = avatarUrl.trim();
   if (!trimmed) return false;
-  // If it matches the default Unsplash placeholder photo URL
   if (trimmed.includes('photo-1534528741775-53994a69daeb')) return false;
   return true;
 }
@@ -54,11 +66,10 @@ export interface FirestoreUserData {
   fullName: string;
   email: string;
   phone: string;
+  phoneNumber?: string;
+  phoneVerified?: boolean;
   isPremium: boolean;
   membershipPlan: string;
-  passwordHash?: string;
-  createdAt?: any;
-  updatedAt?: any;
   avatar?: string;
   age?: number | string;
   gender?: string;
@@ -67,39 +78,65 @@ export interface FirestoreUserData {
   profession?: string;
   address?: string;
   city?: string;
-}
-
-// Simple base64/hash helper for fallback credentials in Firestore
-function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return 'h_' + Math.abs(hash).toString(36);
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 /**
- * Register a new user in Firebase Auth / Firestore.
- * Handles `auth/operation-not-allowed` gracefully by creating Firestore user record directly.
+ * Register a new user in Firebase Auth and Firestore.
+ * Strictly binds 1 Email + 1 Verified Phone Number + 1 Password to 1 unique Account UID.
  */
 export async function registerFirebaseUser(params: {
   fullName: string;
   email: string;
   password: string;
   phone: string;
+  phoneVerified?: boolean;
 }): Promise<FirestoreUserData> {
-  const { fullName, email, password, phone } = params;
+  const { fullName, email, password, phone, phoneVerified = true } = params;
   const cleanEmail = email.trim().toLowerCase();
   const cleanPhone = phone.trim();
   const cleanName = fullName.trim();
-  const defaultAvatar = `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80`;
+  const defaultAvatar = DEFAULT_AVATAR;
+
+  if (!cleanEmail || !cleanEmail.includes('@')) {
+    const err: any = new Error('Please enter a valid email address.');
+    err.code = 'auth/invalid-email';
+    throw err;
+  }
+
+  if (!password || password.length < 6) {
+    const err: any = new Error('Password must be at least 6 characters long.');
+    err.code = 'auth/weak-password';
+    throw err;
+  }
+
+  if (!cleanPhone) {
+    const err: any = new Error('A verified mobile phone number is required.');
+    err.code = 'auth/invalid-phone';
+    throw err;
+  }
+
+  // 1. Uniqueness check: Ensure phone number is not already bound to another account
+  const existingUserWithPhone = await findUserByPhone(cleanPhone);
+  if (existingUserWithPhone && existingUserWithPhone.email && existingUserWithPhone.email.toLowerCase() !== cleanEmail) {
+    const phoneErr: any = new Error('This phone number is already linked to another account.');
+    phoneErr.code = 'auth/phone-already-in-use';
+    throw phoneErr;
+  }
+
+  // 2. Uniqueness check: Ensure email is not already registered in Firestore
+  const existingUserWithEmail = await findUserByEmail(cleanEmail);
+  if (existingUserWithEmail && existingUserWithEmail.phone && existingUserWithEmail.phone !== cleanPhone) {
+    const emailErr: any = new Error('An account with this email already exists.');
+    emailErr.code = 'auth/email-already-in-use';
+    throw emailErr;
+  }
 
   let uid = '';
 
+  // 3. Create user credentials natively in Firebase Auth
   try {
-    // 1. Attempt standard Firebase Auth creation
     const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
     const firebaseUser = userCredential.user;
     uid = firebaseUser.uid;
@@ -112,31 +149,35 @@ export async function registerFirebaseUser(params: {
   } catch (authErr: any) {
     console.warn('Firebase Auth create notice:', authErr.code || authErr.message);
 
+    if (authErr.code === 'auth/email-already-in-use') {
+      const customErr: any = new Error('An account with this email already exists.');
+      customErr.code = 'auth/email-already-in-use';
+      throw customErr;
+    }
+
     // If Email/Password provider is not enabled in Firebase Console (auth/operation-not-allowed)
     if (
       authErr.code === 'auth/operation-not-allowed' || 
       authErr.code === 'auth/admin-restricted-operation' ||
       authErr.message?.includes('operation-not-allowed')
     ) {
-      // Generate a persistent Firestore UID based on phone/email
       uid = 'user_' + (cleanPhone ? cleanPhone.replace(/\D/g, '') : Date.now());
-    } else if (authErr.code === 'auth/email-already-in-use') {
-      throw authErr;
     } else {
-      // Fallback to Firestore UID if other non-fatal network/provider issues occur
-      uid = 'user_' + (cleanPhone ? cleanPhone.replace(/\D/g, '') : Date.now());
+      throw authErr;
     }
   }
 
-  // 2. Save full user metadata document in Firestore 'users' collection
+  // 4. Save clean user metadata document strictly under users/{uid} in Firestore
+  // NEVER store plaintext passwords or password hashes in Firestore
   const userData: FirestoreUserData = {
     uid,
     fullName: cleanName,
     email: cleanEmail,
     phone: cleanPhone,
+    phoneNumber: cleanPhone,
+    phoneVerified: Boolean(phoneVerified),
     isPremium: true,
     membershipPlan: 'BDApps Daily (৳2.78/day)',
-    passwordHash: simpleHash(password),
     avatar: defaultAvatar,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -148,7 +189,7 @@ export async function registerFirebaseUser(params: {
     console.warn('Firestore user profile write warning:', err);
   }
 
-  // Cache in localStorage & save device trust for seamless recovery on this device
+  // 5. Cache in localStorage & device trust for active session
   try {
     localStorage.setItem(`askio_user_${uid}`, JSON.stringify(userData));
     localStorage.setItem(`askio_user_by_email_${cleanEmail}`, JSON.stringify(userData));
@@ -157,22 +198,33 @@ export async function registerFirebaseUser(params: {
       saveDeviceTrustForPhone(cleanPhone, userData);
     }
   } catch (e) {
-    // ignore local storage err
+    // ignore
   }
 
   return userData;
 }
 
 /**
- * Sign in user with Email & Password via Firebase Auth or Firestore credential verification
+ * Strict Multi-Credential Account Login:
+ * Authenticates via Firebase Auth and verifies that Email, Phone, and Password
+ * all strictly belong to the SAME account UID.
  */
-export async function loginFirebaseUser(identifier: string, password: string): Promise<FirestoreUserData> {
+export async function loginFirebaseUser(
+  identifier: string, 
+  password: string,
+  expectedPhone?: string
+): Promise<FirestoreUserData> {
   const cleanInput = identifier.trim();
-  const inputHash = simpleHash(password);
 
   if (!cleanInput) {
     const err: any = new Error('Please enter your email or mobile number.');
     err.code = 'auth/invalid-email';
+    throw err;
+  }
+
+  if (!password) {
+    const err: any = new Error('Please enter your password.');
+    err.code = 'auth/missing-password';
     throw err;
   }
 
@@ -181,157 +233,181 @@ export async function loginFirebaseUser(identifier: string, password: string): P
   if (isEmail) {
     const cleanEmail = cleanInput.toLowerCase();
 
-    // 1. Try Firebase Auth sign in
+    // 1. Authenticate with Firebase Auth
+    let firebaseUser: FirebaseUser | null = null;
     try {
       const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
-      const firebaseUser = userCredential.user;
+      firebaseUser = userCredential.user;
+    } catch (authErr: any) {
+      console.warn('Firebase Auth email login failure:', authErr.code || authErr.message);
+      const invalidErr: any = new Error('Invalid credentials. Please check your email/phone and password.');
+      invalidErr.code = 'auth/invalid-credential';
+      throw invalidErr;
+    }
 
-      const userDocRef = doc(db, 'users', firebaseUser.uid);
+    if (!firebaseUser) {
+      const invalidErr: any = new Error('Invalid credentials. Please check your email/phone and password.');
+      invalidErr.code = 'auth/invalid-credential';
+      throw invalidErr;
+    }
+
+    // 2. Fetch Firestore profile under users/{firebaseUser.uid}
+    const userDocRef = doc(db, 'users', firebaseUser.uid);
+    let uData: FirestoreUserData | null = null;
+    try {
       const userSnap = await getDoc(userDocRef);
-
-      let uData: FirestoreUserData | null = null;
       if (userSnap.exists()) {
         uData = userSnap.data() as FirestoreUserData;
-        if (uData.passwordHash && uData.passwordHash !== inputHash) {
-          const wrongPassError: any = new Error('Wrong password');
-          wrongPassError.code = 'auth/wrong-password';
-          throw wrongPassError;
-        }
       }
-
-      // Check for user's custom avatar across all Firestore records (by UID, email, or Auth photoURL)
-      let resolvedAvatar = isCustomAvatar(uData?.avatar) ? uData!.avatar : '';
-
-      if (!resolvedAvatar) {
-        // Query users collection by email (e.g. if saved on another device or prior session)
-        const userByEmail = await findUserByEmail(cleanEmail);
-        if (userByEmail && isCustomAvatar(userByEmail.avatar)) {
-          resolvedAvatar = userByEmail.avatar;
-          if (!uData) uData = userByEmail;
-        }
-      }
-
-      // Also check direct doc by email
-      if (!resolvedAvatar) {
-        try {
-          const emailDocSnap = await getDoc(doc(db, 'users', cleanEmail));
-          if (emailDocSnap.exists()) {
-            const ed = emailDocSnap.data() as FirestoreUserData;
-            if (isCustomAvatar(ed.avatar)) {
-              resolvedAvatar = ed.avatar;
-              if (!uData) uData = ed;
-            }
-          }
-        } catch { /* ignore */ }
-      }
-
-      // Check Firebase Auth photoURL
-      if (!resolvedAvatar && isCustomAvatar(firebaseUser.photoURL || '')) {
-        resolvedAvatar = firebaseUser.photoURL!;
-      }
-
-      // Fallback: check device local cache for this email
-      if (!resolvedAvatar) {
-        const cachedAvatar = localStorage.getItem(`askio_avatar_email_${cleanEmail}`) || localStorage.getItem('askio_custom_avatar');
-        if (cachedAvatar && isCustomAvatar(cachedAvatar)) {
-          resolvedAvatar = cachedAvatar;
-        }
-      }
-
-      const finalAvatar = resolvedAvatar || uData?.avatar || DEFAULT_AVATAR;
-
-      const finalUserData: FirestoreUserData = {
-        uid: firebaseUser.uid,
-        fullName: uData?.fullName || firebaseUser.displayName || 'Askio Member',
-        email: uData?.email || firebaseUser.email || cleanEmail,
-        phone: uData?.phone || '',
-        isPremium: uData?.isPremium ?? true,
-        membershipPlan: uData?.membershipPlan || 'BDApps Daily (৳2.78/day)',
-        avatar: finalAvatar,
-        passwordHash: uData?.passwordHash || inputHash
-      };
-
-      // Always sync users/{firebaseUser.uid} so the latest custom avatar is directly attached to the UID
-      if (finalAvatar && finalAvatar !== DEFAULT_AVATAR) {
-        setDoc(userDocRef, { avatar: finalAvatar, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
-        if (auth.currentUser) {
-          updateFirebaseAuthProfile(auth.currentUser, { photoURL: finalAvatar }).catch(() => {});
-        }
-        try {
-          localStorage.setItem('askio_custom_avatar', finalAvatar);
-          localStorage.setItem(`askio_avatar_email_${cleanEmail}`, finalAvatar);
-        } catch { /* ignore */ }
-      }
-
-      return finalUserData;
-    } catch (authErr: any) {
-      console.warn('Firebase Auth email login notice:', authErr.code || authErr.message);
-
-      if (authErr.code === 'auth/wrong-password') {
-        throw authErr;
-      }
-
-      // Check Firestore directly by email
-      const userByEmail = await findUserByEmail(cleanEmail);
-      if (userByEmail) {
-        if (userByEmail.passwordHash && userByEmail.passwordHash !== inputHash) {
-          const wrongPassError: any = new Error('Wrong password');
-          wrongPassError.code = 'auth/wrong-password';
-          throw wrongPassError;
-        }
-        return userByEmail;
-      }
-
-      // Fallback check device trust
-      const cached = localStorage.getItem(`askio_user_by_email_${cleanEmail}`);
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached) as FirestoreUserData;
-          if (parsed.passwordHash && parsed.passwordHash === inputHash) {
-            return parsed;
-          }
-        } catch {
-          // ignore
-        }
-      }
-
-      if (authErr.code === 'auth/invalid-credential' || authErr.code === 'auth/invalid-login-credentials') {
-        const wrongPassError: any = new Error('Wrong password');
-        wrongPassError.code = 'auth/wrong-password';
-        throw wrongPassError;
-      }
-
-      throw authErr;
+    } catch (docErr) {
+      console.warn('Error reading user document:', docErr);
     }
+
+    // If doc not found directly by UID, search by email
+    if (!uData) {
+      const byEmail = await findUserByEmail(cleanEmail);
+      if (byEmail) {
+        uData = byEmail;
+      }
+    }
+
+    // 3. Strict Credential Matching: Verify that expectedPhone matches this account if provided
+    if (expectedPhone && expectedPhone.trim()) {
+      const cleanExpected = expectedPhone.trim().replace(/\D/g, '');
+      const accountPhone = (uData?.phone || uData?.phoneNumber || '').replace(/\D/g, '');
+      
+      if (accountPhone && cleanExpected && accountPhone !== cleanExpected) {
+        // Mismatch between email account and provided phone -> REJECT
+        await signOut(auth);
+        const mismatchErr: any = new Error('Invalid credentials. Please check your email/phone and password.');
+        mismatchErr.code = 'auth/invalid-credential';
+        throw mismatchErr;
+      }
+    }
+
+    // 4. Resolve avatar
+    const resolvedAvatar = isCustomAvatar(uData?.avatar)
+      ? uData!.avatar!
+      : (localStorage.getItem(`askio_avatar_email_${cleanEmail}`) ||
+         (uData?.phone ? localStorage.getItem(`askio_avatar_phone_${uData.phone}`) : null) ||
+         localStorage.getItem('askio_custom_avatar') ||
+         DEFAULT_AVATAR);
+
+    const finalUserData: FirestoreUserData = {
+      uid: firebaseUser.uid,
+      fullName: uData?.fullName || firebaseUser.displayName || 'Askio Member',
+      email: uData?.email || firebaseUser.email || cleanEmail,
+      phone: uData?.phone || uData?.phoneNumber || (expectedPhone?.trim() || ''),
+      phoneNumber: uData?.phone || uData?.phoneNumber || (expectedPhone?.trim() || ''),
+      phoneVerified: uData?.phoneVerified ?? true,
+      isPremium: uData?.isPremium ?? true,
+      membershipPlan: uData?.membershipPlan || 'BDApps Daily (৳2.78/day)',
+      avatar: resolvedAvatar,
+      age: uData?.age,
+      gender: uData?.gender,
+      religion: uData?.religion,
+      bloodGroup: uData?.bloodGroup,
+      profession: uData?.profession,
+      address: uData?.address,
+      city: uData?.city
+    };
+
+    // Keep Firestore users/{uid} in sync
+    setDoc(userDocRef, { ...finalUserData, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
+
+    return finalUserData;
   } else {
-    // Phone number login flow!
+    // -------------------------------------------------------------
+    // Phone Number login flow
+    // -------------------------------------------------------------
     const cleanPhone = cleanInput;
     const userByPhone = await findUserByPhone(cleanPhone);
 
-    if (userByPhone) {
-      if (userByPhone.passwordHash && userByPhone.passwordHash !== inputHash) {
-        const wrongPassError: any = new Error('Wrong password');
-        wrongPassError.code = 'auth/wrong-password';
-        throw wrongPassError;
-      }
-      return userByPhone;
+    if (!userByPhone || !userByPhone.email) {
+      const invalidErr: any = new Error('Invalid credentials. Please check your email/phone and password.');
+      invalidErr.code = 'auth/invalid-credential';
+      throw invalidErr;
     }
 
-    // Check device trust for this phone
-    const trusted = getTrustedDeviceUser(cleanPhone);
-    if (trusted) {
-      if (trusted.passwordHash && trusted.passwordHash !== inputHash) {
-        const wrongPassError: any = new Error('Wrong password');
-        wrongPassError.code = 'auth/wrong-password';
-        throw wrongPassError;
-      }
-      return trusted as FirestoreUserData;
-    }
+    // Authenticate via Firebase Auth using the user's bound email & password
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, userByPhone.email.toLowerCase(), password);
+      const firebaseUser = userCredential.user;
 
-    const notFoundError: any = new Error('No user found with this mobile number.');
-    notFoundError.code = 'auth/user-not-found';
-    throw notFoundError;
+      // Verify that authenticated UID matches the account associated with this phone
+      if (userByPhone.uid && firebaseUser.uid !== userByPhone.uid) {
+        await signOut(auth);
+        const mismatchErr: any = new Error('Invalid credentials. Please check your email/phone and password.');
+        mismatchErr.code = 'auth/invalid-credential';
+        throw mismatchErr;
+      }
+
+      const resolvedAvatar = isCustomAvatar(userByPhone.avatar)
+        ? userByPhone.avatar!
+        : (localStorage.getItem(`askio_avatar_phone_${cleanPhone}`) ||
+           localStorage.getItem(`askio_avatar_email_${userByPhone.email.toLowerCase()}`) ||
+           DEFAULT_AVATAR);
+
+      return {
+        ...userByPhone,
+        uid: firebaseUser.uid,
+        avatar: resolvedAvatar
+      };
+    } catch (authErr: any) {
+      console.warn('Firebase Auth phone-linked login notice:', authErr.code || authErr.message);
+      const invalidErr: any = new Error('Invalid credentials. Please check your email/phone and password.');
+      invalidErr.code = 'auth/invalid-credential';
+      throw invalidErr;
+    }
   }
+}
+
+/**
+ * Securely change the password for the current logged-in user.
+ * Re-authenticates with current password, updates Firebase Auth password,
+ * and updates Firestore timestamps while preserving UID, Email, and Phone.
+ */
+export async function changeUserPassword(params: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<{ success: boolean; message?: string }> {
+  const { currentPassword, newPassword } = params;
+
+  if (!auth.currentUser || !auth.currentUser.email) {
+    const err: any = new Error('No active user session found. Please sign in again.');
+    err.code = 'auth/no-current-user';
+    throw err;
+  }
+
+  if (!newPassword || newPassword.length < 6) {
+    const err: any = new Error('New password must be at least 6 characters long.');
+    err.code = 'auth/weak-password';
+    throw err;
+  }
+
+  // 1. Reauthenticate current user with current password
+  try {
+    const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+    await reauthenticateWithCredential(auth.currentUser, credential);
+  } catch (reauthErr: any) {
+    console.warn('Reauthentication error:', reauthErr);
+    const err: any = new Error('Current password is incorrect.');
+    err.code = 'auth/wrong-password';
+    throw err;
+  }
+
+  // 2. Update password in Firebase Auth
+  await updatePassword(auth.currentUser, newPassword);
+
+  // 3. Update updatedAt timestamp on Firestore user doc
+  try {
+    const userRef = doc(db, 'users', auth.currentUser.uid);
+    await setDoc(userRef, { updatedAt: new Date().toISOString() }, { merge: true });
+  } catch (err) {
+    console.warn('Firestore updatedAt sync notice:', err);
+  }
+
+  return { success: true, message: 'Password updated successfully!' };
 }
 
 /**
@@ -341,22 +417,25 @@ export async function loginWithGoogle(): Promise<FirestoreUserData> {
   const result = await signInWithPopup(auth, googleProvider);
   const user = result.user;
 
-  // Check if existing user already has a custom avatar in Firestore
+  let existingUser: FirestoreUserData | null = null;
   let existingAvatar = '';
   try {
     const userDocSnap = await getDoc(doc(db, 'users', user.uid));
     if (userDocSnap.exists()) {
-      const uData = userDocSnap.data() as FirestoreUserData;
-      if (isCustomAvatar(uData.avatar)) {
-        existingAvatar = uData.avatar!;
+      existingUser = userDocSnap.data() as FirestoreUserData;
+      if (isCustomAvatar(existingUser.avatar)) {
+        existingAvatar = existingUser.avatar!;
       }
     }
   } catch { /* ignore */ }
 
-  if (!existingAvatar && user.email) {
+  if (!existingUser && user.email) {
     const byEmail = await findUserByEmail(user.email);
-    if (byEmail && isCustomAvatar(byEmail.avatar)) {
-      existingAvatar = byEmail.avatar!;
+    if (byEmail) {
+      existingUser = byEmail;
+      if (isCustomAvatar(byEmail.avatar)) {
+        existingAvatar = byEmail.avatar!;
+      }
     }
   }
 
@@ -364,11 +443,13 @@ export async function loginWithGoogle(): Promise<FirestoreUserData> {
 
   const userData: FirestoreUserData = {
     uid: user.uid,
-    fullName: user.displayName || 'Askio Member',
-    email: user.email || '',
-    phone: user.phoneNumber || '',
-    isPremium: true,
-    membershipPlan: 'BDApps Daily (৳2.78/day)',
+    fullName: existingUser?.fullName || user.displayName || 'Askio Member',
+    email: existingUser?.email || user.email || '',
+    phone: existingUser?.phone || user.phoneNumber || '',
+    phoneNumber: existingUser?.phone || user.phoneNumber || '',
+    phoneVerified: true,
+    isPremium: existingUser?.isPremium ?? true,
+    membershipPlan: existingUser?.membershipPlan || 'BDApps Daily (৳2.78/day)',
     avatar: finalAvatar,
     updatedAt: new Date().toISOString()
   };
@@ -395,11 +476,10 @@ export async function findUserByPhone(phone: string): Promise<FirestoreUserData 
   const cleanPhone = phone.trim();
   if (!cleanPhone) return null;
 
-  // Extract digits only for Bangladeshi mobile numbers (e.g., 018XXXXXXXX)
   const digitsOnly = cleanPhone.replace(/\D/g, '');
   let bdClean = cleanPhone;
   if (digitsOnly.length >= 11) {
-    bdClean = '0' + digitsOnly.slice(-10); // e.g. 01812345678
+    bdClean = '0' + digitsOnly.slice(-10);
   }
 
   try {
@@ -412,8 +492,12 @@ export async function findUserByPhone(phone: string): Promise<FirestoreUserData 
       querySnapshot = await getDocs(q);
     }
 
+    if (querySnapshot.empty) {
+      q = query(usersRef, where('phoneNumber', '==', cleanPhone));
+      querySnapshot = await getDocs(q);
+    }
+
     if (!querySnapshot.empty) {
-      // Prioritize document that has a custom avatar!
       let bestDocData = querySnapshot.docs[0].data() as FirestoreUserData;
       for (const d of querySnapshot.docs) {
         const dData = d.data() as FirestoreUserData;
@@ -427,14 +511,6 @@ export async function findUserByPhone(phone: string): Promise<FirestoreUserData 
   } catch (err) {
     console.warn('findUserByPhone query notice:', err);
   }
-
-  // Check direct doc IDs by user_phone
-  try {
-    const directDoc = await getDoc(doc(db, 'users', 'user_' + digitsOnly));
-    if (directDoc.exists()) {
-      return directDoc.data() as FirestoreUserData;
-    }
-  } catch { /* ignore */ }
 
   // Fallback to local cache
   const cachedBD = localStorage.getItem(`askio_user_by_phone_${bdClean}`);
@@ -467,7 +543,6 @@ export async function findUserByEmail(email: string): Promise<FirestoreUserData 
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      // Prioritize doc that contains a custom uploaded avatar!
       let bestDocData = querySnapshot.docs[0].data() as FirestoreUserData;
       for (const d of querySnapshot.docs) {
         const dData = d.data() as FirestoreUserData;
@@ -481,14 +556,6 @@ export async function findUserByEmail(email: string): Promise<FirestoreUserData 
   } catch (err) {
     console.warn('findUserByEmail query notice:', err);
   }
-
-  // Check direct doc ID = cleanEmail
-  try {
-    const emailSnap = await getDoc(doc(db, 'users', cleanEmail));
-    if (emailSnap.exists()) {
-      return emailSnap.data() as FirestoreUserData;
-    }
-  } catch { /* ignore */ }
 
   // Fallback to local cache
   const cached = localStorage.getItem(`askio_user_by_email_${cleanEmail}`);
@@ -518,189 +585,72 @@ export async function findUserByPhoneOrEmail(identifier: string): Promise<Firest
 }
 
 /**
- * Send a 6-digit Password Reset OTP to Email or Phone
+ * Send official Firebase password reset email directly via Firebase Authentication
+ * (Firebase Auth handles cryptographic token generation and secure email dispatch natively)
  */
-export async function sendPasswordResetOtp(target: {
-  type: 'email' | 'phone';
-  value: string;
-}): Promise<{ success: boolean; message: string; simulatedOtp?: string }> {
-  const cleanVal = target.value.trim().toLowerCase();
-  
-  // Generate random 6-digit OTP
-  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-  // Save in Firestore for persistence & multi-device verification
-  try {
-    const resetRef = doc(db, 'password_resets', cleanVal.replace(/[^a-zA-Z0-9]/g, '_'));
-    await setDoc(resetRef, {
-      target: cleanVal,
-      type: target.type,
-      otpCode,
-      expiresAt,
-      createdAt: new Date().toISOString()
-    }, { merge: true });
-  } catch (err) {
-    console.warn('Could not save reset OTP in Firestore:', err);
+export async function sendFirebasePasswordResetEmail(email: string): Promise<{ success: boolean; message: string }> {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail || !cleanEmail.includes('@')) {
+    throw new Error('Please enter a valid email address.');
   }
 
-  // Also cache locally
-  try {
-    localStorage.setItem(`askio_reset_otp_${cleanVal}`, JSON.stringify({ otpCode, expiresAt }));
-  } catch (e) {
-    // ignore
-  }
-
-  // If Email, also try Firebase native sendPasswordResetEmail in background
-  if (target.type === 'email') {
-    try {
-      await sendPasswordResetEmail(auth, cleanVal);
-    } catch (err) {
-      console.warn('Firebase native sendPasswordResetEmail notice:', err);
-    }
-  }
-
+  await sendPasswordResetEmail(auth, cleanEmail);
   return {
     success: true,
-    message: target.type === 'email' 
-      ? `ভেরিফিকেশন কোড পাঠানো হয়েছে: ${cleanVal}` 
-      : `এসএমএস ভেরিফিকেশন কোড পাঠানো হয়েছে: ${cleanVal}`,
-    simulatedOtp: otpCode
+    message: `পাসওয়ার্ড রিসেট লিংক ${cleanEmail} ঠিকানায় পাঠানো হয়েছে। অনুগ্রহ করে ইনবক্স চেক করুন।`
   };
 }
 
 /**
- * Verify Password Reset OTP
+ * Remove any legacy OTP or temporary reset credentials from localStorage
  */
-export async function verifyPasswordResetOtp(identifier: string, code: string): Promise<boolean> {
-  const clean = identifier.trim().toLowerCase();
-  const inputCode = code.trim();
-
-  if (!inputCode || inputCode.length < 4) return false;
-
-  // 1. Check in Firestore
+export function cleanupLegacyOtpStorage(): void {
   try {
-    const resetRef = doc(db, 'password_resets', clean.replace(/[^a-zA-Z0-9]/g, '_'));
-    const docSnap = await getDoc(resetRef);
-
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (data.otpCode === inputCode && Date.now() < (data.expiresAt || Infinity)) {
-        return true;
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('askio_reset_otp_') || key.startsWith('askio_otp_') || key.startsWith('askio_cached_otp_'))) {
+        keysToRemove.push(key);
       }
     }
-  } catch (err) {
-    console.warn('Firestore OTP verify warning:', err);
-  }
-
-  // 2. Check in localStorage cache
-  try {
-    const cachedStr = localStorage.getItem(`askio_reset_otp_${clean}`);
-    if (cachedStr) {
-      const cached = JSON.parse(cachedStr);
-      if (cached.otpCode === inputCode && Date.now() < (cached.expiresAt || Infinity)) {
-        return true;
-      }
-    }
-  } catch (e) {
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+  } catch {
     // ignore
   }
-
-  // Sandbox demo fallback: Accept '123456' or '000000'
-  if (inputCode === '123456' || inputCode === '000000') {
-    return true;
-  }
-
-  return false;
 }
 
 /**
- * Update user password in Firestore and cache
+ * Reset user password for account found by identifier
  */
 export async function resetUserPassword(
   identifier: string, 
   newPassword: string
 ): Promise<{ success: boolean; user?: FirestoreUserData }> {
   const clean = identifier.trim().toLowerCase();
-  const newHash = simpleHash(newPassword);
-
-  // Find user by email or phone
   const user = await findUserByPhoneOrEmail(clean);
 
   if (user && user.uid) {
-    // 1. Update in Firestore
     try {
       const userRef = doc(db, 'users', user.uid);
       await setDoc(userRef, {
-        passwordHash: newHash,
         updatedAt: new Date().toISOString()
       }, { merge: true });
     } catch (err) {
       console.warn('Firestore password reset write warning:', err);
     }
 
-    const updatedUser: FirestoreUserData = {
-      ...user,
-      passwordHash: newHash,
-      updatedAt: new Date().toISOString()
-    };
-
-    // 2. Update local caches
-    try {
-      localStorage.setItem(`askio_user_${user.uid}`, JSON.stringify(updatedUser));
-      if (updatedUser.email) {
-        localStorage.setItem(`askio_user_by_email_${updatedUser.email.toLowerCase()}`, JSON.stringify(updatedUser));
+    if (auth.currentUser && auth.currentUser.uid === user.uid) {
+      try {
+        await updatePassword(auth.currentUser, newPassword);
+      } catch (authErr) {
+        console.warn('Auth password update notice:', authErr);
       }
-      if (updatedUser.phone) {
-        localStorage.setItem(`askio_user_by_phone_${updatedUser.phone}`, JSON.stringify(updatedUser));
-      }
-      // Remove reset OTP
-      localStorage.removeItem(`askio_reset_otp_${clean}`);
-    } catch (e) {
-      // ignore
     }
 
-    return { success: true, user: updatedUser };
+    return { success: true, user };
   }
 
-  // If user wasn't found by query, search collection directly
-  try {
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where(clean.includes('@') ? 'email' : 'phone', '==', clean));
-    const snapshot = await getDocs(q);
-
-    if (!snapshot.empty) {
-      const docItem = snapshot.docs[0];
-      await setDoc(doc(db, 'users', docItem.id), {
-        passwordHash: newHash,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-      return { success: true };
-    }
-  } catch (err) {
-    console.warn('Direct query reset password notice:', err);
-  }
-
-  // If we can't find document but identifier is valid, create/update cache
-  const fallbackUser: FirestoreUserData = {
-    uid: 'user_' + Date.now(),
-    fullName: 'Askio Member',
-    email: clean.includes('@') ? clean : '',
-    phone: !clean.includes('@') ? clean : '',
-    isPremium: true,
-    membershipPlan: 'BDApps Daily (৳2.78/day)',
-    passwordHash: newHash,
-    updatedAt: new Date().toISOString()
-  };
-
-  try {
-    localStorage.setItem(`askio_user_by_email_${clean}`, JSON.stringify(fallbackUser));
-    localStorage.setItem(`askio_user_by_phone_${clean}`, JSON.stringify(fallbackUser));
-  } catch (e) {
-    // ignore
-  }
-
-  return { success: true, user: fallbackUser };
+  return { success: true };
 }
 
 /**
@@ -715,80 +665,29 @@ export async function logoutFirebaseUser(): Promise<void> {
 }
 
 /**
- * Save / update user profile data in Firestore and local caches.
- * Ensures custom avatar and profile details are persistently written across
- * document IDs (UID, email, phone) so they can be retrieved from any device upon login.
+ * Save / update user profile data strictly in Firestore under users/{uid}.
  */
 export async function saveUserProfileToFirestore(
   identifierOrUid: string,
   updatedData: Partial<FirestoreUserData>,
   extraIdentifiers?: { uid?: string; email?: string; phone?: string }
 ): Promise<void> {
-  if (!identifierOrUid && !extraIdentifiers?.uid && !extraIdentifiers?.email && !extraIdentifiers?.phone) return;
+  const targetUid = extraIdentifiers?.uid || updatedData.uid || auth.currentUser?.uid || (!identifierOrUid.includes('@') && !/^\d+$/.test(identifierOrUid.replace(/\D/g, '')) ? identifierOrUid : '');
+  
+  if (!targetUid) return;
 
   const updatePayload: Record<string, any> = {
     ...updatedData,
     updatedAt: new Date().toISOString()
   };
 
-  const cleanEmail = (extraIdentifiers?.email || updatedData.email || (identifierOrUid.includes('@') ? identifierOrUid : '')).trim().toLowerCase();
-  const cleanPhone = (extraIdentifiers?.phone || updatedData.phone || (!identifierOrUid.includes('@') && /^\d+$/.test(identifierOrUid.replace(/\D/g, '')) ? identifierOrUid : '')).trim();
-  const targetUid = extraIdentifiers?.uid || updatedData.uid || auth.currentUser?.uid || (!identifierOrUid.includes('@') && !/^\d+$/.test(identifierOrUid.replace(/\D/g, '')) ? identifierOrUid : '');
-
-  // 1. Direct write to target doc IDs in Firestore
-  const docIdsToUpdate = new Set<string>();
-  if (identifierOrUid) docIdsToUpdate.add(identifierOrUid);
-  if (targetUid) docIdsToUpdate.add(targetUid);
-  if (cleanEmail) docIdsToUpdate.add(cleanEmail);
-  if (cleanPhone) docIdsToUpdate.add(cleanPhone);
-  if (cleanPhone) {
-    const digitsOnly = cleanPhone.replace(/\D/g, '');
-    if (digitsOnly) docIdsToUpdate.add('user_' + digitsOnly);
+  try {
+    const userRef = doc(db, 'users', targetUid);
+    await setDoc(userRef, updatePayload, { merge: true });
+  } catch (err) {
+    console.warn(`Firestore setDoc notice for doc [${targetUid}]:`, err);
   }
 
-  for (const docId of docIdsToUpdate) {
-    try {
-      const userRef = doc(db, 'users', docId);
-      await setDoc(userRef, updatePayload, { merge: true });
-    } catch (err) {
-      console.warn(`Firestore setDoc notice for doc [${docId}]:`, err);
-    }
-  }
-
-  // 2. Query update across all documents in 'users' collection with matching email or phone
-  if (cleanEmail) {
-    try {
-      const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('email', '==', cleanEmail));
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        for (const docSnap of querySnapshot.docs) {
-          await setDoc(doc(db, 'users', docSnap.id), updatePayload, { merge: true });
-        }
-      }
-    } catch (err) {
-      console.warn('Query update by email in Firestore notice:', err);
-    }
-  }
-
-  if (cleanPhone) {
-    try {
-      const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('phone', '==', cleanPhone));
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        for (const docSnap of querySnapshot.docs) {
-          await setDoc(doc(db, 'users', docSnap.id), updatePayload, { merge: true });
-        }
-      }
-    } catch (err) {
-      console.warn('Query update by phone in Firestore notice:', err);
-    }
-  }
-
-  // 3. Update active Firebase Auth user's profile photoURL if signed in
   if (auth.currentUser && updatedData.avatar) {
     try {
       await updateFirebaseAuthProfile(auth.currentUser, {
@@ -800,13 +699,13 @@ export async function saveUserProfileToFirestore(
     }
   }
 
-  // 4. Update Device Trust if phone is available
+  const cleanPhone = updatedData.phone || extraIdentifiers?.phone;
   if (cleanPhone) {
     try {
       saveDeviceTrustForPhone(cleanPhone, {
-        uid: targetUid || identifierOrUid,
+        uid: targetUid,
         fullName: updatedData.fullName || 'Askio Member',
-        email: cleanEmail,
+        email: updatedData.email || '',
         phone: cleanPhone,
         avatar: updatedData.avatar,
         isPremium: true,
@@ -815,40 +714,17 @@ export async function saveUserProfileToFirestore(
     } catch { /* ignore */ }
   }
 
-  // 5. Update localStorage caches
   try {
-    if (updatedData.avatar) {
-      if (isCustomAvatar(updatedData.avatar)) {
-        localStorage.setItem('askio_custom_avatar', updatedData.avatar);
-        if (cleanEmail) localStorage.setItem(`askio_avatar_email_${cleanEmail}`, updatedData.avatar);
-        if (cleanPhone) localStorage.setItem(`askio_avatar_phone_${cleanPhone}`, updatedData.avatar);
-        if (targetUid) localStorage.setItem(`askio_avatar_uid_${targetUid}`, updatedData.avatar);
-      } else if (updatedData.avatar === DEFAULT_AVATAR) {
-        localStorage.removeItem('askio_custom_avatar');
-        if (cleanEmail) localStorage.removeItem(`askio_avatar_email_${cleanEmail}`);
-        if (cleanPhone) localStorage.removeItem(`askio_avatar_phone_${cleanPhone}`);
-        if (targetUid) localStorage.removeItem(`askio_avatar_uid_${targetUid}`);
-      }
-    }
-
     const askioUserStr = localStorage.getItem('askio_user');
     if (askioUserStr) {
       const current = JSON.parse(askioUserStr);
       const merged = { ...current, ...updatedData };
       localStorage.setItem('askio_user', JSON.stringify(merged));
-      if (merged.email) {
-        localStorage.setItem(`askio_user_by_email_${merged.email.toLowerCase()}`, JSON.stringify(merged));
-      }
-      if (merged.phone) {
-        localStorage.setItem(`askio_user_by_phone_${merged.phone}`, JSON.stringify(merged));
-      }
-      if (merged.uid) {
-        localStorage.setItem(`askio_user_${merged.uid}`, JSON.stringify(merged));
-      }
     }
   } catch (e) {
     // ignore
   }
 }
+
 
 

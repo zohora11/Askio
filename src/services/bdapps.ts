@@ -468,3 +468,36 @@ export function getStoredSubscriberMobile(): string | null {
   const session = getStoredSubscriptionSession();
   return session?.mobileNumber || null;
 }
+
+// -------------------------------------------------------------
+// 2-Day Periodic Subscription Re-Verification
+// -------------------------------------------------------------
+export const SUBSCRIPTION_RECHECK_INTERVAL_MS = 2 * 24 * 60 * 60 * 1000; // 2 days (48 hours)
+const LAST_SUB_CHECK_PREFIX = 'askio_sub_check_ts_';
+
+export function getSubscriptionLastCheckedTimestamp(mobileNumber: string): number {
+  try {
+    const { cleaned } = validateMobileNumber(mobileNumber);
+    const num = cleaned || mobileNumber;
+    const raw = localStorage.getItem(`${LAST_SUB_CHECK_PREFIX}${num}`);
+    return raw ? parseInt(raw, 10) || 0 : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function recordSubscriptionCheckTimestamp(mobileNumber: string): void {
+  try {
+    const { cleaned } = validateMobileNumber(mobileNumber);
+    const num = cleaned || mobileNumber;
+    localStorage.setItem(`${LAST_SUB_CHECK_PREFIX}${num}`, Date.now().toString());
+  } catch {
+    // ignore
+  }
+}
+
+export function isSubscriptionRecheckDue(mobileNumber: string): boolean {
+  const lastChecked = getSubscriptionLastCheckedTimestamp(mobileNumber);
+  if (!lastChecked) return true;
+  return (Date.now() - lastChecked) >= SUBSCRIPTION_RECHECK_INTERVAL_MS;
+}
