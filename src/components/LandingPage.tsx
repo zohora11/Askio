@@ -394,7 +394,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   };
 
   const handleOpenLogin = () => {
-    setAuthView('phone');
+    setAuthView('login');
     setAuthModalOpen(true);
   };
 

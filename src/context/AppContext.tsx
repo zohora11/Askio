@@ -368,25 +368,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const cleanMobile = validateMobileNumber(user.phone).cleaned || user.phone;
         const res = await checkSubscription(cleanMobile);
         if (isSubscriptionUnregistered(res)) {
-          // Subscription expired or unregistered -> revoke premium access
-          console.warn('Subscription is no longer active. Revoking access.');
+          // Subscription expired or unregistered -> revoke premium access but do not log out forcefully
+          console.warn('Subscription is no longer active. Revoking premium access.');
           unmarkLocalSubscriber(cleanMobile);
           clearSubscriptionSession();
           clearDeviceTrustForPhone(cleanMobile);
-          await logoutFirebaseUser();
-          setUser({
-            fullName: '',
-            email: '',
-            phone: '',
-            password: '',
-            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
-            isLoggedIn: false,
+          setUser(prev => ({
+            ...prev,
             isPremium: false,
-            membershipPlan: 'Free Tier',
-            joinedDate: 'September 2026'
-          });
-          localStorage.removeItem('askio_user');
-          setActiveTab('home');
+            membershipPlan: 'Free Tier'
+          }));
         } else if (isSubscriptionRegistered(res)) {
           // Subscription verified active in real-time -> record check timestamp and confirm premium status
           markLocalSubscriber(cleanMobile);
@@ -408,7 +399,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [user.isLoggedIn, user.phone]);
 
-  // Listen to Firebase Auth state changes for real-time authentication & avatar persistence
+  // Listen to Firebase Auth state changes for real-time authentication & session persistence
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -416,32 +407,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userSnap = await getDoc(userDocRef);
 
-          let resolvedAvatar = isCustomAvatar(firebaseUser.photoURL || '') ? firebaseUser.photoURL! : '';
-
+          let uData: FirestoreUserData | null = null;
           if (userSnap.exists()) {
-            const uData = userSnap.data() as FirestoreUserData;
-            if (isCustomAvatar(uData.avatar)) {
-              resolvedAvatar = uData.avatar!;
-            }
+            uData = userSnap.data() as FirestoreUserData;
+          } else if (firebaseUser.email) {
+            uData = await findUserByPhoneOrEmail(firebaseUser.email);
           }
 
-          if (!resolvedAvatar && firebaseUser.email) {
-            const byEmail = await findUserByPhoneOrEmail(firebaseUser.email);
-            if (byEmail && isCustomAvatar(byEmail.avatar)) {
-              resolvedAvatar = byEmail.avatar!;
-            }
-          }
+          let resolvedAvatar = isCustomAvatar(uData?.avatar)
+            ? uData!.avatar!
+            : (isCustomAvatar(firebaseUser.photoURL || '')
+              ? firebaseUser.photoURL!
+              : (localStorage.getItem(`askio_avatar_email_${(firebaseUser.email || '').toLowerCase()}`) ||
+                 (uData?.phone ? localStorage.getItem(`askio_avatar_phone_${uData.phone}`) : null) ||
+                 localStorage.getItem('askio_custom_avatar') ||
+                 DEFAULT_AVATAR));
 
-          if (resolvedAvatar) {
-            setUser(prev => ({
-              ...prev,
-              uid: firebaseUser.uid,
-              avatar: resolvedAvatar,
-              email: prev.email || firebaseUser.email || '',
-              fullName: prev.fullName || firebaseUser.displayName || prev.fullName,
-              isLoggedIn: true
-            }));
-          }
+          setUser(prev => ({
+            ...prev,
+            uid: firebaseUser.uid,
+            avatar: resolvedAvatar,
+            email: uData?.email || firebaseUser.email || prev.email,
+            fullName: uData?.fullName || firebaseUser.displayName || prev.fullName || 'Askio Member',
+            phone: uData?.phone || uData?.phoneNumber || prev.phone,
+            isPremium: uData?.isPremium ?? true,
+            membershipPlan: uData?.membershipPlan || prev.membershipPlan || 'BDApps Daily (৳2.78/day)',
+            isLoggedIn: true,
+            ...(uData?.age !== undefined && uData?.age !== null ? { age: uData.age } : {}),
+            ...(uData?.gender ? { gender: uData.gender } : {}),
+            ...(uData?.religion ? { religion: uData.religion } : {}),
+            ...(uData?.bloodGroup ? { bloodGroup: uData.bloodGroup } : {}),
+            ...(uData?.profession ? { profession: uData.profession } : {}),
+            ...(uData?.address ? { address: uData.address } : {}),
+            ...(uData?.city ? { city: uData.city } : {})
+          }));
         } catch (err) {
           console.warn('Auth state change profile fetch notice:', err);
         }
@@ -633,24 +632,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (identifier) {
       const next = { ...user, ...updated };
       try {
+        const payload: Record<string, any> = {
+          uid: next.uid || auth.currentUser?.uid,
+          fullName: next.fullName,
+          email: next.email,
+          phone: next.phone,
+          avatar: next.avatar,
+          membershipPlan: next.membershipPlan,
+          isPremium: next.isPremium
+        };
+        if (next.age !== undefined && next.age !== null) payload.age = next.age;
+        if (next.gender) payload.gender = next.gender;
+        if (next.religion) payload.religion = next.religion;
+        if (next.bloodGroup) payload.bloodGroup = next.bloodGroup;
+        if (next.profession) payload.profession = next.profession;
+        if (next.address) payload.address = next.address;
+        if (next.city) payload.city = next.city;
+
         await saveUserProfileToFirestore(
           identifier,
-          {
-            uid: next.uid || auth.currentUser?.uid,
-            fullName: next.fullName,
-            email: next.email,
-            phone: next.phone,
-            avatar: next.avatar,
-            membershipPlan: next.membershipPlan,
-            isPremium: next.isPremium,
-            age: next.age,
-            gender: next.gender,
-            religion: next.religion,
-            bloodGroup: next.bloodGroup,
-            profession: next.profession,
-            address: next.address,
-            city: next.city
-          },
+          payload,
           { uid: next.uid || auth.currentUser?.uid, email: next.email, phone: next.phone }
         );
         addActivity('bookmark', `Updated profile information`);
@@ -658,7 +659,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.warn('Save to Firestore error:', err);
       }
       
-      // Update local state after write (onSnapshot will also trigger, this ensures non-Firestore fields like isLoggedIn update)
+      // Update local state after write
       setUser(prev => ({ ...prev, ...updated }));
     } else {
        // If not logged in, just update local state
@@ -712,6 +713,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clearDeviceTrustForPhone(user.phone);
     }
     clearSubscriptionSession();
+    logoutFirebaseUser().catch(() => {});
     setUser({
       fullName: '',
       email: '',

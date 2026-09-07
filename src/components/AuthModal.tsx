@@ -120,8 +120,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
 
   if (!isAuthModalOpen) return null;
 
-  // STEP 1: Phone check / BDApps Subscription Check
-  const handlePhoneSubmit = async (e: React.FormEvent) => {
+  // STEP 1A: OPTION A - START SUBSCRIBE & OTP FLOW (FOR NEW SUBSCRIBERS)
+  const handleStartSubscribeFlow = async (e: React.FormEvent) => {
     e.preventDefault();
     const validation = validateMobileNumber(phoneInput);
     if (!validation.isValid) {
@@ -137,88 +137,79 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       const cleanMobile = validation.cleaned;
       setPendingPhone(cleanMobile);
 
-      // STEP 1A: ALWAYS call BDApps checkSubscription API FIRST
-      let isSub = false;
-      try {
-        const subRes = await checkSubscription(cleanMobile);
-        isSub = isSubscriptionRegistered(subRes);
-      } catch (checkErr) {
-        console.warn('Subscription check API notice:', checkErr);
-        isSub = false;
-      }
-
-      // STEP 1B: If NOT subscribed / NOT registered:
-      // STRICT CONSTRAINT: "যদি সে সাবস্ক্রাইব না হয় সেক্ষেত্রে তাকে কোনোভাবে নেক্সট ধাপে নিয়ে যাওয়া যাবে না ।"
-      // "আর যদি চেক সাবস্ক্রিপশন কল করে দেখে যে না সে রেজিস্টার্ড না তাহলে তখন সেন্ড ওটিপি কল হবে ।"
-      if (!isSub) {
-        unmarkLocalSubscriber(cleanMobile);
-        clearSubscriptionSession();
-        clearDeviceTrustForPhone(cleanMobile);
-
-        setSuccessMsg(isBn ? 'সাবস্ক্রিপশন সক্রিয় নেই। এসএমএস ওটিপি পাঠানো হচ্ছে...' : 'Subscription not active. Sending OTP via SMS...');
-        try {
-          const otpRes = await sendOTP(cleanMobile);
-          const ref = otpRes.referenceNo || otpRes.subscriberId || 'REF-' + Date.now();
-          setOtpRefNo(ref);
-          setLoading(false);
-          setSuccessMsg('');
-          setIsOtpModalOpen(true);
-        } catch (otpErr: any) {
-          setLoading(false);
-          setSuccessMsg('');
-          setErrorMsg(otpErr?.message || (isBn ? 'ওটিপি পাঠানো সম্ভব হয়নি। মোবাইল নম্বরটি পরীক্ষা করুন।' : 'Failed to send OTP. Please check mobile number.'));
-        }
-        return;
-      }
-
-      // STEP 1C: USER IS SUBSCRIBED!
-      // Only now, permit next step:
-      markLocalSubscriber(cleanMobile);
-      storeSubscriberSession(cleanMobile);
-
-      // 1. Check if THIS device is ALREADY TRUSTED for this phone number
-      const trustedUser = getTrustedDeviceUser(cleanMobile);
-      if (trustedUser) {
-        // Same device where password was saved previously -> Direct Login!
-        const trustedAvatar = isCustomAvatar(trustedUser.avatar) 
-          ? trustedUser.avatar 
-          : (localStorage.getItem(`askio_avatar_phone_${cleanMobile}`) || localStorage.getItem('askio_custom_avatar') || undefined);
-
-        updateProfile({
-          uid: trustedUser.uid || 'user_' + cleanMobile,
-          fullName: trustedUser.fullName || 'Askio Member',
-          email: trustedUser.email || '',
-          phone: cleanMobile,
-          avatar: trustedAvatar,
-          isLoggedIn: true,
-          isPremium: true,
-          membershipPlan: trustedUser.membershipPlan || 'BDApps Daily (৳2.78/day)'
-        });
-
-        setSuccessMsg(isBn ? 'এই ডিভাইসে আপনার পাসওয়ার্ড সেভ করা আছে! সরাসরি অ্যাপে প্রবেশ করা হচ্ছে...' : 'Device recognized! Logging in directly without password...');
-        setTimeout(() => {
-          setLoading(false);
-          setAuthModalOpen(false);
-          setActiveTab('home');
-          if (onLoginSuccess) onLoginSuccess();
-        }, 600);
-        return;
-      }
-
-      // 2. Check if user already exists in Firestore by this phone (on another device)
-      const existingUser = await findUserByPhone(cleanMobile);
-
-      if (existingUser && existingUser.email) {
-        // User already has an account on another device -> Take to Firebase Password Login
-        setEmail(existingUser.email);
+      // Check if this phone already has an account
+      const existingAccount = await findUserByPhone(cleanMobile);
+      if (existingAccount && existingAccount.email) {
+        // User already has an account! Guide them to login
+        setEmail(existingAccount.email);
         setAuthView('firebase_login');
-        setSuccessMsg(isBn ? 'সাবস্ক্রিপশন সক্রিয়! পাসওয়ার্ড দিয়ে লগইন করুন।' : 'Subscription active! Please enter password to sign in.');
-      } else {
-        setAuthView('firebase_register');
-        setSuccessMsg(isBn ? 'সাবস্ক্রিপশন নিশ্চিত হয়েছে! তথ্য পূরণ করে অ্যাকাউন্ট তৈরি করুন।' : 'Subscription confirmed! Complete profile to set up account.');
+        setSuccessMsg(isBn ? 'এই নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট রয়েছে। পাসওয়ার্ড দিয়ে লগইন করুন।' : 'An account already exists for this number. Please sign in with your password.');
+        setLoading(false);
+        return;
+      }
+
+      // User needs subscription & OTP verification
+      setSuccessMsg(isBn ? 'এসএমএস ওটিপি পাঠানো হচ্ছে...' : 'Sending verification OTP via SMS...');
+      try {
+        const otpRes = await sendOTP(cleanMobile);
+        const ref = otpRes.referenceNo || otpRes.subscriberId || 'REF-' + Date.now();
+        setOtpRefNo(ref);
+        setLoading(false);
+        setSuccessMsg('');
+        setIsOtpModalOpen(true);
+      } catch (otpErr: any) {
+        setLoading(false);
+        setSuccessMsg('');
+        setErrorMsg(otpErr?.message || (isBn ? 'ওটিপি পাঠানো সম্ভব হয়নি। মোবাইল নম্বরটি পরীক্ষা করুন।' : 'Failed to send OTP. Please check your mobile number.'));
       }
     } catch (err: any) {
-      setErrorMsg(err?.message || (isBn ? 'যাচাই করতে সমস্যা হয়েছে।' : 'Error verifying phone.'));
+      setErrorMsg(err?.message || (isBn ? 'যাচাই করতে সমস্যা হয়েছে।' : 'Error processing request.'));
+      setLoading(false);
+    }
+  };
+
+  // STEP 1B: OPTION B - LOGIN PHONE CHECK (FOR REGISTERED USERS)
+  const handleLoginPhoneCheck = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const validation = validateMobileNumber(phoneInput);
+    if (!validation.isValid) {
+      setErrorMsg(validation.errorMessage || (isBn ? 'সঠিক ১১-সংখ্যার রবি বা সার্কেল নম্বর দিন।' : 'Please enter a valid 11-digit mobile number.'));
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    try {
+      const cleanMobile = validation.cleaned;
+      setPendingPhone(cleanMobile);
+
+      // Check if this phone is registered in Firestore
+      const registeredAccount = await findUserByPhone(cleanMobile);
+
+      if (!registeredAccount || !registeredAccount.email) {
+        // Phone NOT registered
+        setErrorMsg(
+          isBn 
+            ? 'এই মোবাইল নম্বরটি নিবন্ধিত নয়। অনুগ্রহ করে প্রথমে সাবস্ক্রাইব ও অ্যাকাউন্ট তৈরি করুন।' 
+            : 'No registered account found for this mobile number. Please Subscribe & Create an Account first.'
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Phone is registered! Advance to Step 2 (Password Login)
+      setEmail(registeredAccount.email);
+      setAuthView('firebase_login');
+      setSuccessMsg(
+        isBn 
+          ? `অ্যাকাউন্ট সনাক্ত হয়েছে (${registeredAccount.fullName || registeredAccount.email})! পাসওয়ার্ড প্রদান করুন।` 
+          : `Account found (${registeredAccount.fullName || registeredAccount.email})! Please enter your password.`
+      );
+    } catch (err: any) {
+      console.warn('Phone check error:', err);
+      setErrorMsg(err?.message || (isBn ? 'অ্যাকাউন্ট যাচাই করতে সমস্যা হয়েছে।' : 'Error checking account.'));
     } finally {
       setLoading(false);
     }
@@ -317,48 +308,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
     setLoading(true);
     try {
       // 1. Sign in via Firebase Auth / Firestore lookup with Email or Phone Number
-      const expectedPhone = phoneInput.trim() || pendingPhone.trim();
-      const loggedInUser = await loginFirebaseUser(loginInput, password, expectedPhone || undefined);
+      const loggedInUser = await loginFirebaseUser(loginInput, password);
+      const userPhone = loggedInUser.phone || (loginInput.startsWith('01') ? loginInput : '');
 
-      const userPhone = loggedInUser.phone || (loginInput.startsWith('01') ? loginInput : expectedPhone);
-
-      // 2. STRICT SUBSCRIPTION CHECK: Ensure active BDApps subscription
+      // 2. Manage Subscription / Device Trust
       if (userPhone) {
         const cleanPhone = validateMobileNumber(userPhone).cleaned || userPhone;
-        let isSub = false;
-        try {
-          const subRes = await checkSubscription(cleanPhone);
-          isSub = isSubscriptionRegistered(subRes);
-        } catch (e) {
-          isSub = false;
-        }
-
+        let isSub = isLocalSubscriber(cleanPhone);
         if (!isSub) {
-          await logoutFirebaseUser();
-          unmarkLocalSubscriber(cleanPhone);
-          clearSubscriptionSession();
-          clearDeviceTrustForPhone(cleanPhone);
-          setLoading(false);
-          setErrorMsg(
-            isBn
-              ? `আপনার অ্যাকাউন্টের নম্বরে (+880 ${cleanPhone}) কোনো সক্রিয় সাবস্ক্রিপশন নেই। অ্যাপে প্রবেশের জন্য সাবস্ক্রাইব করা আবশ্যক।`
-              : `Account number (+880 ${cleanPhone}) is not subscribed. Active BDApps subscription is required to access Askio.`
-          );
-          return;
+          try {
+            const subRes = await checkSubscription(cleanPhone);
+            isSub = isSubscriptionRegistered(subRes);
+          } catch (e) {
+            // Keep local subscription status if network times out
+            isSub = isLocalSubscriber(cleanPhone);
+          }
         }
 
-        markLocalSubscriber(userPhone);
-        storeSubscriberSession(userPhone);
-        saveDeviceTrustForPhone(userPhone, loggedInUser);
-      } else {
-        await logoutFirebaseUser();
-        setLoading(false);
-        setErrorMsg(
-          isBn
-            ? 'আপনার অ্যাকাউন্টে কোনো মোবাইল নম্বর পাওয়া যায়নি। অনুগ্রহ করে মোবাইল নম্বর দিয়ে সাবস্ক্রাইব করুন।'
-            : 'No phone number associated with this account. Please subscribe with your mobile number.'
-        );
-        return;
+        if (isSub) {
+          markLocalSubscriber(userPhone);
+          storeSubscriberSession(userPhone);
+          saveDeviceTrustForPhone(userPhone, loggedInUser);
+        }
       }
 
       // 3. Update global App Context (including avatar!)
@@ -376,8 +347,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         phone: userPhone,
         avatar: resolvedAvatar,
         isLoggedIn: true,
-        isPremium: true,
-        membershipPlan: loggedInUser.membershipPlan || 'BDApps Daily (৳2.78/day)'
+        isPremium: loggedInUser.isPremium ?? true,
+        membershipPlan: loggedInUser.membershipPlan || 'BDApps Daily (৳2.78/day)',
+        ...(loggedInUser.age !== undefined && loggedInUser.age !== null ? { age: loggedInUser.age } : {}),
+        ...(loggedInUser.gender ? { gender: loggedInUser.gender } : {}),
+        ...(loggedInUser.religion ? { religion: loggedInUser.religion } : {}),
+        ...(loggedInUser.bloodGroup ? { bloodGroup: loggedInUser.bloodGroup } : {}),
+        ...(loggedInUser.profession ? { profession: loggedInUser.profession } : {}),
+        ...(loggedInUser.address ? { address: loggedInUser.address } : {}),
+        ...(loggedInUser.city ? { city: loggedInUser.city } : {})
       });
 
       setSuccessMsg(isBn ? 'লগইন সফল হয়েছে! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Login successful! Entering Askio...');
@@ -389,17 +367,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         if (onLoginSuccess) onLoginSuccess();
       }, 700);
     } catch (err: any) {
-      console.error('Firebase login error:', err);
+      console.warn('Firebase login attempt notice:', err?.code || err?.message || err);
       let msg = isBn ? 'ইমেইল/ফোন নম্বর বা পাসওয়ার্ড সঠিক নয়।' : 'Invalid credentials. Please check your details.';
       if (err.code === 'auth/user-not-found') {
-        msg = isBn ? 'এই তথ্য দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি। অনুগ্রহ করে রেজিস্ট্রেশন বা সাবস্ক্রাইব করুন।' : 'No account found with these details. Please register or subscribe.';
+        msg = isBn ? 'এই তথ্য দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি। অনুগ্রহ করে রেজিস্ট্রেশন করুন।' : 'No account found with these details. Please create an account or verify your details.';
+      } else if (err.code === 'auth/wrong-password') {
+        msg = isBn ? 'ভুল পাসওয়ার্ড! অনুগ্রহ করে সঠিক পাসওয়ার্ড দিন।' : 'Incorrect password. Please check your password and try again.';
+      } else if (err.code === 'auth/invalid-email') {
+        msg = isBn ? 'সঠিক ইমেইল ঠিকানা প্রদান করুন।' : 'Please enter a valid email address.';
+      } else if (err.code === 'auth/too-many-requests') {
+        msg = isBn ? 'অতিরিক্ত ব্যর্থ চেষ্টার কারণে সাময়িকভাবে বন্ধ রাখা হয়েছে। কিছুক্ষণ পর চেষ্টা করুন বা পাসওয়ার্ড রিসেট করুন।' : 'Too many failed login attempts. Please try again later or reset your password.';
+      } else if (err.code === 'auth/user-disabled') {
+        msg = isBn ? 'এই অ্যাকাউন্টটি নিষ্ক্রিয় করা হয়েছে। সমর্থনের সাথে যোগাযোগ করুন।' : 'This account has been disabled. Please contact support.';
+      } else if (err.code === 'auth/network-request-failed') {
+        msg = isBn ? 'নেটওয়ার্ক সমস্যা। আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।' : 'Network connection failed. Please check your internet connection.';
       } else if (
-        err.code === 'auth/wrong-password' || 
         err.code === 'auth/invalid-credential' || 
         err.code === 'auth/invalid-login-credentials' ||
+        err.message?.toLowerCase().includes('credential') ||
         err.message?.toLowerCase().includes('password')
       ) {
         msg = isBn ? 'ভুল তথ্য! আপনার ইমেইল/ফোন ও পাসওয়ার্ড সঠিকভাবে দিন।' : 'Invalid credentials. Please check your email/phone and password.';
+      } else if (err.message) {
+        msg = err.message;
       }
       setErrorMsg(msg);
       setLoading(false);
@@ -452,67 +442,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
 
     const targetVal = resetIdentifier.trim();
     if (!targetVal) {
-      setErrorMsg(isBn ? 'অনুগ্রহ করে আপনার ইমেইল অথবা মোবাইল নম্বর দিন।' : 'Please enter your email or mobile number.');
+      setErrorMsg(isBn ? 'অনুগ্রহ করে আপনার ইমেইল ঠিকানা দিন।' : 'Please enter your email address.');
       return;
     }
 
-    if (resetMethod === 'email') {
-      if (!targetVal.includes('@')) {
-        setErrorMsg(isBn ? 'সঠিক ইমেইল ঠিকানা প্রদান করুন।' : 'Please enter a valid email address.');
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const cleanedTarget = targetVal.toLowerCase();
-        await sendFirebasePasswordResetEmail(cleanedTarget);
-        setSuccessMsg(isBn 
-          ? `পাসওয়ার্ড রিসেট লিংক আপনার ইমেইলে (${cleanedTarget}) পাঠানো হয়েছে! অনুগ্রহ করে ইনবক্স চেক করুন।` 
-          : `Password reset link has been sent to ${cleanedTarget}! Please check your email inbox.`);
-      } catch (err: any) {
-        console.warn('Firebase reset email error:', err);
-        setErrorMsg(isBn ? 'পাসওয়ার্ড রিসেট লিংক পাঠানো সম্ভব হয়নি। ইমেইলটি সঠিক কিনা যাচাই করুন।' : 'Could not send password reset email. Please verify the email address.');
-      } finally {
-        setLoading(false);
-      }
+    if (!targetVal.includes('@')) {
+      setErrorMsg(isBn ? 'সঠিক ইমেইল ঠিকানা প্রদান করুন।' : 'Please enter a valid email address.');
       return;
     }
 
-    if (resetMethod === 'phone') {
-      const val = validateMobileNumber(targetVal);
-      if (!val.isValid) {
-        setErrorMsg(val.errorMessage || (isBn ? 'সঠিক ১১-সংখ্যার রবি/সার্কেল নম্বর দিন।' : 'Please enter a valid 11-digit mobile number.'));
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const cleanedPhone = val.cleaned;
-        // Verify that this phone number is registered to an existing account
-        const existingUser = await findUserByPhone(cleanedPhone);
-        if (!existingUser) {
-          setErrorMsg(isBn ? 'এই নম্বরে কোনো নিবন্ধিত অ্যাকাউন্ট পাওয়া যায়নি।' : 'No registered account found for this mobile number.');
-          setLoading(false);
-          return;
-        }
-
-        // Send real-time OTP via BDApps SMS gateway
-        const otpRes = await sendOTP(cleanedPhone);
-        const ref = otpRes.referenceNo || otpRes.subscriberId || 'REF-' + Date.now();
-        setOtpRefNo(ref);
-        setResendTimer(30);
-        setResetOtpDigits(['', '', '', '', '', '']);
-        setSuccessMsg(isBn 
-          ? `রবি/সার্কেল নম্বরে (${cleanedPhone}) ৬-সংখ্যার এসএমএস ওটিপি কোড পাঠানো হয়েছে!` 
-          : `6-digit verification OTP sent to ${cleanedPhone} via SMS!`);
-        
-        setAuthView('verify_reset_otp');
-      } catch (err: any) {
-        console.warn('Send reset OTP err:', err);
-        setErrorMsg(err?.message || (isBn ? 'ভেরিফিকেশন কোড পাঠানো সম্ভব হয়নি। আবার চেষ্টা করুন।' : 'Could not send verification code. Please try again.'));
-      } finally {
-        setLoading(false);
-      }
+    setLoading(true);
+    try {
+      const cleanedTarget = targetVal.toLowerCase();
+      await sendFirebasePasswordResetEmail(cleanedTarget);
+      setSuccessMsg(isBn 
+        ? `পাসওয়ার্ড রিসেট লিংক আপনার ইমেইলে (${cleanedTarget}) পাঠানো হয়েছে! ইনবক্স থেকে লিংকটিতে ক্লিক করে পাসওয়ার্ড রিসেট করুন।` 
+        : `Password reset link has been sent to ${cleanedTarget}! Please check your email inbox to reset your password.`);
+    } catch (err: any) {
+      console.warn('Firebase reset email error:', err);
+      setErrorMsg(isBn ? 'পাসওয়ার্ড রিসেট লিংক পাঠানো সম্ভব হয়নি। ইমেইলটি সঠিক কিনা যাচাই করুন।' : 'Could not send password reset email. Please verify the email address.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -644,28 +594,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         </button>
 
         {/* Modal Header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-5">
           <div className="flex justify-center mb-3">
             <AppLogo showText={false} imgClassName="h-11 w-auto" />
           </div>
 
           <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100">
-            {authView === 'firebase_register' && 'Create Your Account'}
+            {authView === 'firebase_register' && (isBn ? 'নতুন অ্যাকাউন্ট খুলুন' : 'Create Your Account')}
             {authView === 'firebase_login' && (isBn ? 'পাসওয়ার্ড দিয়ে লগইন করুন' : 'Sign In with Password')}
             {authView === 'forgot_password' && (isBn ? 'পাসওয়ার্ড রিসেট করুন' : 'Reset Your Password')}
             {authView === 'verify_reset_otp' && (isBn ? 'ভেরিফিকেশন কোড যাচাই' : 'Verify Security Code')}
             {authView === 'reset_password' && (isBn ? 'নতুন পাসওয়ার্ড সেট করুন' : 'Set New Password')}
-            {(authView === 'phone' || authView === 'login' || authView === 'register') && (isBn ? 'Askio এ প্রবেশ / লগইন' : 'Sign In to Askio')}
+            {(authView === 'phone' || authView === 'login' || authView === 'register') && (isBn ? 'Askio এ প্রবেশ' : 'Sign In to Askio')}
           </h3>
 
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
             {authView === 'firebase_register' && (isBn 
-              ? 'আপনার সাবস্ক্রিপশন সম্পন্ন হয়েছে। তথ্য দিয়ে অ্যাকাউন্ট তৈরি করুন।' 
-              : 'Subscription confirmed. Enter your details to create your account.')}
+              ? 'মোবাইল নম্বর যাচাই সম্পন্ন হয়েছে। তথ্য দিয়ে অ্যাকাউন্ট তৈরি করুন।' 
+              : 'Phone verified. Complete your profile to set up your account.')}
             
             {authView === 'firebase_login' && (isBn 
-              ? 'নিরাপদে অ্যাপে প্রবেশের জন্য আপনার ইমেইল ও পাসওয়ার্ড দিন।' 
-              : 'Enter your email & password to access your Askio account.')}
+              ? 'নিরাপদে অ্যাপে প্রবেশের জন্য পাসওয়ার্ড প্রদান করুন।' 
+              : 'Enter your password to securely access your Askio account.')}
 
             {authView === 'forgot_password' && (isBn 
               ? 'কোড পাঠানোর জন্য আপনার নিবন্ধিত ইমেইল অথবা মোবাইল নম্বর দিন।' 
@@ -680,10 +630,50 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
               : 'Enter and confirm your new password to restore access.')}
 
             {(authView === 'phone' || authView === 'login' || authView === 'register') && (isBn 
-              ? 'আপনার রবি বা সার্কেল নম্বর দিয়ে সাবস্ক্রিপশন চেক বা লগইন করুন' 
-              : 'Enter your mobile number to sign in or check subscription (৳2.78/day)')}
+              ? 'সাবস্ক্রাইব করে নতুন অ্যাকাউন্ট খুলুন অথবা বিদ্যমান অ্যাকাউন্টে লগইন করুন' 
+              : 'Subscribe to create a new account or sign in to your existing account')}
           </p>
         </div>
+
+        {/* Top Tab Switcher between Option A (Subscribe) and Option B (Login) */}
+        {(authView === 'phone' || authView === 'login' || authView === 'firebase_login') && (
+          <div className="flex p-1 mb-5 bg-zinc-100 dark:bg-zinc-800/90 rounded-2xl border border-zinc-200 dark:border-zinc-700 text-xs">
+            <button
+              type="button"
+              id="auth-tab-subscribe"
+              onClick={() => {
+                setErrorMsg('');
+                setSuccessMsg('');
+                setAuthView('phone');
+              }}
+              className={`flex-1 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                authView === 'phone'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>{isBn ? 'সাবস্ক্রাইব ও রেজিস্ট্রেশন' : 'Subscribe & Sign Up'}</span>
+            </button>
+            <button
+              type="button"
+              id="auth-tab-login"
+              onClick={() => {
+                setErrorMsg('');
+                setSuccessMsg('');
+                setAuthView('login');
+              }}
+              className={`flex-1 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                authView === 'login' || authView === 'firebase_login'
+                  ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm border border-zinc-200/80 dark:border-zinc-700'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+              }`}
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              <span>{isBn ? 'লগইন' : 'Sign In'}</span>
+            </button>
+          </div>
+        )}
 
         {/* Status Alerts */}
         {errorMsg && (
@@ -692,18 +682,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
               <span>{errorMsg}</span>
             </div>
-            {(errorMsg.includes('রেজিস্টার্ড না') || errorMsg.includes('not registered')) && (
+            {(errorMsg.includes('নিবন্ধিত নয়') || errorMsg.includes('not registered') || errorMsg.includes('No registered account')) && (
               <button
                 type="button"
                 id="unsub-subscribe-now-btn"
                 onClick={() => {
-                  setAuthModalOpen(false);
-                  setSubscriptionModalOpen(true);
+                  setErrorMsg('');
+                  setAuthView('phone');
                 }}
-                className="mt-1 w-full py-2 px-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                className="mt-1 w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
               >
                 <Zap className="w-3.5 h-3.5" />
-                <span>{isBn ? 'এখনই সাবস্ক্রিপশন করুন (৳২.৭৮/দিন)' : 'Subscribe Now (৳2.78/day)'}</span>
+                <span>{isBn ? 'এখনই সাবস্ক্রাইব ও অ্যাকাউন্ট তৈরি করুন (৳২.৭৮/দিন)' : 'Subscribe & Create Account (৳2.78/day)'}</span>
               </button>
             )}
           </div>
@@ -717,14 +707,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         )}
 
         {/* ========================================================= */}
-        {/* VIEW 1: PHONE LOOKUP / INITIAL LOGIN                      */}
+        {/* OPTION A: SUBSCRIBE & VERIFY OTP (NEW USERS)              */}
         {/* ========================================================= */}
-        {(authView === 'phone' || authView === 'login') && (
-          <form onSubmit={handlePhoneSubmit} className="space-y-4">
+        {authView === 'phone' && (
+          <form onSubmit={handleStartSubscribeFlow} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5 flex items-center justify-between">
                 <span>{isBn ? 'মোবাইল নম্বর (রবি ০১৮ / সার্কেল ০১৬)' : 'Bangladesh Mobile Number'}</span>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
                   BDApps ৳2.78/day
                 </span>
               </label>
@@ -737,16 +727,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
                   type="tel"
                   id="auth-phone-input"
                   value={phoneInput}
-                  onChange={(e) => setPhoneInput(e.target.value)}
+                  onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, '').slice(0, 11))}
                   placeholder="018XXXXXXXX or 016XXXXXXXX"
                   className="w-full px-3.5 py-3 text-sm font-mono bg-transparent outline-none text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
                   required
                 />
               </div>
-              <p className="text-[10px] text-zinc-400 mt-1.5">
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5">
                 {isBn 
-                  ? 'পূর্ববর্তী অ্যাকাউন্ট থাকলে পাসওয়ার্ড স্ক্রিন আসবে। নতুন হলে অ্যাকাউন্ট সেটআপ করা হবে।' 
-                  : 'Existing accounts proceed to password screen. New users set up their profile.'}
+                  ? 'এসএমএস ওটিপি যাচাইয়ের পর পাসওয়ার্ড দিয়ে আপনার স্থায়ী অ্যাকাউন্ট তৈরি করবেন।' 
+                  : 'Verify phone via SMS OTP, then set up your permanent login credentials.'}
               </p>
             </div>
 
@@ -759,25 +749,84 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>{isBn ? 'যাচাই করা হচ্ছে...' : 'Checking Account...'}</span>
+                  <span>{isBn ? 'ওটিপি পাঠানো হচ্ছে...' : 'Sending OTP...'}</span>
                 </>
               ) : (
                 <>
                   <Zap className="w-4 h-4" />
-                  <span>{isBn ? 'পরবর্তী ধাপে যান' : 'Continue to Next Step'}</span>
+                  <span>{isBn ? 'এসএমএস ওটিপি পাঠান ও এগিয়ে যান' : 'Send SMS OTP & Continue'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+        )}
+
+        {/* ========================================================= */}
+        {/* OPTION B: LOGIN (STEP 1: PHONE CHECK FOR REGISTERED USERS) */}
+        {/* ========================================================= */}
+        {authView === 'login' && (
+          <form onSubmit={handleLoginPhoneCheck} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5 flex items-center justify-between">
+                <span>{isBn ? 'আপনার নিবন্ধিত মোবাইল নম্বর' : 'Your Registered Mobile Number'}</span>
+                <button
+                  type="button"
+                  onClick={() => { setErrorMsg(''); setAuthView('firebase_login'); }}
+                  className="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
+                >
+                  {isBn ? 'অথবা ইমেইল দিয়ে লগইন' : 'Or via Email'}
+                </button>
+              </label>
+              <div className="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500 bg-zinc-50 dark:bg-zinc-800">
+                <div className="px-3.5 py-3 bg-zinc-100 dark:bg-zinc-700/60 border-r border-zinc-300 dark:border-zinc-700 text-xs font-bold text-zinc-700 dark:text-zinc-200 flex items-center gap-1.5 font-mono">
+                  <span>🇧🇩</span>
+                  <span>+880</span>
+                </div>
+                <input
+                  type="tel"
+                  id="auth-login-phone-input"
+                  value={phoneInput}
+                  onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                  placeholder="018XXXXXXXX or 016XXXXXXXX"
+                  className="w-full px-3.5 py-3 text-sm font-mono bg-transparent outline-none text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                  required
+                />
+              </div>
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5">
+                {isBn 
+                  ? 'নিবন্ধিত ফোন নম্বর নিশ্চিত করে পরবর্তী ধাপে পাসওয়ার্ড দিন।' 
+                  : 'Checks registered account, then prompts for your account password.'}
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              id="auth-login-check-btn"
+              disabled={loading || !phoneInput.trim()}
+              className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-2xl text-sm transition-all flex items-center justify-center gap-2 shadow-md shadow-emerald-600/25 disabled:opacity-50 cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{isBn ? 'অ্যাকাউন্ট যাচাই হচ্ছে...' : 'Checking Account...'}</span>
+                </>
+              ) : (
+                <>
+                  <KeyRound className="w-4 h-4" />
+                  <span>{isBn ? 'এগিয়ে যান (পাসওয়ার্ড প্রদান)' : 'Continue to Password'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
 
-            <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs">
+            <div className="text-center pt-2">
               <button
                 type="button"
-                onClick={() => { setErrorMsg(''); setAuthView('firebase_login'); }}
-                className="text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium flex items-center gap-1"
+                onClick={() => { setErrorMsg(''); setAuthView('phone'); }}
+                className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400"
               >
-                <KeyRound className="w-3.5 h-3.5" />
-                <span>{isBn ? 'ইমেইল ও পাসওয়ার্ড দিয়ে সরাসরি লগইন' : 'Sign In with Email & Password'}</span>
+                {isBn ? 'অ্যাকাউন্ট নেই? সাবস্ক্রাইব ও রেজিস্ট্রেশন করুন' : "Don't have an account? Subscribe & Sign Up"}
               </button>
             </div>
           </form>
@@ -1039,91 +1088,38 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         )}
 
         {/* ========================================================= */}
-        {/* VIEW 4: FORGOT PASSWORD (REQUEST OTP VIA EMAIL OR PHONE)  */}
+        {/* VIEW 4: FORGOT PASSWORD (REQUEST OTP VIA EMAIL)           */}
         {/* ========================================================= */}
         {authView === 'forgot_password' && (
           <form onSubmit={handleSendResetOtp} className="space-y-4">
-            {/* Reset Method Selector Tabs */}
-            <div className="flex p-1 bg-zinc-100 dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  setResetMethod('email');
-                  setResetIdentifier('');
-                  setErrorMsg('');
-                  setSuccessMsg('');
-                }}
-                className={`flex-1 py-2 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                  resetMethod === 'email'
-                    ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-                }`}
-              >
-                <Mail className="w-3.5 h-3.5" />
-                <span>{isBn ? 'ইমেইল দিয়ে' : 'Via Email'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setResetMethod('phone');
-                  setResetIdentifier('');
-                  setErrorMsg('');
-                  setSuccessMsg('');
-                }}
-                className={`flex-1 py-2 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                  resetMethod === 'phone'
-                    ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-                }`}
-              >
-                <Phone className="w-3.5 h-3.5" />
-                <span>{isBn ? 'মোবাইল নম্বর দিয়ে' : 'Via Phone'}</span>
-              </button>
+            <div className="text-center mb-4">
+              <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                {isBn ? 'পাসওয়ার্ড রিসেট করুন' : 'Reset Your Password'}
+              </h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                {isBn ? 'আপনার অ্যাকাউন্টের ইমেইল ঠিকানা দিন। আমরা একটি পাসওয়ার্ড রিসেট লিংক পাঠাব।' : 'Enter your registered email address to receive a secure password reset link.'}
+              </p>
             </div>
 
-            {/* Input according to method */}
-            {resetMethod === 'email' ? (
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  {isBn ? 'আপনার নিবন্ধিত ইমেইল ঠিকানা' : 'Registered Email Address'}
-                </label>
-                <div className="relative flex items-center">
-                  <div className="absolute left-3 text-zinc-400">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="email"
-                    id="reset-email-input"
-                    value={resetIdentifier}
-                    onChange={(e) => setResetIdentifier(e.target.value)}
-                    placeholder="yourname@gmail.com"
-                    className="w-full pl-10 pr-3.5 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    required
-                  />
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                {isBn ? 'আপনার নিবন্ধিত ইমেইল ঠিকানা' : 'Registered Email Address'}
+              </label>
+              <div className="relative flex items-center">
+                <div className="absolute left-3 text-zinc-400">
+                  <Mail className="w-4 h-4" />
                 </div>
+                <input
+                  type="email"
+                  id="reset-email-input"
+                  value={resetIdentifier}
+                  onChange={(e) => setResetIdentifier(e.target.value)}
+                  placeholder="yourname@gmail.com"
+                  className="w-full pl-10 pr-3.5 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  required
+                />
               </div>
-            ) : (
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  {isBn ? 'আপনার রবি / সার্কেল নম্বর' : 'Robi / Circle Mobile Number'}
-                </label>
-                <div className="relative flex items-center">
-                  <div className="absolute left-3 text-xs font-mono font-bold text-zinc-600 dark:text-zinc-400 flex items-center gap-1">
-                    <span>🇧🇩</span>
-                    <span>+880</span>
-                  </div>
-                  <input
-                    type="tel"
-                    id="reset-phone-input"
-                    value={resetIdentifier}
-                    onChange={(e) => setResetIdentifier(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                    placeholder="018XXXXXXXX"
-                    className="w-full pl-18 pr-3.5 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl text-sm font-mono text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    required
-                  />
-                </div>
-              </div>
-            )}
+            </div>
 
             <button
               type="submit"
@@ -1138,12 +1134,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
                 </>
               ) : (
                 <>
-                  {resetMethod === 'email' ? <Mail className="w-4 h-4" /> : <KeyRound className="w-4 h-4" />}
-                  <span>
-                    {resetMethod === 'email' 
-                      ? (isBn ? 'পাসওয়ার্ড রিসেট লিংক পাঠান' : 'Send Reset Link') 
-                      : (isBn ? 'এসএমএস ওটিপি পাঠান' : 'Send SMS OTP')}
-                  </span>
+                  <Mail className="w-4 h-4" />
+                  <span>{isBn ? 'পাসওয়ার্ড রিসেট লিংক পাঠান' : 'Send Reset Link'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

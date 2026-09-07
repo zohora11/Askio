@@ -1,9 +1,18 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // User profile documents indexed by user ID
     match /users/{userId} {
-      allow read, write: if true;
+      // Allow reading user profiles (needed for login/phone account lookup)
+      allow read: if true;
+      // Allow authenticated users to create and update their own document,
+      // and allow creation during initial registration
+      allow create, update: if request.auth == null || request.auth.uid == userId;
+      // Only authenticated owner can delete their account profile
+      allow delete: if request.auth != null && request.auth.uid == userId;
     }
+
+    // Fallback rule for all other documents requiring authentication
     match /{document=**} {
       allow read, write: if request.auth != null;
     }

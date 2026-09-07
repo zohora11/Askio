@@ -62,6 +62,7 @@ import { logoutFirebaseUser, isCustomAvatar, DEFAULT_AVATAR, uploadAvatarToStora
 import { clearDeviceTrustForPhone } from '../services/deviceTrust';
 import { t } from '../constants/translations';
 import { optimizeAvatarImage, optimizeAvatarImageAsFile } from '../utils/imageOptimizer';
+import { UserProfile } from '../types';
 
 const AVATAR_PRESETS = [
   { id: 'av1', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80', label: 'Default' },
@@ -355,20 +356,22 @@ export const ProfileScreen: React.FC = () => {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfile({
+    const profileUpdates: Partial<UserProfile> = {
       fullName: nameInput.trim(),
       email: emailInput.trim(),
       phone: phoneInput.trim(),
       password: passwordInput,
-      avatar: avatarInput,
-      age: ageInput.trim() ? ageInput.trim() : undefined,
-      gender: genderInput || undefined,
-      religion: religionInput || undefined,
-      bloodGroup: bloodGroupInput || undefined,
-      profession: professionInput || undefined,
-      address: addressInput.trim() || undefined,
-      city: cityInput || undefined
-    });
+      avatar: avatarInput
+    };
+    if (ageInput.trim()) profileUpdates.age = ageInput.trim();
+    if (genderInput) profileUpdates.gender = genderInput;
+    if (religionInput) profileUpdates.religion = religionInput;
+    if (bloodGroupInput) profileUpdates.bloodGroup = bloodGroupInput;
+    if (professionInput) profileUpdates.profession = professionInput;
+    if (addressInput.trim()) profileUpdates.address = addressInput.trim();
+    if (cityInput) profileUpdates.city = cityInput;
+
+    updateProfile(profileUpdates);
     setSaveSuccess(true);
     setTimeout(() => {
       setSaveSuccess(false);
