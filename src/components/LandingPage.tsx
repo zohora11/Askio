@@ -52,7 +52,8 @@ import {
   Search,
   Bot,
   Bookmark,
-  Video
+  Video,
+  Download
 } from 'lucide-react';
 import { 
   validateMobileNumber, 
@@ -72,6 +73,7 @@ import { ChatbotAvatar } from './ChatbotAvatar';
 import { AppDocumentationModal } from './AppDocumentationModal';
 import { OtpVerificationModal } from './OtpVerificationModal';
 import { AuthModal } from './AuthModal';
+import { triggerApkDownload } from '../constants/branding';
 
 interface LandingPageProps {
   onEnterApp?: () => void;
@@ -79,6 +81,7 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const { 
+    user,
     theme, 
     setTheme, 
     language, 
@@ -88,7 +91,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     pendingPhone,
     setPendingPhone,
     updateProfile,
-    setActiveTab
+    setActiveTab,
+    handleDownloadApk,
+    isApkModalOpen,
+    setApkModalOpen,
+    pendingApkDownload,
+    setPendingApkDownload,
+    showToast
   } = useApp();
 
   const isBn = language === 'bn';
@@ -100,6 +109,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  // APK Download intent notice state on the subscription card
+  const [apkNoticeActive, setApkNoticeActive] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('askio_pending_apk_download') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  // Dedicated Landing Page APK Download Handler:
+  // STRICT USER CONSTRAINT: NEVER trigger direct APK download on click.
+  // ALWAYS open the mobile number verification screen / modal!
+  const handleLandingApkDownload = () => {
+    setPendingApkDownload(true);
+    setApkNoticeActive(true);
+    try {
+      sessionStorage.setItem('askio_pending_apk_download', 'true');
+    } catch {
+      // Safe fallback
+    }
+    setApkModalOpen(true);
+  };
 
   // Interactive Features Showcase Carousel Slider (1-by-1 Slide)
   const [currentFeatureSlide, setCurrentFeatureSlide] = useState(0);
@@ -307,8 +339,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         isRegistered = false;
       }
 
+      // Check if user clicked Download APK or is in APK verification mode
+      const hadApkIntent = pendingApkDownload || apkNoticeActive;
+
       // STEP 2: If NOT subscribed / NOT registered:
-      // STRICT CONSTRAINT: "যদি সে সাবস্ক্রাইব না হয় সেক্ষেত্রে তাকে কোনোভাবে নেক্সট ধাপে নিয়ে যাওয়া যাবে না ।"
+      // User must subscribe first before they can download APK or access app
       if (!isRegistered) {
         // Clear any stale local subscriber or device trust
         unmarkLocalSubscriber(cleanMobile);
@@ -316,7 +351,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         clearDeviceTrustForPhone(cleanMobile);
 
         // Send OTP to initiate subscription
-        setStatusMessage(isBn ? 'সাবস্ক্রিপশন পাওয়া যায়নি। এসএমএস ওটিপি পাঠানো হচ্ছে...' : 'Subscription not active. Sending verification OTP via SMS...');
+        setStatusMessage(
+          isBn 
+            ? (hadApkIntent 
+                ? 'নম্বরটি সাবস্ক্রাইব করা নেই। APK ডাউনলোড করতে প্রথমে সাবস্ক্রাইব সম্পন্ন করুন...' 
+                : 'সাবস্ক্রিপশন পাওয়া যায়নি। এসএমএস ওটিপি পাঠানো হচ্ছে...') 
+            : (hadApkIntent 
+                ? 'Mobile number not subscribed. Please subscribe via OTP to unlock APK download...' 
+                : 'Subscription not active. Sending verification OTP via SMS...')
+        );
         try {
           const otpRes = await sendOTP(cleanMobile);
           const ref = otpRes.referenceNo || otpRes.subscriberId || 'REF-' + Date.now();
@@ -336,6 +379,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       // Only now, proceed to next step:
       markLocalSubscriber(cleanMobile);
       storeSubscriberSession(cleanMobile);
+
+      // If user came to download APK and is already subscribed, start download immediately!
+      if (hadApkIntent) {
+        triggerApkDownload();
+        showToast(
+          isBn 
+            ? 'সক্রিয় সাবস্ক্রিপশন যাচাই সম্পন্ন! Askio APK ডাউনলোড শুরু হচ্ছে...' 
+            : 'Active subscription verified! Starting Askio APK download...', 
+          'success'
+        );
+        setPendingApkDownload(false);
+        setApkNoticeActive(false);
+        try {
+          sessionStorage.removeItem('askio_pending_apk_download');
+        } catch {
+          // Safe fallback
+        }
+      }
 
       // 3A: Check if device is trusted for this phone number
       const trustedUser = getTrustedDeviceUser(cleanMobile);
@@ -495,6 +556,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               <span>{language === 'en' ? 'বাংলা' : 'EN'}</span>
             </button>
 
+            {/* Download APK Button in Desktop Nav */}
+            <button
+              id="landing-nav-download-apk-btn"
+              onClick={handleLandingApkDownload}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-zinc-200/80 dark:border-zinc-800 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs hover:scale-105 active:scale-95 group"
+              title={isBn ? 'অ্যান্ড্রয়েড APK ডাউনলোড করুন' : 'Download Android APK'}
+            >
+              <Smartphone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+              <span>{isBn ? 'APK ডাউনলোড' : 'Download APK'}</span>
+              <Download className="w-3.5 h-3.5 text-zinc-400 group-hover:text-emerald-500 transition-colors" />
+            </button>
+
             {/* Log In Button - Opens Phone Login Modal */}
             <button
               id="landing-login-btn"
@@ -574,6 +647,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               <Crown className="w-4 h-4 text-amber-300" />
               <span>{isBn ? 'সাবস্ক্রাইব করুন (মাত্র ৳২.৭৮/দিন)' : 'Subscribe Now (৳2.78/day)'}</span>
             </a>
+
+            {/* Direct APK Download Mobile Drawer Action */}
+            <button
+              id="landing-mobile-download-apk-btn"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                handleLandingApkDownload();
+              }}
+              className="w-full py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer border border-zinc-700/60 dark:border-zinc-700 active:scale-95"
+            >
+              <Smartphone className="w-4 h-4 text-emerald-400" />
+              <span>{isBn ? 'Askio অ্যান্ড্রয়েড APK ডাউনলোড' : 'Download Askio Android APK'}</span>
+              <Download className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />
+            </button>
 
             {/* Documentation Button */}
             <button
@@ -683,25 +770,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               </div>
             </div>
 
-            {/* Hero Action Buttons: Subscribe & App Details/Documentation */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-3">
+            {/* Hero Action Buttons: Subscribe, Download APK & App Details/Documentation */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 max-w-xl mx-auto lg:mx-0">
+              {/* Button 1: Subscribe */}
               <a
                 href="#subscription"
                 id="hero-subscribe-cta-btn"
-                className="px-7 py-3.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-extrabold rounded-2xl text-sm transition-all shadow-lg shadow-emerald-600/25 flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
+                className="h-12 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-2xl text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 hover:-translate-y-0.5 active:scale-98 cursor-pointer whitespace-nowrap"
               >
-                <Crown className="w-4 h-4 text-amber-300" />
-                <span>{isBn ? '৳২.৭৮/দিনে সাবস্ক্রাইব করুন' : 'Subscribe for ৳2.78/day'}</span>
+                <Crown className="w-4 h-4 text-amber-300 shrink-0" />
+                <span>{isBn ? 'সাবস্ক্রাইব (৳২.৭৮)' : 'Subscribe (৳2.78)'}</span>
               </a>
 
-              {/* Documentation / Details Button right next to Subscribe button */}
+              {/* Button 2: Download APK */}
               <button
+                type="button"
+                id="hero-download-apk-btn"
+                onClick={handleLandingApkDownload}
+                className="h-12 px-4 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-bold rounded-2xl text-xs sm:text-sm transition-all shadow-md shadow-zinc-950/15 flex items-center justify-center gap-2 hover:-translate-y-0.5 active:scale-98 cursor-pointer border border-zinc-700/60 dark:border-zinc-700 whitespace-nowrap group"
+                title={isBn ? 'Askio অ্যান্ড্রয়েড APK ডাউনলোড করুন' : 'Download Askio Android APK'}
+              >
+                <Smartphone className="w-4 h-4 text-emerald-400 shrink-0 group-hover:scale-110 transition-transform" />
+                <span>{isBn ? 'ডাউনলোড APK' : 'Download APK'}</span>
+                <Download className="w-3.5 h-3.5 text-zinc-400 group-hover:text-emerald-400 transition-colors shrink-0" />
+              </button>
+
+              {/* Button 3: Features & Guide */}
+              <button
+                type="button"
                 id="hero-documentation-btn"
                 onClick={() => setIsDocModalOpen(true)}
-                className="px-5 py-3.5 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 font-bold rounded-2xl text-sm border border-zinc-200 dark:border-zinc-800 transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+                className="h-12 px-4 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 font-bold rounded-2xl text-xs sm:text-sm border border-zinc-200 dark:border-zinc-800 transition-all flex items-center justify-center gap-2 shadow-2xs hover:-translate-y-0.5 active:scale-98 cursor-pointer whitespace-nowrap"
               >
-                <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span>{isBn ? 'ফিচার্স ও বিস্তারিত ডকুমেন্টেশন' : 'Features & Documentation'}</span>
+                <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>{isBn ? 'ফিচার্স গাইড' : 'Features & Guide'}</span>
               </button>
             </div>
           </div>
@@ -729,6 +831,45 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   {isBn ? 'সক্রিয় অনলাইন' : 'Online Engine'}
                 </span>
               </div>
+
+              {/* APK Download Verification Mode Alert Banner */}
+              {(apkNoticeActive || pendingApkDownload) && (
+                <div 
+                  id="apk-download-sub-banner"
+                  className="mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-emerald-500/15 border-2 border-emerald-500/40 text-emerald-950 dark:text-emerald-100 flex items-start gap-3 shadow-xs animate-in fade-in slide-in-from-top-2 duration-300"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Smartphone className="w-4 h-4" />
+                  </div>
+                  <div className="space-y-1 flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <Download className="w-3.5 h-3.5" />
+                        {isBn ? 'Askio APK ডাউনলোড ভেরিফিকেশন' : 'Askio APK Download Verification'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setApkNoticeActive(false);
+                          setPendingApkDownload(false);
+                          try {
+                            sessionStorage.removeItem('askio_pending_apk_download');
+                          } catch {}
+                        }}
+                        className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-xs p-1 cursor-pointer"
+                        title="Dismiss"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-zinc-700 dark:text-zinc-300 leading-snug font-medium">
+                      {isBn 
+                        ? 'আপনার রবি বা সার্কেল নম্বর দিন। পূর্বে সাবস্ক্রাইব করা থাকলে নম্বর দেওয়া মাত্রই স্বয়ংক্রিয়ভাবে ডাউনলোড শুরু হবে। সাবস্ক্রাইব করা না থাকলে মাত্র ৳২.৭৮/দিনে সাবস্ক্রাইব করে ডাউনলোড শুরু করুন।'
+                        : 'Enter your Robi or Cirkle number. If already subscribed, download starts automatically upon verification. If not yet subscribed, complete daily subscription (৳2.78/day) to unlock download.'}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Status Alert */}
               {errorMessage && (
@@ -770,9 +911,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                     />
                   </div>
                   <p className="text-[10px] text-zinc-400 mt-1.5">
-                    {isBn 
-                      ? 'পূর্বে ব্যবহৃত ডিভাইসে সরাসরি প্রবেশ করবেন। নতুন ডিভাইসে ইমেইল/পাসওয়ার্ড বা ওটিপি প্রয়োজন হবে।' 
-                      : 'Recognized devices enter directly. New devices verify via email/password or OTP.'}
+                    {(apkNoticeActive || pendingApkDownload) ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                        {isBn 
+                          ? 'সক্রিয় সাবস্ক্রাইবাররা নম্বর যাচাইয়ের সাথে সাথে স্বয়ংক্রিয়ভাবে APK ডাউনলোড পাবেন।' 
+                          : 'Subscribed users will receive the APK download automatically once verified.'}
+                      </span>
+                    ) : (
+                      isBn 
+                        ? 'পূর্বে ব্যবহৃত ডিভাইসে সরাসরি প্রবেশ করবেন। নতুন ডিভাইসে ইমেইল/পাসওয়ার্ড বা ওটিপি প্রয়োজন হবে।' 
+                        : 'Recognized devices enter directly. New devices verify via email/password or OTP.'
+                    )}
                   </p>
                 </div>
 
@@ -786,6 +935,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
                       <span>{isBn ? 'যাচাই করা হচ্ছে...' : 'Verifying...'}</span>
+                    </>
+                  ) : (apkNoticeActive || pendingApkDownload) ? (
+                    <>
+                      <Download className="w-4 h-4" />
+                      <span>{isBn ? 'যাচাই ও APK ডাউনলোড করুন' : 'Verify & Download APK'}</span>
                     </>
                   ) : (
                     <>
@@ -1576,6 +1730,78 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         </div>
       </section>
 
+      {/* --- ASKIO ANDROID APP DOWNLOAD SHOWCASE SECTION --- */}
+      <section id="android-app-section" className="py-12 sm:py-16 px-4 sm:px-8 max-w-7xl mx-auto border-t border-zinc-200/80 dark:border-zinc-800">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white p-6 sm:p-10 lg:p-12 border-2 border-emerald-500/40 shadow-2xl shadow-emerald-950/25">
+          {/* Ambient Lighting Orbs */}
+          <div className="absolute -top-24 -right-24 w-80 h-80 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-8 space-y-4 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-black uppercase tracking-wider">
+                <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+                <span>ASKIO ANDROID APP</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+
+              <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+                {isBn 
+                  ? 'আপনার অ্যান্ড্রয়েড ডিভাইসে উপভোগ করুন সম্পূর্ণ Askio অভিজ্ঞতা' 
+                  : 'Get the full Askio experience on your Android phone'}
+              </h2>
+
+              <p className="text-sm sm:text-base text-zinc-300 leading-relaxed max-w-2xl font-medium mx-auto lg:mx-0">
+                {isBn
+                  ? 'অফিশিয়াল অ্যান্ড্রয়েড অ্যাপের মাধ্যমে যে কোনো স্থান থেকে এক ক্লিকে পান হাজারো অ্যাকাডেমিক বই, ক্যারিয়ার ও টেকনোলজি গাইড, স্টাডি ট্র্যাকিং এবং তাৎক্ষণিক এআই উত্তর।'
+                  : 'Download and install our official Android application for instantaneous access to thousands of books, career guides, study goals, and responsive AI guidance.'}
+              </p>
+
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 pt-2 text-xs font-semibold text-zinc-300">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-white/10">
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                  <span>{isBn ? 'অফিশিয়াল গিটহাব রিলিজ' : 'Official GitHub Release'}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-white/10">
+                  <Zap className="w-4 h-4 text-amber-400" />
+                  <span>{isBn ? 'সরাসরি দ্রুত ডাউনলোড' : 'Direct APK Download'}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-white/10">
+                  <ShieldCheck className="w-4 h-4 text-blue-400" />
+                  <span>{isBn ? '১০০% নিরাপদ ও সুরক্ষিত' : '100% Safe & Verified'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-4 flex flex-col items-center lg:items-end justify-center gap-3">
+              <button
+                id="landing-section-download-apk-btn"
+                onClick={handleLandingApkDownload}
+                className="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-zinc-950 font-black rounded-2xl text-base transition-all shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-3 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer group"
+              >
+                <div className="w-8 h-8 rounded-xl bg-zinc-950/15 flex items-center justify-center">
+                  <Download className="w-5 h-5 text-zinc-950 group-hover:translate-y-0.5 transition-transform" />
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-[11px] uppercase tracking-wider font-extrabold text-emerald-950/80 leading-none">
+                    {isBn ? 'সরাসরি ডাউনলোড' : 'Direct Download'}
+                  </span>
+                  <span className="text-base font-black leading-tight">
+                    {isBn ? 'APK ডাউনলোড করুন' : 'Download APK'}
+                  </span>
+                </div>
+              </button>
+
+              <div className="text-xs text-zinc-400 font-medium text-center lg:text-right flex items-center justify-center lg:justify-end gap-2">
+                <span>Askio.apk (Latest v1.0)</span>
+                <span>•</span>
+                <span>Android 7.0+</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* --- FAQ SECTION --- */}
       <section id="faq" className="py-16 px-4 sm:px-8 max-w-4xl mx-auto border-t border-zinc-200/80 dark:border-zinc-800">
         <div className="text-center mb-10 space-y-2">
@@ -1772,6 +1998,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         onClose={() => setIsOtpModalOpen(false)}
         onSuccess={() => {
           setIsOtpModalOpen(false);
+          // If user had clicked Download APK, start APK download upon successful subscription
+          if (pendingApkDownload || apkNoticeActive) {
+            triggerApkDownload();
+            showToast(
+              isBn 
+                ? 'সাবস্ক্রিপশন সম্পন্ন হয়েছে! Askio APK ডাউনলোড শুরু হচ্ছে...' 
+                : 'Subscription activated! Starting Askio APK download...', 
+              'success'
+            );
+            setPendingApkDownload(false);
+            setApkNoticeActive(false);
+            try {
+              sessionStorage.removeItem('askio_pending_apk_download');
+            } catch {}
+          }
           setActiveTab('home');
           if (onEnterApp) onEnterApp();
         }}
@@ -1786,6 +2027,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       {/* Dedicated Global Phone Log In Modal */}
       <AuthModal 
         onLoginSuccess={() => {
+          // If user had pending APK download, trigger download after login
+          if (pendingApkDownload || apkNoticeActive) {
+            triggerApkDownload();
+            showToast(
+              isBn 
+                ? 'লগইন সফল হয়েছে! Askio APK ডাউনলোড শুরু হচ্ছে...' 
+                : 'Login successful! Starting Askio APK download...', 
+              'success'
+            );
+            setPendingApkDownload(false);
+            setApkNoticeActive(false);
+            try {
+              sessionStorage.removeItem('askio_pending_apk_download');
+            } catch {}
+          }
           setActiveTab('home');
           if (onEnterApp) onEnterApp();
         }}

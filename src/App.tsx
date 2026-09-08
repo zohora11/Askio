@@ -8,10 +8,12 @@ import { AppProvider, useApp } from './context/AppContext';
 import { MainShell } from './components/MainShell';
 import { LandingPage } from './components/LandingPage';
 import { InitialLoadingScreen } from './components/InitialLoadingScreen';
+import { ToastNotification } from './components/ToastNotification';
+import { ApkDownloadModal } from './components/ApkDownloadModal';
 import { APP_LOGO_URL } from './constants/branding';
 
 function AppContent() {
-  const { user, activeTab, setActiveTab } = useApp();
+  const { user, activeTab, setActiveTab, isApkModalOpen, setApkModalOpen } = useApp();
   const prevLoggedInRef = useRef(user.isLoggedIn);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
@@ -43,6 +45,13 @@ function AppContent() {
 
   return (
     <>
+      <ToastNotification />
+
+      <ApkDownloadModal 
+        isOpen={isApkModalOpen} 
+        onClose={() => setApkModalOpen(false)} 
+      />
+
       {isInitialLoading && (
         <InitialLoadingScreen
           onLoaded={() => setIsInitialLoading(false)}

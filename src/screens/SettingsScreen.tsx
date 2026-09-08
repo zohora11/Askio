@@ -16,7 +16,9 @@ import {
   AlertOctagon,
   Trash2,
   Mail,
-  FileText
+  FileText,
+  Download,
+  Smartphone
 } from 'lucide-react';
 import { ThemeMode, AppLanguage } from '../types';
 import { t } from '../constants/translations';
@@ -33,7 +35,8 @@ export const SettingsScreen: React.FC = () => {
     analyticsConsent, 
     setAnalyticsConsent,
     selectedFormat,
-    setSelectedFormat
+    setSelectedFormat,
+    handleDownloadApk
   } = useApp();
 
   const [activeSection, setActiveSection] = useState<'all' | 'appearance' | 'language' | 'security' | 'content' | 'privacy' | 'help' | 'about'>('all');
@@ -328,6 +331,35 @@ export const SettingsScreen: React.FC = () => {
             );
           })}
         </div>
+      </div>
+
+      {/* Askio Android App APK Download */}
+      <div 
+        id="settings-apk-download-card"
+        className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Smartphone className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+              {language === 'bn' ? 'Askio অ্যান্ড্রয়েড অ্যাপ' : 'Askio Android Application'}
+            </h3>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              {language === 'bn' ? 'অফিশিয়াল গিটহাব রিলিজ থেকে সরাসরি APK ফাইল ডাউনলোড করুন' : 'Official GitHub release build (Askio.apk)'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          id="settings-download-apk-btn"
+          onClick={handleDownloadApk}
+          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer active:scale-95"
+        >
+          <Download className="w-4 h-4" />
+          <span>{language === 'bn' ? 'APK ডাউনলোড করুন' : 'Download APK'}</span>
+        </button>
       </div>
 
       {/* 6. About Askio (v1.0.0, Terms, Company) */}

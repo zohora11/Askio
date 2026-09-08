@@ -18,7 +18,9 @@ import {
   Eye,
   EyeOff,
   RefreshCw,
-  Check
+  Check,
+  Download,
+  Smartphone
 } from 'lucide-react';
 import { AppLogo } from './AppLogo';
 import { 
@@ -49,6 +51,7 @@ import {
   saveDeviceTrustForPhone,
   clearDeviceTrustForPhone
 } from '../services/deviceTrust';
+import { triggerApkDownload } from '../constants/branding';
 import { OtpVerificationModal } from './OtpVerificationModal';
 
 interface AuthModalProps {
@@ -64,6 +67,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
     setAuthView, 
     pendingPhone,
     setPendingPhone,
+    authModalNotice,
+    setAuthModalNotice,
+    pendingApkDownload,
+    setPendingApkDownload,
+    showToast,
     language,
     updateProfile,
     setActiveTab
@@ -267,6 +275,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
 
       setSuccessMsg(isBn ? 'ফায়ারবেস অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Firebase account created successfully! Entering Askio...');
 
+      if (pendingApkDownload) {
+        setPendingApkDownload(false);
+        try {
+          sessionStorage.removeItem('askio_pending_apk_download');
+        } catch {}
+        triggerApkDownload();
+        showToast(
+          isBn ? 'সাবস্ক্রিপশন ও অ্যাকাউন্ট তৈরি সম্পন্ন! Askio APK ডাউনলোড শুরু হচ্ছে...' : 'Subscription complete! Starting Askio APK download...',
+          'success'
+        );
+      }
+
       setTimeout(() => {
         setLoading(false);
         setAuthModalOpen(false);
@@ -354,6 +374,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       });
 
       setSuccessMsg(isBn ? 'লগইন সফল হয়েছে! অ্যাপে প্রবেশ করা হচ্ছে...' : 'Login successful! Entering Askio...');
+
+      if (pendingApkDownload) {
+        setPendingApkDownload(false);
+        try {
+          sessionStorage.removeItem('askio_pending_apk_download');
+        } catch {}
+        triggerApkDownload();
+        showToast(
+          isBn ? 'লগইন সম্পন্ন! Askio APK ডাউনলোড শুরু হচ্ছে...' : 'Login successful! Starting Askio APK download...',
+          'success'
+        );
+      }
 
       setTimeout(() => {
         setLoading(false);
@@ -573,7 +605,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in cursor-pointer"
-      onClick={() => setAuthModalOpen(false)}
+      onClick={() => {
+        setAuthModalNotice(null);
+        setAuthModalOpen(false);
+      }}
     >
       <div 
         id="auth-modal"
@@ -582,8 +617,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       >
         <button
           id="close-auth-modal-btn"
-          onClick={() => setAuthModalOpen(false)}
-          className="absolute top-4 right-4 p-2 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          onClick={() => {
+            setAuthModalNotice(null);
+            setAuthModalOpen(false);
+          }}
+          className="absolute top-4 right-4 p-2 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -629,6 +667,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
               : 'Subscribe to create a new account or sign in to your existing account')}
           </p>
         </div>
+
+        {/* Notice Banner (e.g. "Login to download APK") */}
+        {authModalNotice && (
+          <div 
+            id="auth-modal-apk-notice-banner"
+            className="mb-5 p-3.5 bg-amber-500/10 dark:bg-amber-400/15 border-2 border-amber-500/50 dark:border-amber-400/60 rounded-2xl text-xs sm:text-sm font-bold text-amber-950 dark:text-amber-200 flex items-center gap-3 shadow-md shadow-amber-500/10 animate-in fade-in slide-in-from-top-2"
+          >
+            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+              <Download className="w-4 h-4 text-amber-600 dark:text-amber-400 animate-bounce" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] uppercase tracking-wider text-amber-700 dark:text-amber-400 font-extrabold">
+                {isBn ? 'ডাউনলোড ভেরিফিকেশন' : 'Verification Required'}
+              </div>
+              <div className="text-xs sm:text-sm font-black text-zinc-900 dark:text-white">
+                {authModalNotice}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Top Tab Switcher between Option A (Subscribe) and Option B (Login) */}
         {(authView === 'phone' || authView === 'login' || authView === 'firebase_login') && (

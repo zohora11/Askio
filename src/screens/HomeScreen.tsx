@@ -17,7 +17,9 @@ import {
   Globe,
   Compass,
   HeartPulse,
-  GraduationCap
+  GraduationCap,
+  Download,
+  Smartphone
 } from 'lucide-react';
 import { ResourceCard } from '../components/ResourceCard';
 import { MOCK_RESOURCES, FEATURED_SPOTLIGHTS, CATEGORIES_DATA } from '../data/mockData';
@@ -33,7 +35,8 @@ export const HomeScreen: React.FC = () => {
     goals, 
     sendChatMessage,
     language,
-    setWellnessModalOpen
+    setWellnessModalOpen,
+    handleDownloadApk
   } = useApp();
 
   const isBn = language === 'bn';
@@ -240,6 +243,52 @@ export const HomeScreen: React.FC = () => {
             <span>{isBn ? 'সম্পূর্ণ টিপস ও গাইড দেখুন' : 'View Full Tips & Guide'}</span>
             <ArrowRight className="w-4 h-4 text-white dark:text-black group-hover:translate-x-1 transition-transform" />
           </button>
+        </div>
+      </div>
+
+      {/* Askio Android APK Download Dashboard Card */}
+      <div 
+        id="home-apk-download-card"
+        className="relative overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 text-white rounded-3xl p-5 sm:p-7 border border-emerald-500/40 shadow-xl shadow-emerald-950/15 transition-all group"
+      >
+        <div className="absolute -top-16 -right-16 w-48 h-48 bg-emerald-500/15 rounded-full blur-2xl pointer-events-none group-hover:bg-emerald-500/25 transition-all duration-500" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div className="flex items-start sm:items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
+              <Smartphone className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  Android App v1.0
+                </span>
+                <span className="text-xs text-zinc-400 font-medium">
+                  {isBn ? 'অফিশিয়াল গিটহাব রিলিজ' : 'Official GitHub Release'}
+                </span>
+              </div>
+              <h3 className="text-lg font-black text-white leading-snug">
+                {isBn ? 'Askio অ্যান্ড্রয়েড অ্যাপ ডাউনলোড করুন' : 'Download Askio Android APK'}
+              </h3>
+              <p className="text-xs text-zinc-300 max-w-lg leading-relaxed font-normal">
+                {isBn 
+                  ? 'আপনার মোবাইল ফোনে দ্রুত স্টাডি, এআই চ্যাট এবং রিডিং এর জন্য অফিশিয়াল Askio অ্যাপ ইনস্টল করুন।' 
+                  : 'Install the native Askio APK on your smartphone for one-tap AI answers, reading offline, and goal tracking.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0 self-stretch sm:self-auto">
+            <button
+              id="dashboard-download-apk-btn"
+              onClick={handleDownloadApk}
+              className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-zinc-950 font-black text-xs transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 cursor-pointer group/btn"
+              title={isBn ? 'APK ফাইল ডাউনলোড করুন' : 'Download APK file'}
+            >
+              <Download className="w-4 h-4 text-zinc-950 group-hover/btn:translate-y-0.5 transition-transform" />
+              <span>{isBn ? 'APK ডাউনলোড' : 'Download APK'}</span>
+            </button>
+          </div>
         </div>
       </div>
 

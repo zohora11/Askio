@@ -44,6 +44,7 @@ import { clearDeviceTrustForPhone } from '../services/deviceTrust';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { saveActivitiesToFirestore, loadActivitiesFromFirestore } from '../services/firebase';
+import { triggerApkDownload, ASKIO_APK_URL } from '../constants/branding';
 
 interface UndoState {
   item: NotificationItem;
@@ -82,6 +83,16 @@ interface AppContextType {
   setAuthView: (view: 'login' | 'phone' | 'otp' | 'register' | 'firebase_login' | 'firebase_register' | 'forgot_password' | 'verify_reset_otp' | 'reset_password') => void;
   pendingPhone: string;
   setPendingPhone: (phone: string) => void;
+  authModalNotice: string | null;
+  setAuthModalNotice: (notice: string | null) => void;
+  toastMessage: { text: string; type?: 'info' | 'success' | 'warning' | 'error' } | null;
+  showToast: (text: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+  clearToast: () => void;
+  handleDownloadApk: () => void;
+  isApkModalOpen: boolean;
+  setApkModalOpen: (open: boolean) => void;
+  pendingApkDownload: boolean;
+  setPendingApkDownload: (pending: boolean) => void;
   
   // Library & Bookmarks
   bookmarkedIds: string[];
@@ -424,10 +435,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => unsubscribe();
   }, []);
 
-  // Auth modal state
+  // Auth and APK modal state
   const [isAuthModalOpen, setAuthModalOpen] = useState<boolean>(false);
+  const [isApkModalOpen, setApkModalOpen] = useState<boolean>(false);
   const [authView, setAuthView] = useState<'login' | 'phone' | 'otp' | 'register' | 'firebase_login' | 'firebase_register' | 'forgot_password' | 'verify_reset_otp' | 'reset_password'>('phone');
   const [pendingPhone, setPendingPhone] = useState<string>('');
+  const [authModalNotice, setAuthModalNotice] = useState<string | null>(null);
+  const [pendingApkDownload, setPendingApkDownload] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('askio_pending_apk_download') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [toastMessage, setToastMessage] = useState<{ text: string; type?: 'info' | 'success' | 'warning' | 'error' } | null>(null);
+
+  const showToast = useCallback((text: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+    setToastMessage({ text, type });
+  }, []);
+
+  const clearToast = useCallback(() => {
+    setToastMessage(null);
+  }, []);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
 
   // Bookmarks & History
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(() => {
@@ -494,6 +532,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
   const [activityTrackingEnabled, setActivityTrackingEnabled] = useState<boolean>(true);
   const [analyticsConsent, setAnalyticsConsent] = useState<boolean>(true);
+
+  const handleDownloadApk = useCallback(() => {
+    // STRICT CONSTRAINT: NEVER trigger direct APK download upon clicking Download button!
+    // Always open phone number verification modal first.
+    setPendingApkDownload(true);
+    try {
+      sessionStorage.setItem('askio_pending_apk_download', 'true');
+    } catch {
+      // Safe fallback
+    }
+    setApkModalOpen(true);
+  }, []);
+
+  // If user just logged in and had requested APK download earlier
+  useEffect(() => {
+    if (user.isLoggedIn && pendingApkDownload) {
+      setPendingApkDownload(false);
+      try {
+        sessionStorage.removeItem('askio_pending_apk_download');
+      } catch {
+        // Safe fallback
+      }
+      setAuthModalNotice(null);
+      const timer = setTimeout(() => {
+        triggerApkDownload();
+        showToast(language === 'bn' ? 'লগইন সম্পন্ন! APK ডাউনলোড শুরু হচ্ছে...' : 'Login successful! Starting APK download...', 'success');
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [user.isLoggedIn, pendingApkDownload, language, showToast]);
 
   // Dynamically update chatbot greeting message to match logged-in user name & language
   useEffect(() => {
@@ -1313,10 +1381,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         logout,
         isAuthModalOpen,
         setAuthModalOpen,
+        isApkModalOpen,
+        setApkModalOpen,
         authView,
         setAuthView,
         pendingPhone,
         setPendingPhone,
+        authModalNotice,
+        setAuthModalNotice,
+        toastMessage,
+        showToast,
+        clearToast,
+        handleDownloadApk,
+        pendingApkDownload,
+        setPendingApkDownload,
         bookmarkedIds,
         toggleBookmark,
         isBookmarked,

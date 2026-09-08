@@ -31,16 +31,18 @@ import { getTrustedDeviceUser } from '../services/deviceTrust';
 
 interface OtpVerificationModalProps {
   isOpen: boolean;
-  phoneNumber: string;
+  phoneNumber?: string;
+  mobileNumber?: string;
   referenceNo?: string;
   onClose: () => void;
   onSuccess?: () => void;
-  onChangePhone: () => void;
+  onChangePhone?: () => void;
 }
 
 export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
   isOpen,
   phoneNumber,
+  mobileNumber,
   referenceNo = '',
   onClose,
   onSuccess,
@@ -48,6 +50,7 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
 }) => {
   const { 
     language, 
+    pendingPhone,
     setPendingPhone, 
     setAuthView, 
     setAuthModalOpen,
@@ -56,6 +59,10 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
   } = useApp();
 
   const isBn = language === 'bn';
+
+  // Compute effective phone from any available prop or context
+  const effectivePhone = phoneNumber || mobileNumber || pendingPhone || '';
+  const cleanMobile = validateMobileNumber(effectivePhone).cleaned || effectivePhone;
 
   const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
@@ -100,7 +107,7 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
         clearInterval(pollTimerRef.current);
       }
     };
-  }, [isOpen, phoneNumber]);
+  }, [isOpen, effectivePhone]);
 
   // Resend OTP countdown
   useEffect(() => {
@@ -188,19 +195,19 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
       return;
     }
 
-    const cleanMobile = validateMobileNumber(phoneNumber).cleaned || phoneNumber;
+    const targetMobile = cleanMobile || validateMobileNumber(effectivePhone).cleaned || effectivePhone;
 
     // Check immediately once
     const checkStatus = async () => {
       try {
         setPollCount(prev => prev + 1);
-        const subRes = await checkSubscription(cleanMobile);
+        const subRes = await checkSubscription(targetMobile);
         if (isSubscriptionRegistered(subRes)) {
           if (pollTimerRef.current) {
             clearInterval(pollTimerRef.current);
             pollTimerRef.current = null;
           }
-          await grantAccessAfterSubscription(cleanMobile);
+          await grantAccessAfterSubscription(targetMobile);
         }
       } catch (e) {
         // Continue polling
@@ -216,7 +223,7 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
         pollTimerRef.current = null;
       }
     };
-  }, [verificationStep, isOpen, phoneNumber]);
+  }, [verificationStep, isOpen, effectivePhone, cleanMobile]);
 
   if (!isOpen) return null;
 
@@ -268,23 +275,29 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
     setErrorMsg('');
     setSuccessMsg('');
 
-    const cleanMobile = validateMobileNumber(phoneNumber).cleaned || phoneNumber;
+    const targetMobile = cleanMobile || validateMobileNumber(effectivePhone).cleaned || effectivePhone;
+
+    if (!targetMobile) {
+      setErrorMsg(isBn ? 'মোবাইল নম্বর পাওয়া যায়নি। অনুগ্রহ করে পুনরায় নম্বর প্রদান করুন।' : 'Mobile number not found. Please re-enter your number.');
+      setLoading(false);
+      return;
+    }
 
     try {
       // 1. Call Verify OTP API
-      await verifyOTP(cleanMobile, fullOtp, activeRefNo);
+      await verifyOTP(targetMobile, fullOtp, activeRefNo);
 
       // 2. Immediately call Check Subscription API as specified by user
       setLoading(true);
       setErrorMsg('');
       setSuccessMsg(isBn ? 'ওটিপি যাচাই হয়েছে! সাবস্ক্রিপশন স্ট্যাটাস চেক করা হচ্ছে...' : 'OTP verified! Checking subscription status...');
 
-      const subRes = await checkSubscription(cleanMobile);
+      const subRes = await checkSubscription(targetMobile);
 
       // 3. Evaluate Subscription status
       if (isSubscriptionRegistered(subRes)) {
         // Charged & registered immediately!
-        await grantAccessAfterSubscription(cleanMobile);
+        await grantAccessAfterSubscription(targetMobile);
       } else if (isInitialChargingPending(subRes) || !isSubscriptionRegistered(subRes)) {
         // Charging pending or waiting for balance deduction
         setLoading(false);
@@ -304,15 +317,15 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
   const handleManualCheckNow = async () => {
     setLoading(true);
     setErrorMsg('');
-    const cleanMobile = validateMobileNumber(phoneNumber).cleaned || phoneNumber;
+    const targetMobile = cleanMobile || validateMobileNumber(effectivePhone).cleaned || effectivePhone;
     try {
-      const subRes = await checkSubscription(cleanMobile);
+      const subRes = await checkSubscription(targetMobile);
       if (isSubscriptionRegistered(subRes)) {
         if (pollTimerRef.current) {
           clearInterval(pollTimerRef.current);
           pollTimerRef.current = null;
         }
-        await grantAccessAfterSubscription(cleanMobile);
+        await grantAccessAfterSubscription(targetMobile);
       } else {
         setErrorMsg(
           isBn
@@ -332,8 +345,8 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
     setLoading(true);
     setErrorMsg('');
     try {
-      const cleanMobile = validateMobileNumber(phoneNumber).cleaned || phoneNumber;
-      const res = await sendOTP(cleanMobile);
+      const targetMobile = cleanMobile || validateMobileNumber(effectivePhone).cleaned || effectivePhone;
+      const res = await sendOTP(targetMobile);
       setActiveRefNo(res.referenceNo || 'REF-' + Date.now());
       setResendCountdown(45);
       setErrorMsg('');
@@ -411,19 +424,19 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
 
         {/* Mobile Number Badge */}
         <div className="p-3 mb-5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <span className="text-base">🇧🇩</span>
             <div>
               <span className="text-zinc-400 block text-[10px] uppercase font-bold tracking-wider">
-                {isBn ? 'ভেরিফিকেশন নম্বর' : 'Destination'}
+                {isBn ? 'গন্তব্য নম্বর (Destination)' : 'Destination'}
               </span>
               <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100 text-sm">
-                +880 {phoneNumber}
+                +880 {cleanMobile || effectivePhone}
               </span>
             </div>
           </div>
 
-          {verificationStep === 'input' && (
+          {verificationStep === 'input' && onChangePhone && (
             <button
               type="button"
               id="change-otp-phone-btn"
@@ -431,7 +444,7 @@ export const OtpVerificationModal: React.FC<OtpVerificationModalProps> = ({
                 onClose();
                 onChangePhone();
               }}
-              className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline px-2.5 py-1 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+              className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline px-2.5 py-1 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer"
             >
               <Edit2 className="w-3 h-3" />
               <span>{isBn ? 'পরিবর্তন' : 'Change'}</span>
